@@ -14,6 +14,11 @@ fastify.get('/', async (request, reply) => {
   return reply.sendFile('index.html');
 });
 
+fastify.get('/test', async (request, reply) => {
+  return reply.sendFile('test.html');
+});
+
+
 
 // le server ecoute sur le port 3000
 const start = async () => {
