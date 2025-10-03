@@ -1,0 +1,54 @@
+import { Scene, ActionManager, ExecuteCodeAction } from '@babylonjs/core';
+import { Paddle } from './Paddle';
+
+export class InputHandler {
+    private scene: Scene;
+    private paddle1: Paddle;
+    private paddle2: Paddle;
+    private inputMap: any = {};
+
+    constructor(scene: Scene, paddle1: Paddle, paddle2: Paddle) {
+        this.scene = scene;
+        this.paddle1 = paddle1; // Left paddle
+        this.paddle2 = paddle2; // Right paddle
+        this.setupInput();
+    }
+
+    private setupInput(): void {
+        this.scene.actionManager = new ActionManager(this.scene);
+
+        this.scene.actionManager.registerAction(
+            new ExecuteCodeAction(ActionManager.OnKeyDownTrigger, (evt) => {
+                this.inputMap[evt.sourceEvent.key] = evt.sourceEvent.type === 'keydown';
+            })
+        );
+
+        this.scene.actionManager.registerAction(
+            new ExecuteCodeAction(ActionManager.OnKeyUpTrigger, (evt) => {
+                this.inputMap[evt.sourceEvent.key] = evt.sourceEvent.type === 'keydown';
+            })
+        );
+
+
+        // *** FIX: Map keys to horizontal Z-axis movement ***
+        this.scene.onBeforeRenderObservable.add(() => {
+            // Player 1 (Left Paddle): 'w' and 's'
+            if (this.inputMap['w']) {
+                this.paddle1.moveNegativeZ(); // Move "up" the screen
+            } else if (this.inputMap['s']) {
+                this.paddle1.movePositiveZ(); // Move "down" the screen
+            } else {
+                this.paddle1.stop();
+            }
+
+            // Player 2 (Right Paddle): Arrow keys
+            if (this.inputMap['ArrowUp']) {
+                this.paddle2.moveNegativeZ();
+            } else if (this.inputMap['ArrowDown']) {
+                this.paddle2.movePositiveZ();
+            } else {
+                this.paddle2.stop();
+            }
+        });
+    }
+}
