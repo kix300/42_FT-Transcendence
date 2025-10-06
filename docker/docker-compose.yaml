@@ -3,11 +3,11 @@
 services:
   app:
     build: ../backend/
+    container_name: fastify
     ports:
       - "3000:3000"
     volumes:
       - ./public:/app/public
-    container_name: fastify-volume-container
 
   postgres:
     build: ../database/
