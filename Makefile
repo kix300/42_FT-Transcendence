@@ -2,6 +2,7 @@ FILE			= 	docker/docker-compose.yaml
 DOCKER_COMPOSE	=	docker compose -f ./$(FILE)
 
 
+all: build up
 
 build:
 	$(DOCKER_COMPOSE) build
