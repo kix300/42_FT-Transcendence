@@ -2,7 +2,11 @@ FILE			= 	docker/docker-compose.yaml
 DOCKER_COMPOSE	=	docker compose -f ./$(FILE)
 
 
-all: build up
+all: init build up
+
+init:
+	mkdir -p ./database
+	chmod 777 ./database
 
 build:
 	$(DOCKER_COMPOSE) build
@@ -22,7 +26,7 @@ clean:
 status:
 	docker ps
 
-re: fclean up
+re: fclean init up
 
 fclean: clean
 	docker system prune -a --volumes
