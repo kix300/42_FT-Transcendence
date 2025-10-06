@@ -1,19 +1,26 @@
-.PHONY: build up down logs clean rebuild
+FILE			= 	docker/docker-compose.yaml
+DOCKER_COMPOSE	=	docker compose -f ./$(FILE)
+
+
+all: build up
 
 build:
-	docker-compose build
+	$(DOCKER_COMPOSE) build
 
 up: build
-	docker-compose up -d
+	$(DOCKER_COMPOSE) up -d
 
 down:
-	docker-compose down
+	$(DOCKER_COMPOSE) down
 
 logs:
-	docker-compose logs -f
+	$(DOCKER_COMPOSE) logs -f
 
 clean:
-	docker-compose down -v
+	$(DOCKER_COMPOSE) down -v --remove-orphans
+
+status:
+	docker ps
 
 re: fclean up
 
@@ -21,3 +28,7 @@ fclean: clean
 	docker system prune -a --volumes
 
 rebuild: clean build up
+
+
+
+.PHONY: build up down logs clean rebuild
