@@ -1,3 +1,5 @@
+
+
 services:
   app:
     build: ../backend/
@@ -7,6 +9,15 @@ services:
       - ./public:/app/public
     container_name: fastify-volume-container
 
-  database:
+  postgres:
     build: ../database/
+    container_name: postgres
+    ports:
+    - "5432:5432"
+    volumes:
+    - postgres_data:/va/lib/postresql/data
+
+volumes:
+  postgres_data:
+
 
