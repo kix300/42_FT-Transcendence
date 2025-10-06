@@ -6,3 +6,7 @@ services:
     volumes:
       - ./public:/app/public
     container_name: fastify-volume-container
+
+  database:
+    build: ../database/
+
