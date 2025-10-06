@@ -1,4 +1,4 @@
-FILE			= 	docker/docker-compose.yml
+FILE			= 	docker/docker-compose.yaml
 DOCKER_COMPOSE	=	docker compose -f ./$(FILE)
 
 
