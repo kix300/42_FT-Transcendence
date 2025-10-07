@@ -1,7 +1,7 @@
 import "./style.css";
 
-import { Engine } from '@babylonjs/core/Engines/engine';
-import { Game } from './Game';
+import { Engine } from "@babylonjs/core/Engines/engine";
+import { Game } from "./Game";
 
 /***********************************************************
  *
@@ -11,11 +11,11 @@ import { Game } from './Game';
  *
  ***********************************************************/
 
-const bodyClasses: string[] = ['bg-gray-100', 'overflow-hidden'];
-const appDivClasses: string[] = ['w-screen', 'h-screen'];
+const bodyClasses: string[] = ["bg-gray-100", "overflow-hidden"];
+const appDivClasses: string[] = ["w-screen", "h-screen"];
 
 // Style the body
-const body = document.querySelector('body');
+const body = document.querySelector("body");
 if (body) {
   for (const value of bodyClasses) {
     body.classList.add(value);
@@ -23,7 +23,7 @@ if (body) {
 }
 
 // Style the #app div and add the canvas
-const appDiv = document.querySelector<HTMLDivElement>('#app');
+const appDiv = document.querySelector<HTMLDivElement>("#app");
 if (appDiv) {
   for (const value of appDivClasses) {
     appDiv.classList.add(value);
@@ -50,7 +50,7 @@ if (body) {
     <nav class="container mx-auto px-4 py-3 flex items-center justify-between">
       <div class="flex-shrink-0">
         <a href="/">
-          <img src="/public/assets/images/logo.png" alt="Site Logo" class="h-8 w-auto" />
+          <img src="/public/dist/assets/images/logo.png" alt="Site Logo" class="h-8 w-auto" />
         </a>
       </div>
       <ul class="flex space-x-6">
@@ -72,8 +72,8 @@ if (body) {
     </div>
   </footer>`;
 
-  body.insertAdjacentHTML('beforeend', headerHtml);
-  body.insertAdjacentHTML('beforeend', footerHtml);
+  body.insertAdjacentHTML("beforeend", headerHtml);
+  body.insertAdjacentHTML("beforeend", footerHtml);
 }
 
 /***********************************************************
@@ -84,36 +84,36 @@ if (body) {
  *
  ***********************************************************/
 
-const header = document.getElementById('page-header');
-const footer = document.getElementById('page-footer');
+const header = document.getElementById("page-header");
+const footer = document.getElementById("page-footer");
 
 if (header && footer) {
   // Set the initial state to hidden
-  header.classList.add('-translate-y-full');
-  footer.classList.add('translate-y-full');
+  header.classList.add("-translate-y-full");
+  footer.classList.add("translate-y-full");
 
   const threshold = 80; // pixels from the edge
 
-  window.addEventListener('mousemove', (event) => {
+  window.addEventListener("mousemove", (event) => {
     const mouseY = event.clientY;
     const screenHeight = window.innerHeight;
 
     // Show/Hide Header
     if (mouseY < threshold) {
-      header.classList.add('translate-y-0');
-      header.classList.remove('-translate-y-full');
+      header.classList.add("translate-y-0");
+      header.classList.remove("-translate-y-full");
     } else {
-      header.classList.add('-translate-y-full');
-      header.classList.remove('translate-y-0');
+      header.classList.add("-translate-y-full");
+      header.classList.remove("translate-y-0");
     }
 
     // Show/Hide Footer
     if (mouseY > screenHeight - threshold) {
-      footer.classList.add('translate-y-0');
-      footer.classList.remove('translate-y-full');
+      footer.classList.add("translate-y-0");
+      footer.classList.remove("translate-y-full");
     } else {
-      footer.classList.add('translate-y-full');
-      footer.classList.remove('translate-y-0');
+      footer.classList.add("translate-y-full");
+      footer.classList.remove("translate-y-0");
     }
   });
 }
@@ -124,7 +124,7 @@ if (header && footer) {
  *
  ***********************************************************/
 
-const canvas = document.getElementById('renderCanvas') as HTMLCanvasElement;
+const canvas = document.getElementById("renderCanvas") as HTMLCanvasElement;
 
 const engine = new Engine(canvas, true);
 
@@ -132,6 +132,6 @@ const game = new Game(engine, canvas);
 
 game.start();
 
-window.addEventListener('resize', () => {
-    engine.resize();
+window.addEventListener("resize", () => {
+  engine.resize();
 });
