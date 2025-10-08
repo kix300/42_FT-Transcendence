@@ -9,5 +9,7 @@ services:
     volumes:
       - ../backend/public:/app/public
       - ../database:/data
+    env_file:
+      - ".env"
 
 
