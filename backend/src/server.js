@@ -30,7 +30,7 @@ fastify.register(fastifyStatic, {
 
 // Clé secrète JWT
 fastify.register(fastifyJwt, {
-  secret: process.env.JWT_SECRET ,
+  secret: process.env.JWT_PWD ,
 });
 
 // décorateur pour vérifier le token facilement dans les routes
