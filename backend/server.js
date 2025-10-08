@@ -14,7 +14,7 @@ fastify.register(require("@fastify/static"), {
 
 // Route /pong -> index.html dans public/dist/
 fastify.get("/", async (request, reply) => {
-  return reply.sendFile("index.html"); // Cherche dans public/dist/index.html
+  reply.sendFile("index.html");
 });
 
 // API test simple pour les utilisateurs
