@@ -1,6 +1,8 @@
 //import
-import Fastify from 'fastify'
-import fastifyStatic from "@fastify/static"
+import Fastify from 'fastify';
+import fastifyStatic from "@fastify/static";
+import fastifyJwt from "@fastify/jwt";
+import 'dotenv/config';
 import path from "path";
 import { fileURLToPath } from "url";
 import { dirname } from "path";
@@ -25,6 +27,22 @@ fastify.register(fastifyStatic, {
   // à la structure de fichiers dans 'public/dist'.
   // Par exemple, une requête pour /assets/some.js servira public/dist/assets/some.js
 });
+
+// Clé secrète JWT
+fastify.register(fastifyJwt, {
+  secret: process.env.JWT_SECRET ,
+});
+
+// décorateur pour vérifier le token facilement dans les routes
+fastify.decorate("authenticate", async (request, reply) => {
+  try {
+    await request.jwtVerify();
+  } catch (err) {
+    reply.code(401).send({ error: "Unauthorized" });
+  }
+});
+
+export default fastify;
 
 // Enregistrer les routes
 fastify.register(registerRoutes);

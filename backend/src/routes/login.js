@@ -19,7 +19,10 @@ export default async function loginRoutes(fastify, options) {
         return reply.code(401).send({ error: 'Mot de passe incorrect' });
       }
 
-      // Pour plus tard: générer un token JWT ou gérer la session ICI
+      // Génère un token JWT
+      const token = fastify.jwt.sign({ id: user.id, email: user.email});
+
+      // Pour plus tard: gérer la session ICI
 
       return reply.send({ message: 'Connexion réussie', user: { id: user.id, username: user.username } });
     } catch (err) {
