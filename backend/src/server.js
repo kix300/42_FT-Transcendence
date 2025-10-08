@@ -2,7 +2,7 @@
 import Fastify from 'fastify'
 import fastifyStatic from "@fastify/static"
 import registerRoutes from './routes/register.js';
-// import loginRoutes from './routes/login.js';
+import loginRoutes from './routes/login.js';
 // import oauthRoutes from './routes/oauth.js';
 import path from "path";
 import { fileURLToPath } from "url";
@@ -23,7 +23,7 @@ fastify.register(fastifyStatic, {
 
 // Enregistrer les routes
 fastify.register(registerRoutes);
-// fastify.register(loginRoutes);
+fastify.register(loginRoutes);
 // fastify.register(oauthRoutes);
 
 // Route /pong -> index.html dans public/dist/

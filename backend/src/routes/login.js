@@ -1,0 +1,30 @@
+import db from '../db.js';
+import bcrypt from 'bcrypt';
+
+export default async function loginRoutes(fastify, options) {
+  fastify.post('/api/login', async (request, reply) => {
+    const { email, password } = request.body;
+
+    try {
+      // Recherche l'utilisateur en base via l'email
+      const user = db.prepare('SELECT * FROM users WHERE email = ?').get(email);
+
+      if (!user) {
+        return reply.code(401).send({ error: 'Utilisateur non trouvé' });
+      }
+
+      // Vérifie le mot de passe
+      const passwordMatches = await bcrypt.compare(password, user.password);
+      if (!passwordMatches) {
+        return reply.code(401).send({ error: 'Mot de passe incorrect' });
+      }
+
+      // Pour plus tard: générer un token JWT ou gérer la session ICI
+
+      return reply.send({ message: 'Connexion réussie', user: { id: user.id, username: user.username } });
+    } catch (err) {
+      console.error(err);
+      return reply.code(500).send({ error: 'Erreur interne' });
+    }
+  });
+}

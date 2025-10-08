@@ -1,4 +1,4 @@
-//import bcrypt from "bcrypt";
+import bcrypt from "bcrypt";
 import db from "../db.js";
 
 export default async function registerRoutes(fastify ){
@@ -6,7 +6,8 @@ export default async function registerRoutes(fastify ){
         const {username, email, password} = request.body;
 
         try{
-            db.prepare('INSERT INTO users (username, email, password) VALUES (?, ?, ?)').run(username, email, password);
+            const hashedPassword = await bcrypt.hash(password, 10);
+            db.prepare('INSERT INTO users (username, email, password) VALUES (?, ?, ?)').run(username, email, hashedPassword);
             reply.code(201).send({message:"User created successfully"});
         } catch (err) {
             if (err.code == "SQLITE_CONSTRAINT_UNIQUE"){
