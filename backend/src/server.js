@@ -14,7 +14,7 @@ fastify.register(require("@fastify/static"), {
 
 // Route /pong -> index.html dans public/dist/
 fastify.get("/", async (request, reply) => {
-  reply.sendFile("index.html");
+  return reply.sendFile("index.html");
 });
 
 // API test simple pour les utilisateurs
@@ -30,7 +30,7 @@ fastify.post("/api/users", async (req, reply) => {
   }
 });
 
-// le server ecoute sur le port 3000
+// fonction asynchrone pour demarrer le server
 const start = async () => {
   try {
     await fastify.listen({ port: 3000, host: "0.0.0.0" });
