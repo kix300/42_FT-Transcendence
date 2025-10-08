@@ -1,7 +1,7 @@
 const Database = require("better-sqlite3");
 
-// crée ou ouvre le fichier database.sqlite
-const db = new Database("/data/database.sqlite");
+// crée ou ouvre le fichier database.db
+const db = new Database("/data/database.db");
 
 // crée la table si elle n'existe pas
 db.prepare("CREATE TABLE IF NOT EXISTS users (id INTEGER PRIMARY KEY, username TEXT, email TEXT, score INTEGER)").run();

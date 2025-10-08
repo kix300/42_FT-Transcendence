@@ -30,10 +30,7 @@ Single-page application (SPA)
 
 Frameworks JavaScript : React, Vue.js, Angular, Svelte, etc.
 
-J'aimerais utiliser
-- PHP : Symfony 
-- Python Django
-
+npm (Node Package Manage) : pour gerer les librairies js
 
 - You must use Docker to run your website. Everything must be launched with a single command line to run an autonomous container.
 
