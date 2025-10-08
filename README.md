@@ -30,11 +30,12 @@ Single-page application (SPA)
 
 Frameworks JavaScript : React, Vue.js, Angular, Svelte, etc.
 
-npm (Node Package Manage) : pour gerer les librairies js
 
 - You must use Docker to run your website. Everything must be launched with a single command line to run an autonomous container.
 
 
+`npm` (Node Package Manage) : pour gerer les librairies js
+page html avec `fetch("/api/blabla")`
 
 # The Game
 
