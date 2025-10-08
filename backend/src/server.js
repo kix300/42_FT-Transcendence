@@ -1,16 +1,30 @@
 //variables
-const fastify = require("fastify")({ logger: true });
-const path = require("path");
-const db = require("./db.js");
+import Fastify from 'fastify'
+import fastifyStatic from "@fastify/static"
+import registerRoutes from './routes/register.js';
+// import loginRoutes from './routes/login.js';
+// import oauthRoutes from './routes/oauth.js';
+import path from "path";
+import { fileURLToPath } from "url";
+import { dirname } from "path";
+import db from "./db.js";
+
+const fastify = Fastify({ logger: true });
+const __dirname = dirname(fileURLToPath(import.meta.url));
 
 // Servir les fichiers statiques du répertoire 'dist' (créé par npm run build)
 // Cela inclut index.html, et les assets (JS, CSS)
-fastify.register(require("@fastify/static"), {
+fastify.register(fastifyStatic, {
   root: path.join(__dirname, "public/dist"),
   // En ne mettant pas de préfixe, les requêtes sont mappées directement
   // à la structure de fichiers dans 'public/dist'.
   // Par exemple, une requête pour /assets/some.js servira public/dist/assets/some.js
 });
+
+// Enregistrer les routes
+fastify.register(registerRoutes);
+// fastify.register(loginRoutes);
+// fastify.register(oauthRoutes);
 
 // Route /pong -> index.html dans public/dist/
 fastify.get("/", async (request, reply) => {
