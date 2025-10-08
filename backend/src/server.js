@@ -1,14 +1,19 @@
-//variables
+//import
 import Fastify from 'fastify'
 import fastifyStatic from "@fastify/static"
-import registerRoutes from './routes/register.js';
-import loginRoutes from './routes/login.js';
-// import oauthRoutes from './routes/oauth.js';
 import path from "path";
 import { fileURLToPath } from "url";
 import { dirname } from "path";
-import db from "./db.js";
 
+//import routes
+import registerRoutes from './routes/register.js';
+import loginRoutes from './routes/login.js';
+import userRoutes from './routes/users.js';
+// import oauthRoutes from './routes/oauth.js';
+
+
+
+//variables
 const fastify = Fastify({ logger: true });
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
@@ -24,6 +29,7 @@ fastify.register(fastifyStatic, {
 // Enregistrer les routes
 fastify.register(registerRoutes);
 fastify.register(loginRoutes);
+fastify.register(userRoutes);
 // fastify.register(oauthRoutes);
 
 // Route /pong -> index.html dans public/dist/
@@ -31,18 +37,6 @@ fastify.get("/", async (request, reply) => {
   return reply.sendFile("index.html");
 });
 
-// API test simple pour les utilisateurs
-fastify.get("/api/users", async () => db.prepare("SELECT * FROM users").all());
-
-fastify.post("/api/users", async (req, reply) => {
-  const { username } = req.body;
-  try {
-    db.prepare("INSERT INTO users (username) VALUES (?)").run(username);
-    return { success: true };
-  } catch {
-    return reply.status(400).send({ error: "Utilisateur déjà existant" });
-  }
-});
 
 // fonction asynchrone pour demarrer le server
 const start = async () => {
