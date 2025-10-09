@@ -32,12 +32,11 @@ export class InputHandler {
         );
 
 
-        // *** FIX: Map keys to horizontal Z-axis movement ***
         this.scene.onBeforeRenderObservable.add(() => {
             // Player 1 (Left Paddle): 'w' and 's'
-            if (this.inputMap['w']) {
+            if (this.inputMap['s']) {
                 this.paddle1.moveNegativeZ(); // Move "up" the screen
-            } else if (this.inputMap['s']) {
+            } else if (this.inputMap['w']) {
                 this.paddle1.movePositiveZ(); // Move "down" the screen
             } else {
                 this.paddle1.stop();
