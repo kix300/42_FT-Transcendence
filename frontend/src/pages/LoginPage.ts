@@ -440,12 +440,11 @@ async function handleLogin(): Promise<void> {
       showMessage("Authentication successful! Redirecting...", "success");
       setTimeout(() => router.navigate("/"), 1500);
     } else {
-      showMessage(`Authentication failed: ${data.message}`, "error");
+      showMessage(`Authentication failed: ${data.error}`, "error");
     }
   } catch (error) {
     showMessage("Network error: Unable to connect to server", "error");
   }
-
 
   // Temporary mock authentication for frontend testing
 //   setTimeout(() => {
