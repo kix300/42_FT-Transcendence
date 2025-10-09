@@ -144,13 +144,6 @@ export async function LoginPage(): Promise<void> {
                     >
                       ./register.sh --new-user
                     </button>
-                    <button
-                      type="button"
-                      id="guest-btn"
-                      class="flex-1 bg-black border border-green-400/30 text-green-400 py-2 px-4 hover:bg-green-400/10 transition-colors text-sm"
-                    >
-                      ./guest_access.sh
-                    </button>
                   </div>
                 </div>
 
@@ -208,7 +201,7 @@ export async function LoginPage(): Promise<void> {
       <!-- Footer -->
       <footer class="border-t border-green-400/30 p-4">
         <div class="max-w-4xl mx-auto text-center text-green-500 text-xs">
-          <span class="text-green-400">[Auth System]</span> Secure Authentication Portal | École 42 | Build 2024.01.15
+          <span class="text-green-400">[System Info]</span> Transcendence v1.0.0 | École 42 | Build ${new Date().getFullYear()}.${String(new Date().getMonth() + 1).padStart(2, "0")}.${String(new Date().getDate()).padStart(2, "0")}
         </div>
       </footer>
     </div>
@@ -335,7 +328,6 @@ function setupLoginEventListeners(): void {
   const loginForm = document.getElementById("login-form") as HTMLFormElement;
   const loginBtn = document.getElementById("login-btn");
   const registerBtn = document.getElementById("register-btn");
-  const guestBtn = document.getElementById("guest-btn");
   const oauth42Btn = document.getElementById("oauth-42-btn");
 
   // Handle login form submission
@@ -349,18 +341,8 @@ function setupLoginEventListeners(): void {
   // Handle register button
   if (registerBtn) {
     registerBtn.addEventListener("click", () => {
-      showMessage("Registration feature not implemented yet", "info");
-      // TODO: Implement registration logic or navigate to register page
-      // router.navigate("/register");
-    });
-  }
-
-  // Handle guest access
-  if (guestBtn) {
-    guestBtn.addEventListener("click", () => {
-      showMessage("Logging in as guest...", "info");
-      // TODO: Implement guest login logic
-      setTimeout(() => router.navigate("/"), 1000);
+      showMessage("Redirecting to registration...", "info");
+      setTimeout(() => router.navigate("/register"), 1000);
     });
   }
 
@@ -417,24 +399,25 @@ async function handleLogin(): Promise<void> {
 
   // TODO: Replace with actual authentication logic
   try {
-    const response = await fetch('/api/login', {
-      method: 'POST',
+    const response = await fetch("/api/login", {
+      method: "POST",
       headers: {
-        'Content-Type': 'application/json'},
+        "Content-Type": "application/json",
+      },
       body: JSON.stringify({
         username,
         password,
-        remember
-      })
+        remember,
+      }),
     });
 
     const data = await response.json();
 
     if (response.ok) {
       // Store JWT token
-      localStorage.setItem('auth_token', data.token);
+      localStorage.setItem("auth_token", data.token);
       if (remember) {
-        localStorage.setItem('remember_login', 'true');
+        localStorage.setItem("remember_login", "true");
       }
 
       showMessage("Authentication successful! Redirecting...", "success");
@@ -446,7 +429,6 @@ async function handleLogin(): Promise<void> {
     showMessage("Network error: Unable to connect to server", "error");
   }
 }
-
 
 // Show messages in terminal style
 function showMessage(
