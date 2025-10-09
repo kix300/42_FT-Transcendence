@@ -618,22 +618,8 @@ function setupPhotoUpload(): void {
   // Handle remove button
   removeBtn.addEventListener("click", () => {
     photoInput.value = "";
-    photoPreview.innerHTML = // You'll need to create a FormData object and send it to your backend:
-      /*
-   const formData = new FormData();
-   if (photoInput.files?.[0]) {
-     formData.append('profilePhoto', photoInput.files[0]);
-   }
-   formData.append('username', username);
-   formData.append('email', email);
-   // ... other fields
-
-   // Send to backend with fetch
-   const response = await fetch('/api/register', {
-     method: 'POST',
-     body: formData // Don't set Content-Type header, let browser set it with boundary
-   });
-   */ '<span class="text-green-500 text-xs">NO IMG</span>';
+    photoPreview.innerHTML =
+      '<span class="text-green-500 text-xs">NO IMG</span>';
     photoInfo.textContent = "// no file selected";
     removeBtn.classList.add("hidden");
     showMessage("Photo removed", "info");
