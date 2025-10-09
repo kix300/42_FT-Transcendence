@@ -24,7 +24,11 @@ export default async function loginRoutes(fastify, options) {
 
       // Pour plus tard: gérer la session ICI
 
-      return reply.send({ message: 'Connexion réussie', user: { id: user.id, username: user.username } });
+      return reply.send({ 
+			message: 'Connexion réussie',
+			token,
+			user: { id: user.id, username: user.username },
+		 });
     } catch (err) {
       console.error(err);
       return reply.code(500).send({ error: 'Erreur interne' });

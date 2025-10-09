@@ -416,14 +416,11 @@ async function handleLogin(): Promise<void> {
   showMessage("Authenticating...", "info");
 
   // TODO: Replace with actual authentication logic
-  // Example of what you should implement:
-  /*
   try {
-    const response = await fetch('/api/auth/login', {
+    const response = await fetch('/api/login', {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json',
-      },
+        'Content-Type': 'application/json'},
       body: JSON.stringify({
         username,
         password,
@@ -448,28 +445,29 @@ async function handleLogin(): Promise<void> {
   } catch (error) {
     showMessage("Network error: Unable to connect to server", "error");
   }
-  */
+
 
   // Temporary mock authentication for frontend testing
-  setTimeout(() => {
-    if (username === "admin" && password === "admin") {
-      // Mock token storage (replace with real backend logic)
-      localStorage.setItem("mock_auth_token", "mock_jwt_token_here");
-      if (remember) {
-        localStorage.setItem("remember_login", "true");
-        showMessage(
-          "Authentication successful! Session will be remembered.",
-          "success",
-        );
-      } else {
-        showMessage("Authentication successful! Redirecting...", "success");
-      }
-      setTimeout(() => router.navigate("/home"), 1500);
-    } else {
-      showMessage("Authentication failed: Invalid credentials", "error");
-    }
-  }, 1500);
+//   setTimeout(() => {
+//     if (username === "admin" && password === "admin") {
+//       // Mock token storage (replace with real backend logic)
+//       localStorage.setItem("mock_auth_token", "mock_jwt_token_here");
+//       if (remember) {
+//         localStorage.setItem("remember_login", "true");
+//         showMessage(
+//           "Authentication successful! Session will be remembered.",
+//           "success",
+//         );
+//       } else {
+//         showMessage("Authentication successful! Redirecting...", "success");
+//       }
+//       setTimeout(() => router.navigate("/home"), 1500);
+//     } else {
+//       showMessage("Authentication failed: Invalid credentials", "error");
+//     }
+//   }, 1500);
 }
+
 
 // Show messages in terminal style
 function showMessage(
