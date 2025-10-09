@@ -13,8 +13,6 @@ import loginRoutes from './routes/login.js';
 import userRoutes from './routes/users.js';
 // import oauthRoutes from './routes/oauth.js';
 
-
-
 //variables
 const fastify = Fastify({ logger: true });
 const __dirname = dirname(fileURLToPath(import.meta.url));

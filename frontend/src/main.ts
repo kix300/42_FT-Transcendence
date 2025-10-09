@@ -1,48 +1,52 @@
 import "./style.css";
-
+import { createRouter } from "./router";
+import { LoginPage } from "./pages/LoginPage";
+import { HomePage } from "./pages/HomePage";
+import { GamePage } from "./pages/GamePage";
 import { Engine } from "@babylonjs/core/Engines/engine";
 import { Game } from "./Game";
-
-/***********************************************************
- *
- *
- *    Part 1: Define CSS classes and apply them
- *
- *
- ***********************************************************/
 
 const bodyClasses: string[] = ["bg-gray-100", "overflow-hidden"];
 const appDivClasses: string[] = ["w-screen", "h-screen"];
 
-// Style the body
-const body = document.querySelector("body");
-if (body) {
-  for (const value of bodyClasses) {
-    body.classList.add(value);
+
+// Initialiser l'application
+function initApp(): void {
+
+  const body = document.querySelector("body");
+  if (body) {
+    for (const value of bodyClasses) {
+      body.classList.add(value);
+    }
   }
-}
 
-// Style the #app div and add the canvas
-const appDiv = document.querySelector<HTMLDivElement>("#app");
-if (appDiv) {
-  for (const value of appDivClasses) {
-    appDiv.classList.add(value);
+  // Style the #app div and add the canvas
+  // const appDiv = document.querySelector<HTMLDivElement>("#app");
+  // if (appDiv) {
+  //   for (const value of appDivClasses) {
+  //     appDiv.classList.add(value);
+  //   }
+  //   const canvasHtml = `<canvas id="renderCanvas" class="w-full h-full block focus:outline-none"></canvas>`;
+  //   appDiv.innerHTML = canvasHtml;
+  // }
+  const appDiv = document.querySelector<HTMLDivElement>("#app");
+  if (!appDiv) {
+    console.error("Element #app not found!");
+    return;
   }
-  const canvasHtml = `<canvas id="renderCanvas" class="w-full h-full block focus:outline-none"></canvas>`;
-  appDiv.innerHTML = canvasHtml;
-}
 
-/***********************************************************
- *
- *
- *    Part 2: Insert Fixed Header and Footer
- *
- *
- ***********************************************************/
 
-if (body) {
-  // --- HEADER (with updated button styles) ---
-  const headerHtml = `
+  /***********************************************************
+   *
+   *
+   *    Part 2: Insert Fixed Header and Footer
+   *
+   *
+   ***********************************************************/
+
+  if (body) {
+    // --- HEADER (with updated button styles) ---
+    const headerHtml = `
   <header id="page-header" class="fixed top-0 left-0 right-0 z-10
                           bg-white/50 backdrop-blur-sm shadow-md
                           transform -translate-y-full
@@ -63,8 +67,8 @@ if (body) {
     </nav>
   </header>`;
 
-  // --- FOOTER ---
-  const footerHtml = `
+    // --- FOOTER ---
+    const footerHtml = `
   <footer id="page-footer" class="fixed bottom-0 left-0 right-0 z-10
                          bg-gray-800/50 backdrop-blur-sm
                          transform translate-y-full
@@ -74,85 +78,125 @@ if (body) {
     </div>
   </footer>`;
 
-  body.insertAdjacentHTML("beforeend", headerHtml);
-  body.insertAdjacentHTML("beforeend", footerHtml);
-}
+    body.insertAdjacentHTML("beforeend", headerHtml);
+    body.insertAdjacentHTML("beforeend", footerHtml);
+  }
 
-/***********************************************************
- *
- *
- *    Part 3: Handle Mouse Movement for UI Visibility
- *
- *
- ***********************************************************/
+  /***********************************************************
+   *
+   *
+   *    Part 3: Handle Mouse Movement for UI Visibility
+   *
+   *
+   ***********************************************************/
 
-const header = document.getElementById("page-header");
-const footer = document.getElementById("page-footer");
+  const header = document.getElementById("page-header");
+  const footer = document.getElementById("page-footer");
 
-if (header && footer) {
-  // Set the initial state to hidden
-  header.classList.add("-translate-y-full");
-  footer.classList.add("translate-y-full");
+  if (header && footer) {
+    // Set the initial state to hidden
+    header.classList.add("-translate-y-full");
+    footer.classList.add("translate-y-full");
 
-  const threshold = 80; // pixels from the edge
+    const threshold = 80; // pixels from the edge
 
-  window.addEventListener("mousemove", (event) => {
-    const mouseY = event.clientY;
-    const screenHeight = window.innerHeight;
+    window.addEventListener("mousemove", (event) => {
+      const mouseY = event.clientY;
+      const screenHeight = window.innerHeight;
 
-    // Show/Hide Header
-    if (mouseY < threshold) {
-      header.classList.add("translate-y-0");
-      header.classList.remove("-translate-y-full");
-    } else {
-      header.classList.add("-translate-y-full");
-      header.classList.remove("translate-y-0");
-    }
+      // Show/Hide Header
+      if (mouseY < threshold) {
+        header.classList.add("translate-y-0");
+        header.classList.remove("-translate-y-full");
+      } else {
+        header.classList.add("-translate-y-full");
+        header.classList.remove("translate-y-0");
+      }
 
-    // Show/Hide Footer
-    if (mouseY > screenHeight - threshold) {
-      footer.classList.add("translate-y-0");
-      footer.classList.remove("translate-y-full");
-    } else {
-      footer.classList.add("translate-y-full");
-      footer.classList.remove("translate-y-0");
-    }
+      // Show/Hide Footer
+      if (mouseY > screenHeight - threshold) {
+        footer.classList.add("translate-y-0");
+        footer.classList.remove("translate-y-full");
+      } else {
+        footer.classList.add("translate-y-full");
+        footer.classList.remove("translate-y-0");
+      }
+    });
+  }
+  /***********************************************************
+   *
+   *      Game Logic
+   *
+   *
+   ***********************************************************/
+
+  const canvas = document.getElementById("renderCanvas") as HTMLCanvasElement;
+
+  const engine = new Engine(canvas, true);
+
+  const game = new Game(engine, canvas);
+
+  const headerNav = document.querySelector('header nav ul');
+  if (headerNav) {
+    const buttons = headerNav.querySelectorAll('a');
+    buttons.forEach((button) => {
+      const text = button.textContent?.trim();
+      if (text === '2 Players') {
+        button.addEventListener('click', (e) => {
+          e.preventDefault();
+          game.switchToTwoPlayerMode();
+        });
+      } else if (text === '3 Players') {
+        button.addEventListener('click', (e) => {
+          e.preventDefault();
+          game.switchToThreePlayerMode();
+        });
+      }
+    });
+  }
+
+  game.start();
+
+  window.addEventListener("resize", () => {
+    engine.resize();
   });
-}
-/***********************************************************
- *
- *      Game Logic
- *
- *
- ***********************************************************/
 
-const canvas = document.getElementById("renderCanvas") as HTMLCanvasElement;
+  //////////////////////////////////////////
+  //////////////////////////////////////////
+  //////////////////////////////////////////
+  // Creer le router
+  const router = createRouter(appDiv);
 
-const engine = new Engine(canvas, true);
-
-const game = new Game(engine, canvas);
-
-const headerNav = document.querySelector('header nav ul');
-if (headerNav) {
-  const buttons = headerNav.querySelectorAll('a');
-  buttons.forEach((button) => {
-    const text = button.textContent?.trim();
-    if (text === '2 Players') {
-      button.addEventListener('click', (e) => {
-        e.preventDefault();
-        game.switchToTwoPlayerMode();
-      });
-    } else if (text === '3 Players') {
-      button.addEventListener('click', (e) => {
-        e.preventDefault();
-        game.switchToThreePlayerMode();
-      });
-    }
+  // Enregistrer les routes
+  router.addRoute({
+    path: "/",
+    name: "login",
+    component: LoginPage,
   });
+
+  router.addRoute({
+    path: "/home",
+    name: "home",
+    component: HomePage,
+  });
+
+  router.addRoute({
+    path: "/game",
+    name: "game",
+    component: GamePage,
+  });
+
+  // Démarrer le router avec la route initiale
+  // Si on est déjà sur une route spécifique, l'utiliser, sinon aller au login
+  const currentPath = window.location.pathname;
+  const validPaths = ["/", "/home", "/game"];
+  const startPath = validPaths.includes(currentPath) ? currentPath : "/";
+
+  router.start(startPath);
 }
-
-game.start();
-
-window.addEventListener("resize", () => {
-  engine.resize();
-});
+// Démarrer l'application quand le DOM est prêt
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", initApp);
+} else {
+  initApp();
+}
