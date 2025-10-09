@@ -445,6 +445,8 @@ async function handleLogin(): Promise<void> {
   } catch (error) {
     showMessage("Network error: Unable to connect to server", "error");
   }
+}
+
 
 // Show messages in terminal style
 function showMessage(
