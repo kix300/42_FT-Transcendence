@@ -438,35 +438,13 @@ async function handleLogin(): Promise<void> {
       }
 
       showMessage("Authentication successful! Redirecting...", "success");
-      setTimeout(() => router.navigate("/"), 1500);
+      setTimeout(() => router.navigate("/home"), 1500);
     } else {
       showMessage(`Authentication failed: ${data.error}`, "error");
     }
   } catch (error) {
     showMessage("Network error: Unable to connect to server", "error");
   }
-
-  // Temporary mock authentication for frontend testing
-//   setTimeout(() => {
-//     if (username === "admin" && password === "admin") {
-//       // Mock token storage (replace with real backend logic)
-//       localStorage.setItem("mock_auth_token", "mock_jwt_token_here");
-//       if (remember) {
-//         localStorage.setItem("remember_login", "true");
-//         showMessage(
-//           "Authentication successful! Session will be remembered.",
-//           "success",
-//         );
-//       } else {
-//         showMessage("Authentication successful! Redirecting...", "success");
-//       }
-//       setTimeout(() => router.navigate("/home"), 1500);
-//     } else {
-//       showMessage("Authentication failed: Invalid credentials", "error");
-//     }
-//   }, 1500);
-}
-
 
 // Show messages in terminal style
 function showMessage(
