@@ -3,11 +3,11 @@ import bcrypt from 'bcrypt';
 
 export default async function loginRoutes(fastify, options) {
   fastify.post('/api/login', async (request, reply) => {
-    const { email, password } = request.body;
+    const { username, password } = request.body;
 
     try {
       // Recherche l'utilisateur en base via l'email
-      const user = db.prepare('SELECT * FROM users WHERE email = ?').get(email);
+      const user = db.prepare('SELECT * FROM users WHERE username = ?').get(username);
 
       if (!user) {
         return reply.code(401).send({ error: 'Utilisateur non trouvé' });
