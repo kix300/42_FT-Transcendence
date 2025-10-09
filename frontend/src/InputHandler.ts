@@ -1,16 +1,18 @@
-import { Scene, ActionManager, ExecuteCodeAction } from '@babylonjs/core';
+import { Scene, ActionManager, ExecuteCodeAction } from "@babylonjs/core";
 import { Paddle } from './Paddle';
 
 export class InputHandler {
     private scene: Scene;
     private paddle1: Paddle;
     private paddle2: Paddle;
+    private paddle3?: Paddle;
     private inputMap: any = {};
 
-    constructor(scene: Scene, paddle1: Paddle, paddle2: Paddle) {
+    constructor(scene: Scene, paddle1: Paddle, paddle2: Paddle, paddle3?: Paddle) {
         this.scene = scene;
         this.paddle1 = paddle1; // Left paddle
         this.paddle2 = paddle2; // Right paddle
+        this.paddle3 = paddle3; // Optional third paddle
         this.setupInput();
     }
 
@@ -42,12 +44,23 @@ export class InputHandler {
             }
 
             // Player 2 (Right Paddle): Arrow keys
-            if (this.inputMap['ArrowUp']) {
+            if (this.inputMap['ArrowDown']) {
                 this.paddle2.moveNegativeZ();
-            } else if (this.inputMap['ArrowDown']) {
+            } else if (this.inputMap['ArrowUp']) {
                 this.paddle2.movePositiveZ();
             } else {
                 this.paddle2.stop();
+            }
+
+            // Player 3 (Third Paddle): 'a' and 'd' keys for left/right movement
+            if (this.paddle3) {
+                if (this.inputMap['i']) {
+                    this.paddle3.movePositiveZ();
+                } else if (this.inputMap['k']) {
+                    this.paddle3.moveNegativeZ();
+                } else {
+                    this.paddle3.stop();
+                }
             }
         });
     }

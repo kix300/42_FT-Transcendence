@@ -5,7 +5,9 @@ import { TextBlock } from "@babylonjs/gui/2D/controls/textBlock";
 export class Score {
   private player1Score: number = 0;
   private player2Score: number = 0;
+  private player3Score: number = 0;
   private scoreText: TextBlock;
+  private isThreePlayerMode: boolean = false;
 
   // @ts-ignore
   constructor(scene: Scene) {
@@ -19,6 +21,11 @@ export class Score {
     adt.addControl(this.scoreText);
   }
 
+  public setThreePlayerMode(enabled: boolean): void {
+    this.isThreePlayerMode = enabled;
+    this.reset();
+  }
+
   public incrementPlayer1Score(): void {
     this.player1Score++;
     this.updateScoreText();
@@ -29,7 +36,23 @@ export class Score {
     this.updateScoreText();
   }
 
+  public incrementPlayer3Score(): void {
+    this.player3Score++;
+    this.updateScoreText();
+  }
+
+  public reset(): void {
+    this.player1Score = 0;
+    this.player2Score = 0;
+    this.player3Score = 0;
+    this.updateScoreText();
+  }
+
   private updateScoreText(): void {
-    this.scoreText.text = `${this.player1Score} - ${this.player2Score}`;
+    if (this.isThreePlayerMode) {
+      this.scoreText.text = `${this.player1Score} - ${this.player2Score} - ${this.player3Score}`;
+    } else {
+      this.scoreText.text = `${this.player1Score} - ${this.player2Score}`;
+    }
   }
 }

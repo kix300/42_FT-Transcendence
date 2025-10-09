@@ -54,10 +54,12 @@ if (body) {
         </a>
       </div>
       <ul class="flex space-x-6">
+        <li><a href="#" class="font-medium text-gray-800 px-4 py-2 rounded-lg shadow-md transition-all duration-300 ease-in-out hover:bg-white/80 hover:shadow-xl hover:-translate-y-1">3 Players</a></li>
+        <li><a href="#" class="font-medium text-gray-800 px-4 py-2 rounded-lg shadow-md transition-all duration-300 ease-in-out hover:bg-white/80 hover:shadow-xl hover:-translate-y-1">2 Players</a></li>
         <li><a href="#" class="font-medium text-gray-800 px-4 py-2 rounded-lg shadow-md transition-all duration-300 ease-in-out hover:bg-white/80 hover:shadow-xl hover:-translate-y-1">Tournaments</a></li>
         <li><a href="#" class="font-medium text-gray-800 px-4 py-2 rounded-lg shadow-md transition-all duration-300 ease-in-out hover:bg-white/80 hover:shadow-xl hover:-translate-y-1">Standings</a></li>
         <li><a href="#" class="font-medium text-gray-800 px-4 py-2 rounded-lg shadow-md transition-all duration-300 ease-in-out hover:bg-white/80 hover:shadow-xl hover:-translate-y-1">About</a></li>
-      </ul>
+        </ul>
     </nav>
   </header>`;
 
@@ -129,6 +131,25 @@ const canvas = document.getElementById("renderCanvas") as HTMLCanvasElement;
 const engine = new Engine(canvas, true);
 
 const game = new Game(engine, canvas);
+
+const headerNav = document.querySelector('header nav ul');
+if (headerNav) {
+  const buttons = headerNav.querySelectorAll('a');
+  buttons.forEach((button) => {
+    const text = button.textContent?.trim();
+    if (text === '2 Players') {
+      button.addEventListener('click', (e) => {
+        e.preventDefault();
+        game.switchToTwoPlayerMode();
+      });
+    } else if (text === '3 Players') {
+      button.addEventListener('click', (e) => {
+        e.preventDefault();
+        game.switchToThreePlayerMode();
+      });
+    }
+  });
+}
 
 game.start();
 
