@@ -13,7 +13,7 @@ import { InputHandler } from "./InputHandler";
 
 export class Game {
   private engine: Engine;
-  private scene: Scene;
+  public scene: Scene;
   private camera: UniversalCamera;
   private light: HemisphericLight;
   private paddle1!: Paddle; // <-- Add '!'
