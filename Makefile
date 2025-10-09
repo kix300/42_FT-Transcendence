@@ -7,6 +7,8 @@ all: init build up
 init:
 	mkdir -p ./database
 	chmod 777 ./database
+	mkdir -p ./frontend/dist
+	chmod 777 ./frontend/dist
 
 build:
 	$(DOCKER_COMPOSE) build

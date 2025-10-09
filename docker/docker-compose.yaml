@@ -1,5 +1,4 @@
 
-
 services:
   app:
     build: ../backend/
@@ -9,7 +8,24 @@ services:
     volumes:
       - ../backend/public:/app/public
       - ../database:/data
+      - shared_frontend:/app/public/dist
     env_file:
       - ".env"
+    depends_on:
+    - frontend
+
+  frontend:
+    build: ../frontend/
+    container_name: frontend
+    volumes:
+    - ../database:/data
+    - shared_frontend:/app/dist
 
 
+volumes:
+  shared_frontend:
+    driver: local
+    driver_opts:
+      device: ../frontend/dist
+      o: bind
+      type: none
