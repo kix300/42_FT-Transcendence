@@ -3,11 +3,16 @@ import db from "../db.js";
 
 export default async function registerRoutes(fastify ){
     fastify.post("/api/register", async(request, reply) => {
-        const {username, email, password} = request.body;
+        const {username, email, password, photo} = request.body;
 
         try{
             const hashedPassword = await bcrypt.hash(password, 10);
-            db.prepare('INSERT INTO users (username, email, password) VALUES (?, ?, ?)').run(username, email, hashedPassword);
+			if (photo){
+            	db.prepare('INSERT INTO users (username, email, password, photo) VALUES (?, ?, ?, ?)').run(username, email, hashedPassword, photo);
+			} else {
+
+				db.prepare('INSERT INTO users (username, email, password) VALUES (?, ?, ?)').run(username, email, hashedPassword);
+			}
             reply.code(201).send({message:"User created successfully"});
         } catch (err) {
             if (err.code == "SQLITE_CONSTRAINT_UNIQUE"){
