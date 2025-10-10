@@ -156,6 +156,14 @@ export async function LoginPage(): Promise<void> {
                     >
                       ./register.sh --new-user
                     </button>
+                    
+                    <button
+                      type="button"
+                      id="guest-btn"
+                      class="flex-1 bg-black border border-blue-400/30 text-blue-400 py-2 px-4 hover:bg-blue-400/10 transition-colors text-sm"
+                    >
+                      ./guest.sh --anonymous
+                    </button>
                   </div>
                 </div>
 
@@ -249,7 +257,7 @@ async function typeWriter(
 // Démarrer les animations de login
 async function startLoginAnimations(): Promise<void> {
   // 1. Header command
-  await typeWriter("header-command", "./authenticate_user.sh --secure", ANIMATION_SPEED.TYPEWRITER_SLOW);
+  await typeWriter("header-command", "./authenticate_user.sh --secure", ANIMATION_SPEED.TYPEWRITER_FAST);
   await new Promise((resolve) => setTimeout(resolve, ANIMATION_SPEED.DELAY_SHORT
   ));
 
@@ -346,6 +354,7 @@ function setupLoginEventListeners(): void {
   const loginForm = document.getElementById("login-form") as HTMLFormElement;
   const loginBtn = document.getElementById("login-btn");
   const registerBtn = document.getElementById("register-btn");
+  const guestBtn = document.getElementById("guest-btn");
   const oauth42Btn = document.getElementById("oauth-42-btn");
 
   // Handle login form submission
@@ -361,6 +370,14 @@ function setupLoginEventListeners(): void {
     registerBtn.addEventListener("click", () => {
       showMessage("Redirecting to registration...", "info");
       setTimeout(() => router.navigate("/register"), 1000);
+    });
+  }
+
+  // Handle guest button
+  if (guestBtn) {
+    guestBtn.addEventListener("click", () => {
+      showMessage("Entering as guest...", "info");
+      setTimeout(() => router.navigate("/home"), 1000);
     });
   }
 
