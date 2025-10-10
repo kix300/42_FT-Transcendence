@@ -447,7 +447,7 @@ async function handleLogin(): Promise<void> {
     });
 
     const data = await response.json();
-
+	console.log("Réponse du backend :", data);
     if (response.ok) {
       // Store JWT token
       localStorage.setItem("auth_token", data.token);
