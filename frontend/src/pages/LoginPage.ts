@@ -1,5 +1,17 @@
 import { getRouter } from "../router";
 
+// Variable globale pour contrôler la vitesse d'écriture des animations
+const ANIMATION_SPEED = {
+  TYPEWRITER_FAST: 0,    // Vitesse rapide pour les commandes
+  TYPEWRITER_NORMAL: 15,  // Vitesse normale pour les textes
+  TYPEWRITER_SLOW: 20,    // Vitesse lente pour les titres
+  DELAY_SHORT: 0,        // Délai court entre les animations
+  DELAY_MEDIUM: 100,      // Délai moyen
+  DELAY_LONG: 150,        // Délai long
+  TRANSITION_FAST: 0,   // Transition rapide
+  TRANSITION_NORMAL: 0.5, // Transition normale
+};
+
 export async function LoginPage(): Promise<void> {
   const appDiv = document.querySelector<HTMLDivElement>("#app");
   if (!appDiv) return;
@@ -221,7 +233,7 @@ export async function LoginPage(): Promise<void> {
 async function typeWriter(
   elementId: string,
   text: string,
-  speed: number = 20,
+  speed: number = ANIMATION_SPEED.TYPEWRITER_FAST,
 ): Promise<void> {
   const element = document.getElementById(elementId);
   if (!element) return;
@@ -237,8 +249,9 @@ async function typeWriter(
 // Démarrer les animations de login
 async function startLoginAnimations(): Promise<void> {
   // 1. Header command
-  await typeWriter("header-command", "./authenticate_user.sh --secure", 30);
-  await new Promise((resolve) => setTimeout(resolve, 200));
+  await typeWriter("header-command", "./authenticate_user.sh --secure", ANIMATION_SPEED.TYPEWRITER_SLOW);
+  await new Promise((resolve) => setTimeout(resolve, ANIMATION_SPEED.DELAY_SHORT
+  ));
 
   // Cacher le curseur header
   const headerCursor = document.getElementById("header-cursor");
@@ -248,15 +261,15 @@ async function startLoginAnimations(): Promise<void> {
   const asciiLogo = document.getElementById("ascii-logo");
   if (asciiLogo) {
     asciiLogo.style.opacity = "1";
-    asciiLogo.style.transition = "opacity 1s";
+    asciiLogo.style.transition = `opacity ${ANIMATION_SPEED.TRANSITION_FAST}s`;
   }
-  await new Promise((resolve) => setTimeout(resolve, 500));
+  await new Promise((resolve) => setTimeout(resolve, 200));
 
   // 3. Boot messages
   const bootMessages = document.getElementById("boot-messages");
   if (bootMessages) {
     bootMessages.style.opacity = "1";
-    bootMessages.style.transition = "opacity 0.3s";
+    bootMessages.style.transition = `opacity ${ANIMATION_SPEED.TRANSITION_FAST}s`;
   }
 
   const bootSequence = [
@@ -271,46 +284,51 @@ async function startLoginAnimations(): Promise<void> {
   ];
 
   for (const boot of bootSequence) {
-    await typeWriter(boot.id, boot.text, 15);
-    await new Promise((resolve) => setTimeout(resolve, 150));
+    await typeWriter(boot.id, boot.text, ANIMATION_SPEED.TYPEWRITER_FAST);
+    await new Promise((resolve) => setTimeout(resolve, ANIMATION_SPEED.DELAY_SHORT));
   }
 
-  await new Promise((resolve) => setTimeout(resolve, 300));
+  await new Promise((resolve) => setTimeout(resolve, ANIMATION_SPEED.DELAY_SHORT
+  ));
 
   // 4. Login terminal
   const loginTerminal = document.getElementById("login-terminal");
   if (loginTerminal) {
     loginTerminal.style.opacity = "1";
-    loginTerminal.style.transition = "opacity 0.8s";
+    loginTerminal.style.transition = `opacity ${ANIMATION_SPEED.TRANSITION_FAST}s`;
   }
 
-  await new Promise((resolve) => setTimeout(resolve, 200));
+  await new Promise((resolve) => setTimeout(resolve, ANIMATION_SPEED.DELAY_SHORT
+  ));
 
   // 5. Login prompt and form labels
-  await typeWriter("login-prompt", "=== SECURE LOGIN TERMINAL ===", 20);
-  await new Promise((resolve) => setTimeout(resolve, 150));
+  await typeWriter("login-prompt", "=== SECURE LOGIN TERMINAL ===", ANIMATION_SPEED.TYPEWRITER_FAST);
+  await new Promise((resolve) => setTimeout(resolve, ANIMATION_SPEED.DELAY_SHORT));
 
   await typeWriter(
     "login-info",
     "Please enter your 42 credentials to access the system",
-    15,
+    ANIMATION_SPEED.TYPEWRITER_FAST,
   );
-  await new Promise((resolve) => setTimeout(resolve, 200));
+  await new Promise((resolve) => setTimeout(resolve, ANIMATION_SPEED.DELAY_SHORT
+  ));
 
-  await typeWriter("username-label", "input required", 20);
-  await new Promise((resolve) => setTimeout(resolve, 150));
+  await typeWriter("username-label", "input required", ANIMATION_SPEED.TYPEWRITER_FAST);
+  await new Promise((resolve) => setTimeout(resolve, ANIMATION_SPEED.DELAY_SHORT));
 
-  await typeWriter("password-label", "input required", 20);
-  await new Promise((resolve) => setTimeout(resolve, 200));
+  await typeWriter("password-label", "input required", ANIMATION_SPEED.TYPEWRITER_FAST);
+  await new Promise((resolve) => setTimeout(resolve, ANIMATION_SPEED.DELAY_SHORT
+  ));
 
-  await typeWriter("oauth-title", "Alternative authentication methods:", 15);
-  await new Promise((resolve) => setTimeout(resolve, 200));
+  await typeWriter("oauth-title", "Alternative authentication methods:", ANIMATION_SPEED.TYPEWRITER_FAST);
+  await new Promise((resolve) => setTimeout(resolve, ANIMATION_SPEED.DELAY_SHORT
+  ));
 
   // 6. Status panel
   const statusPanel = document.getElementById("status-panel");
   if (statusPanel) {
     statusPanel.style.opacity = "1";
-    statusPanel.style.transition = "opacity 0.5s";
+    statusPanel.style.transition = `opacity ${ANIMATION_SPEED.TRANSITION_FAST}s`;
   }
 
   // Focus sur le premier input

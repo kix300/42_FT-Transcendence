@@ -1,5 +1,17 @@
 import { getRouter } from "../router";
 
+// Variable globale pour contrôler la vitesse d'écriture des animations
+const ANIMATION_SPEED = {
+  TYPEWRITER_FAST: 0,    // Vitesse rapide pour les commandes
+  TYPEWRITER_NORMAL: 15,  // Vitesse normale pour les textes
+  TYPEWRITER_SLOW: 20,    // Vitesse lente pour les titres
+  DELAY_SHORT: 0,        // Délai court entre les animations
+  DELAY_MEDIUM: 100,      // Délai moyen
+  DELAY_LONG: 150,        // Délai long
+  TRANSITION_FAST: 0,   // Transition rapide
+  TRANSITION_NORMAL: 0.5, // Transition normale
+};
+
 export async function HomePage(): Promise<void> {
   const appDiv = document.querySelector<HTMLDivElement>("#app");
   if (!appDiv) return;
@@ -168,7 +180,7 @@ function setupNavigationListeners(): void {
 async function typeWriter(
   elementId: string,
   text: string,
-  speed: number = 20,
+  speed: number = ANIMATION_SPEED.TYPEWRITER_FAST,
 ): Promise<void> {
   const element = document.getElementById(elementId);
   if (!element) return;
@@ -186,16 +198,16 @@ async function typeLines(
   lines: { id: string; text: string; speed?: number }[],
 ): Promise<void> {
   for (const line of lines) {
-    await typeWriter(line.id, line.text, line.speed || 15);
-    await new Promise((resolve) => setTimeout(resolve, 100));
+    await typeWriter(line.id, line.text, line.speed || ANIMATION_SPEED.TYPEWRITER_FAST);
+    await new Promise((resolve) => setTimeout(resolve, ANIMATION_SPEED.DELAY_SHORT));
   }
 }
 
 // Démarrer toutes les animations en séquence
 async function startTypewriterAnimations(): Promise<void> {
   // 1. Header command
-  await typeWriter("header-command", "./transcendence.sh", 30);
-  await new Promise((resolve) => setTimeout(resolve, 200));
+  await typeWriter("header-command", "./transcendence.sh", ANIMATION_SPEED.TYPEWRITER_FAST);
+  await new Promise((resolve) => setTimeout(resolve, ANIMATION_SPEED.DELAY_SHORT));
 
   // 2. Cacher le curseur du header et montrer le menu nav
   const headerCursor = document.getElementById("header-cursor");
@@ -203,26 +215,26 @@ async function startTypewriterAnimations(): Promise<void> {
   if (headerCursor) headerCursor.style.display = "none";
   if (navMenu) {
     navMenu.style.opacity = "1";
-    navMenu.style.transition = "opacity 0.5s";
+    navMenu.style.transition = `opacity ${ANIMATION_SPEED.TRANSITION_FAST}s`;
   }
 
   // 3. Afficher ASCII art
   const asciiArt = document.getElementById("ascii-art");
   if (asciiArt) {
     asciiArt.style.opacity = "1";
-    asciiArt.style.transition = "opacity 0.8s";
+    asciiArt.style.transition = `opacity ${ANIMATION_SPEED.TRANSITION_FAST}s`;
   }
-  await new Promise((resolve) => setTimeout(resolve, 400));
+  await new Promise((resolve) => setTimeout(resolve, ANIMATION_SPEED.DELAY_SHORT));
 
   // 4. Terminal prompt
   const terminalPrompt = document.getElementById("terminal-prompt");
   if (terminalPrompt) {
     terminalPrompt.style.opacity = "1";
-    terminalPrompt.style.transition = "opacity 0.3s";
+    terminalPrompt.style.transition = `opacity ${ANIMATION_SPEED.TRANSITION_FAST}s`;
   }
-  await new Promise((resolve) => setTimeout(resolve, 150));
+  await new Promise((resolve) => setTimeout(resolve, ANIMATION_SPEED.DELAY_SHORT));
 
-  await typeWriter("cat-command", "cat welcome.txt", 25);
+  await typeWriter("cat-command", "cat welcome.txt", ANIMATION_SPEED.TYPEWRITER_FAST);
 
   // 5. Cacher le curseur cat et afficher les messages
   const catCursor = document.getElementById("cat-cursor");
@@ -231,7 +243,7 @@ async function startTypewriterAnimations(): Promise<void> {
   const welcomeMessages = document.getElementById("welcome-messages");
   if (welcomeMessages) {
     welcomeMessages.style.opacity = "1";
-    welcomeMessages.style.transition = "opacity 0.3s";
+    welcomeMessages.style.transition = `opacity ${ANIMATION_SPEED.TRANSITION_FAST}s`;
   }
 
   // 6. Messages de bienvenue
@@ -239,41 +251,41 @@ async function startTypewriterAnimations(): Promise<void> {
     {
       id: "msg-1",
       text: "> Initialisation du système de jeu Pong 3D...",
-      speed: 15,
+      speed: ANIMATION_SPEED.TYPEWRITER_FAST,
     },
-    { id: "msg-2", text: "> Connexion aux serveurs 42... [OK]", speed: 15 },
-    { id: "msg-3", text: "> Chargement des modules de jeu... [OK]", speed: 15 },
-    { id: "msg-4", text: "> Prêt pour le combat !", speed: 15 },
+    { id: "msg-2", text: "> Connexion aux serveurs 42... [OK]", speed: ANIMATION_SPEED.TYPEWRITER_FAST },
+    { id: "msg-3", text: "> Chargement des modules de jeu... [OK]", speed: ANIMATION_SPEED.TYPEWRITER_FAST },
+    { id: "msg-4", text: "> Prêt pour le combat !", speed: ANIMATION_SPEED.TYPEWRITER_FAST },
   ]);
 
-  await new Promise((resolve) => setTimeout(resolve, 300));
+  await new Promise((resolve) => setTimeout(resolve, ANIMATION_SPEED.DELAY_SHORT));
 
   // 7. Available commands
   const commandMenu = document.getElementById("command-menu");
   if (commandMenu) {
     commandMenu.style.opacity = "1";
-    commandMenu.style.transition = "opacity 0.5s";
+    commandMenu.style.transition = `opacity ${ANIMATION_SPEED.TRANSITION_FAST}s`;
   }
-  await typeWriter("available-commands", "Available commands:", 20);
+  await typeWriter("available-commands", "Available commands:", ANIMATION_SPEED.TYPEWRITER_FAST);
 
-  await new Promise((resolve) => setTimeout(resolve, 200));
+  await new Promise((resolve) => setTimeout(resolve, ANIMATION_SPEED.DELAY_SHORT));
 
   // 8. System info
   const systemInfo = document.getElementById("system-info");
   if (systemInfo) {
     systemInfo.style.opacity = "1";
-    systemInfo.style.transition = "opacity 0.5s";
+    systemInfo.style.transition = `opacity ${ANIMATION_SPEED.TRANSITION_FAST}s`;
   }
 
-  await new Promise((resolve) => setTimeout(resolve, 200));
+  await new Promise((resolve) => setTimeout(resolve, ANIMATION_SPEED.DELAY_SHORT));
 
   // 9. Quick start
   const quickStart = document.getElementById("quick-start");
   if (quickStart) {
     quickStart.style.opacity = "1";
-    quickStart.style.transition = "opacity 0.5s";
+    quickStart.style.transition = `opacity ${ANIMATION_SPEED.TRANSITION_FAST}s`;
   }
-  await typeWriter("quick-start-title", "Quick Start Guide:", 20);
+  await typeWriter("quick-start-title", "Quick Start Guide:", ANIMATION_SPEED.TYPEWRITER_FAST);
 }
 
 function setupLogoutListener(): void {

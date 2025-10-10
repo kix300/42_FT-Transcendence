@@ -1,5 +1,17 @@
 import { getRouter } from "../router";
 
+// Variable globale pour contrôler la vitesse d'écriture des animations
+const ANIMATION_SPEED = {
+  TYPEWRITER_FAST: 0,    // Vitesse rapide pour les commandes
+  TYPEWRITER_NORMAL: 15,  // Vitesse normale pour les textes
+  TYPEWRITER_SLOW: 20,    // Vitesse lente pour les titres
+  DELAY_SHORT: 0,        // Délai court entre les animations
+  DELAY_MEDIUM: 100,      // Délai moyen
+  DELAY_LONG: 150,        // Délai long
+  TRANSITION_FAST: 0,   // Transition rapide
+  TRANSITION_NORMAL: 0.5, // Transition normale
+};
+
 export async function RegisterPage(): Promise<void> {
   const appDiv = document.querySelector<HTMLDivElement>("#app");
   if (!appDiv) return;
@@ -327,13 +339,14 @@ export async function RegisterPage(): Promise<void> {
 async function typeWriter(
   element: HTMLElement,
   text: string,
-  speed: number = 30,
+  speed: number = ANIMATION_SPEED.TYPEWRITER_FAST,
 ): Promise<void> {
   return new Promise((resolve) => {
     let i = 0;
+    element.textContent = "";
     const interval = setInterval(() => {
       if (i < text.length) {
-        element.innerHTML += text.charAt(i);
+        element.textContent += text.charAt(i);
         i++;
       } else {
         clearInterval(interval);
@@ -344,21 +357,22 @@ async function typeWriter(
 }
 
 // Animations de démarrage
+// Animations de démarrage
 async function startRegisterAnimations(): Promise<void> {
   // Animation du header
   const headerCommand = document.getElementById("header-command");
   if (headerCommand) {
-    await typeWriter(headerCommand, "initializing registration system...", 50);
+    await typeWriter(headerCommand, "initializing registration system...", ANIMATION_SPEED.TYPEWRITER_SLOW);
   }
 
   // Fade in du logo ASCII
   setTimeout(() => {
     const logo = document.getElementById("ascii-logo");
     if (logo) {
-      logo.style.transition = "opacity 1s ease-in-out";
+      logo.style.transition = `opacity ${ANIMATION_SPEED.TRANSITION_NORMAL}s ease-in-out`;
       logo.style.opacity = "1";
     }
-  }, 500);
+  }, ANIMATION_SPEED.DELAY_MEDIUM);
 
   // Messages de boot
   const bootMessages = [
@@ -380,22 +394,22 @@ async function startRegisterAnimations(): Promise<void> {
           await typeWriter(
             bootElement,
             `[${new Date().toLocaleTimeString()}] ${bootMessages[i]}`,
-            25,
+            ANIMATION_SPEED.TYPEWRITER_FAST,
           );
-          await new Promise((resolve) => setTimeout(resolve, 300));
+          await new Promise((resolve) => setTimeout(resolve, ANIMATION_SPEED.DELAY_SHORT));
         }
       }
     }
-  }, 1500);
+  }, 300);
 
   // Animation du terminal principal
   setTimeout(() => {
     const terminal = document.getElementById("register-terminal");
     if (terminal) {
-      terminal.style.transition = "opacity 0.8s ease-in-out";
+      terminal.style.transition = `opacity ${ANIMATION_SPEED.TRANSITION_NORMAL}s ease-in-out`;
       terminal.style.opacity = "1";
     }
-  }, 3500);
+  }, 1200);
 
   // Animation des labels
   setTimeout(async () => {
@@ -416,20 +430,20 @@ async function startRegisterAnimations(): Promise<void> {
     for (const label of labels) {
       const element = document.getElementById(label.id);
       if (element) {
-        await typeWriter(element, label.text, 30);
-        await new Promise((resolve) => setTimeout(resolve, 200));
+        await typeWriter(element, label.text, ANIMATION_SPEED.TYPEWRITER_FAST);
+        await new Promise((resolve) => setTimeout(resolve, ANIMATION_SPEED.DELAY_SHORT));
       }
     }
-  }, 4000);
+  }, 1500);
 
   // Animation du panneau de statut
   setTimeout(() => {
     const statusPanel = document.getElementById("status-panel");
     if (statusPanel) {
-      statusPanel.style.transition = "opacity 0.8s ease-in-out";
+      statusPanel.style.transition = `opacity ${ANIMATION_SPEED.TRANSITION_NORMAL}s ease-in-out`;
       statusPanel.style.opacity = "1";
     }
-  }, 6000);
+  }, 2500);
 }
 
 // Configuration des event listeners
