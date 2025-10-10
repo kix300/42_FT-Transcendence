@@ -432,7 +432,7 @@ async function handleLogin(): Promise<void> {
 
   showMessage("Authenticating...", "info");
 
-  // TODO: Replace with actual authentication logic
+  // Authentication logic
   try {
     const response = await fetch("/api/login", {
       method: "POST",
