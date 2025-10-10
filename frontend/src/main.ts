@@ -51,7 +51,7 @@ function initApp(): void {
   // Si on est déjà sur une route spécifique, l'utiliser, sinon aller au login
   const currentPath = window.location.pathname;
   const validPaths = ["/", "/login", "/register", "/home", "/game"];
-  const startPath = validPaths.includes(currentPath) ? currentPath : "/";
+  const startPath = validPaths.includes(currentPath) ? currentPath : "/login";
 
   router.start(startPath);
 }
