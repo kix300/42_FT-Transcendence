@@ -24,6 +24,7 @@ export class Game {
   private inputHandler!: InputHandler;
   private isThreePlayerMode = false;
   private table?: any;
+  private triangleVertices?: { v1: Vector3; v2: Vector3; v3: Vector3 };
 
   constructor(engine: Engine, canvas: HTMLCanvasElement) {
     this.engine = engine;
@@ -41,8 +42,8 @@ export class Game {
     this.createGameObjects();
     this.score = new Score(this.scene);
     this.ball = new Ball("ball", this.scene,
-      () => { this.score.incrementPlayer2Score(); this.ball.reset(); },
-      () => { this.score.incrementPlayer1Score(); this.ball.reset(); }
+      () => { this.score.incrementPlayer1Score(); this.ball.reset(); },
+      () => { this.score.incrementPlayer2Score(); this.ball.reset(); }
     );
     this.ball.reset();
     this.inputHandler = new InputHandler(this.scene, this.paddle1, this.paddle2);
@@ -59,7 +60,7 @@ export class Game {
   }
 
   createTriangularGameObjects(): void {
-    const r = 15;
+    const r = 20;
     const a1 = Math.PI / 2, a2 = a1 + 2 * Math.PI / 3, a3 = a2 + 2 * Math.PI / 3;
     const v1 = new Vector3(Math.cos(a1) * r, 0, Math.sin(a1) * r);
     const v2 = new Vector3(Math.cos(a2) * r, 0, Math.sin(a2) * r);
@@ -86,6 +87,8 @@ export class Game {
 
     this.paddle3 = new Paddle("paddle3", mid(v3, v2), edgeLen, this.scene, v3, v2);
     this.paddle3.mesh.rotation.y = Math.atan2(v2.z - v3.z, v2.x - v3.x) + Math.PI / 2;
+
+    this.triangleVertices = { v1, v2, v3 };
   }
 
   public switchToThreePlayerMode(): void {
@@ -96,9 +99,10 @@ export class Game {
 
     this.ball.dispose();
     this.ball = new Ball("ball", this.scene,
-      () => { this.score.incrementPlayer1Score(); this.ball.reset(); },
       () => { this.score.incrementPlayer2Score(); this.ball.reset(); },
-      () => { this.score.incrementPlayer3Score(); this.ball.reset(); }
+      () => { this.score.incrementPlayer3Score(); this.ball.reset(); },
+      () => { this.score.incrementPlayer1Score(); this.ball.reset(); },
+      this.triangleVertices
     );
     this.ball.reset();
     this.inputHandler = new InputHandler(this.scene, this.paddle1, this.paddle2, this.paddle3);
@@ -142,6 +146,10 @@ export class Game {
       ? [this.paddle1.mesh, this.paddle2.mesh, this.paddle3.mesh]
       : [this.paddle1.mesh, this.paddle2.mesh];
 
-    this.ball.update(paddles, { width: 25, depth: 15 });
+    const tableConfig = this.isThreePlayerMode
+      ? { width: 30, depth: 30, isTriangular: true, radius: 15 }
+      : { width: 25, depth: 15 };
+
+    this.ball.update(paddles, tableConfig);
   }
 }

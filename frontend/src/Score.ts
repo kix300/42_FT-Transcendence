@@ -16,7 +16,7 @@ export class Score {
     this.scoreText.text = "0 - 0";
     this.scoreText.color = "white";
     this.scoreText.fontSize = 60; // Slightly larger font
-    this.scoreText.top = "20px"; // Position from the top
+    this.scoreText.top = "-300px"; // Position from the top
     this.scoreText.verticalAlignment = 0; // Align to top
     adt.addControl(this.scoreText);
   }
