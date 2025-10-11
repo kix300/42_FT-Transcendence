@@ -34,9 +34,9 @@ export class InputHandler {
 
         this.scene.onBeforeRenderObservable.add(() => {
             // Player 1 (Left Paddle): 'w' and 's'
-            if (this.inputMap['s']) {
+            if (this.inputMap['w']) {
                 this.paddle1.moveNegativeZ(); // Move "up" the screen
-            } else if (this.inputMap['w']) {
+            } else if (this.inputMap['s']) {
                 this.paddle1.movePositiveZ(); // Move "down" the screen
             } else {
                 this.paddle1.stop();
@@ -53,7 +53,7 @@ export class InputHandler {
 
             // Player 3 (Third Paddle): 'a' and 'd' keys for left/right movement
             if (this.paddle3) {
-                if (this.inputMap['i']) {
+                if (this.inputMap['j']) {
                     this.paddle3.movePositiveZ();
                 } else if (this.inputMap['k']) {
                     this.paddle3.moveNegativeZ();
