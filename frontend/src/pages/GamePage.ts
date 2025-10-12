@@ -138,6 +138,22 @@ export async function GamePage(): Promise<void> {
   const engine = new Engine(canvas, true);
   const game = new Game(engine, canvas);
 
+  // Check if this is a tournament match
+  const matchDataStr = sessionStorage.getItem("currentMatch");
+  let matchData = null;
+  if (matchDataStr) {
+    try {
+      matchData = JSON.parse(matchDataStr);
+    } catch (e) {
+      console.error("Error parsing match data:", e);
+    }
+  }
+
+  // Set up game end callback
+  game.setGameEndCallback((winner: number, score1: number, score2: number) => {
+    showGameEndOverlay(winner, score1, score2, matchData);
+  });
+
   const headerNav = document.querySelector('header nav ul');
   if (headerNav) {
     const buttons = headerNav.querySelectorAll('a');
@@ -224,5 +240,142 @@ export function cleanupGamePage(): void {
       }
     });
     delete (window as any).gamePageCleanupFunctions;
+  }
+}
+
+// Show game end overlay with final scores
+function showGameEndOverlay(winner: number, score1: number, score2: number, matchData: any): void {
+  const body = document.querySelector("body");
+  if (!body) return;
+
+  // Get player names from match data or use defaults
+  const player1Name = matchData?.player1?.name || "Player 1";
+  const player2Name = matchData?.player2?.name || "Player 2";
+  const winnerName = winner === 1 ? player1Name : player2Name;
+
+  // Create overlay HTML
+  const overlayHtml = `
+    <div id="game-end-overlay" class="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm">
+      <div class="bg-gray-900 border-4 border-green-400 p-8 max-w-2xl w-full mx-4 shadow-2xl">
+        <!-- Header -->
+        <div class="text-center mb-6">
+          <h1 class="text-4xl font-bold text-green-300 mb-2">GAME OVER</h1>
+          <div class="h-1 bg-green-400 w-32 mx-auto"></div>
+        </div>
+
+        <!-- Winner announcement -->
+        <div class="text-center mb-8">
+          <div class="text-green-500 text-sm mb-2">WINNER</div>
+          <div class="text-5xl font-bold text-green-300 mb-4">${winnerName}</div>
+          <div class="text-green-400 text-lg">🏆 Victory!</div>
+        </div>
+
+        <!-- Final scores -->
+        <div class="bg-black/50 border border-green-400/30 p-6 mb-8">
+          <div class="text-green-300 text-center text-sm mb-4 font-bold">FINAL SCORE</div>
+          <div class="flex justify-around items-center">
+            <div class="text-center">
+              <div class="text-green-400 text-sm mb-2">${player1Name}</div>
+              <div class="text-6xl font-bold ${winner === 1 ? 'text-green-300' : 'text-green-600'}">${score1}</div>
+            </div>
+            <div class="text-green-500 text-3xl">-</div>
+            <div class="text-center">
+              <div class="text-green-400 text-sm mb-2">${player2Name}</div>
+              <div class="text-6xl font-bold ${winner === 2 ? 'text-green-300' : 'text-green-600'}">${score2}</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Match info -->
+        ${matchData?.isTournamentMatch ? `
+          <div class="bg-black/50 border border-green-400/30 p-4 mb-6 text-center">
+            <div class="text-green-500 text-xs mb-1">TOURNAMENT MATCH</div>
+            <div class="text-green-400 text-sm">Match #${matchData.matchId}</div>
+          </div>
+        ` : ''}
+
+        <!-- Action buttons -->
+        <div class="flex gap-4 justify-center">
+          ${matchData?.isTournamentMatch ? `
+            <button id="return-to-tournament-btn" class="bg-green-400/20 border border-green-400 px-6 py-3 hover:bg-green-400/30 transition-colors">
+              <span class="text-green-300 font-bold">> BACK TO TOURNAMENT</span>
+            </button>
+          ` : `
+            <button id="play-again-btn" class="bg-green-400/20 border border-green-400 px-6 py-3 hover:bg-green-400/30 transition-colors">
+              <span class="text-green-300 font-bold">> PLAY AGAIN</span>
+            </button>
+          `}
+          <button id="return-home-btn" class="bg-gray-700/50 border border-gray-500 px-6 py-3 hover:bg-gray-700/70 transition-colors">
+            <span class="text-gray-300 font-bold">> HOME</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  `;
+
+  body.insertAdjacentHTML("beforeend", overlayHtml);
+
+  // Setup button handlers
+  const returnToTournamentBtn = document.getElementById("return-to-tournament-btn");
+  const playAgainBtn = document.getElementById("play-again-btn");
+  const returnHomeBtn = document.getElementById("return-home-btn");
+
+  if (returnToTournamentBtn) {
+    returnToTournamentBtn.addEventListener("click", () => {
+      // Store match result before navigating back
+      if (matchData) {
+        const results = JSON.parse(sessionStorage.getItem("tournamentResults") || "{}");
+        results[matchData.matchId] = {
+          winner,
+          score1,
+          score2,
+          winnerName,
+          player1Name,
+          player2Name
+        };
+        sessionStorage.setItem("tournamentResults", JSON.stringify(results));
+      }
+
+      // Clear current match data
+      sessionStorage.removeItem("currentMatch");
+
+      // Remove the overlay
+      const overlay = document.getElementById("game-end-overlay");
+      if (overlay) {
+        overlay.remove();
+      }
+
+      // Navigate back to tournament using the router
+      import("../router").then(({ getRouter }) => {
+        const router = getRouter();
+        if (router) {
+          router.navigate("/tournament");
+        } else {
+          window.location.href = "/tournament";
+        }
+      });
+    });
+  }
+
+  if (playAgainBtn) {
+    playAgainBtn.addEventListener("click", () => {
+      window.location.reload();
+    });
+  }
+
+  if (returnHomeBtn) {
+    returnHomeBtn.addEventListener("click", () => {
+      sessionStorage.removeItem("currentMatch");
+
+      // Navigate back to home using the router
+      import("../router").then(({ getRouter }) => {
+        const router = getRouter();
+        if (router) {
+          router.navigate("/home");
+        } else {
+          window.location.href = "/home";
+        }
+      });
+    });
   }
 }
