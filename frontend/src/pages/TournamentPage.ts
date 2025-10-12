@@ -1,5 +1,18 @@
 import { getRouter } from "../router";
 
+interface Player {
+  id: number;
+  name: string;
+  isBye: boolean;
+}
+
+interface Match {
+  id: number;
+  player1: Player | null;
+  player2: Player | null;
+  winner: Player | null;
+}
+
 export async function TournamentPage(): Promise<void> {
   const appDiv = document.querySelector<HTMLDivElement>("#app");
   if (!appDiv) return;
@@ -35,64 +48,34 @@ export async function TournamentPage(): Promise<void> {
           <!-- Title -->
           <div class="mb-6">
             <h1 class="text-2xl font-bold text-green-300 mb-2">[TOURNAMENT SYSTEM]</h1>
-            <p class="text-green-400 text-sm">> 16-Player Single Elimination Bracket</p>
+            <p class="text-green-400 text-sm">> Single Elimination Bracket Generator</p>
           </div>
 
-          <!-- Create Tournament Button -->
-          <div class="mb-8">
-            <button id="create-tournament-btn" class="bg-green-400/20 border border-green-400 px-6 py-3 hover:bg-green-400/30 transition-colors">
-              <span class="text-green-300 font-bold">> CREATE NEW TOURNAMENT</span>
-            </button>
+          <!-- Create Tournament Form -->
+          <div id="tournament-form" class="mb-8">
+            <div class="bg-gray-900 border border-green-400/30 p-6 max-w-md">
+              <div class="text-green-300 font-bold mb-4">> CREATE NEW TOURNAMENT</div>
+              <div class="mb-4">
+                <label class="text-green-400 text-sm block mb-2">Number of Players (2-16):</label>
+                <input
+                  type="number"
+                  id="player-count-input"
+                  min="2"
+                  max="16"
+                  value="8"
+                  class="bg-black border border-green-400/50 text-green-300 px-3 py-2 w-full focus:outline-none focus:border-green-400"
+                />
+                <div class="text-green-500 text-xs mt-1">Players will be randomly seeded. Byes will be assigned if needed.</div>
+              </div>
+              <button id="create-tournament-btn" class="bg-green-400/20 border border-green-400 px-6 py-3 hover:bg-green-400/30 transition-colors w-full">
+                <span class="text-green-300 font-bold">> START TOURNAMENT</span>
+              </button>
+            </div>
           </div>
 
           <!-- Tournament Bracket -->
           <div id="tournament-bracket" class="hidden">
-            <div class="bg-gray-900 border border-green-400/30 p-6">
-              <div class="text-green-300 font-bold mb-4">[16-PLAYER BRACKET]</div>
-
-              <!-- Bracket Grid -->
-              <div class="grid grid-cols-4 gap-4">
-
-                <!-- Round 1 (Round of 16) -->
-                <div class="space-y-4">
-                  <div class="text-green-400 text-xs mb-2 text-center font-bold">ROUND 1</div>
-                  ${generateMatches(1, 8)}
-                </div>
-
-                <!-- Quarter Finals -->
-                <div class="space-y-4">
-                  <div class="text-green-400 text-xs mb-2 text-center font-bold">QUARTER FINALS</div>
-                  <div class="mt-8">
-                    ${generateMatches(9, 4, true)}
-                  </div>
-                </div>
-
-                <!-- Semi Finals -->
-                <div class="space-y-4">
-                  <div class="text-green-400 text-xs mb-2 text-center font-bold">SEMI FINALS</div>
-                  <div class="mt-16">
-                    ${generateMatches(13, 2, true, 2)}
-                  </div>
-                </div>
-
-                <!-- Finals -->
-                <div class="space-y-4">
-                  <div class="text-green-400 text-xs mb-2 text-center font-bold">FINALS</div>
-                  <div class="mt-32">
-                    ${generateMatches(15, 1, true, 3)}
-                  </div>
-                </div>
-
-              </div>
-
-              <!-- Winner Display -->
-              <div class="mt-8 text-center">
-                <div class="inline-block bg-green-400/20 border border-green-400 px-8 py-4">
-                  <div class="text-green-300 text-sm mb-2">TOURNAMENT WINNER</div>
-                  <div id="tournament-winner" class="text-green-400 font-bold text-xl">TBD</div>
-                </div>
-              </div>
-            </div>
+            <!-- Dynamic bracket will be generated here -->
           </div>
         </div>
       </main>
@@ -114,54 +97,187 @@ export async function TournamentPage(): Promise<void> {
   setupNavigationListeners();
 }
 
-function generateMatches(startId: number, count: number, spacing: boolean = false, spacingMultiplier: number = 1): string {
-  let html = '';
-  for (let i = 0; i < count; i++) {
-    const matchId = startId + i;
-    const player1Id = (startId === 1) ? (i * 2 + 1) : 'TBD';
-    const player2Id = (startId === 1) ? (i * 2 + 2) : 'TBD';
+function getNextPowerOfTwo(n: number): number {
+  let power = 1;
+  while (power < n) {
+    power *= 2;
+  }
+  return power;
+}
 
-    if (spacing && i > 0) {
-      const spacerHeight = 16 * spacingMultiplier;
+function shuffleArray<T>(array: T[]): T[] {
+  const shuffled = [...array];
+  for (let i = shuffled.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+  }
+  return shuffled;
+}
+
+function generatePlayers(count: number): Player[] {
+  const bracketSize = getNextPowerOfTwo(count);
+  const byesNeeded = bracketSize - count;
+
+  const players: Player[] = [];
+
+  // Create real players
+  for (let i = 1; i <= count; i++) {
+    players.push({
+      id: i,
+      name: `Player ${i}`,
+      isBye: false
+    });
+  }
+
+  // Add byes
+  for (let i = 0; i < byesNeeded; i++) {
+    players.push({
+      id: -(i + 1),
+      name: "BYE",
+      isBye: true
+    });
+  }
+
+  // Shuffle players randomly
+  return shuffleArray(players);
+}
+
+function generateBracket(playerCount: number): string {
+  const players = generatePlayers(playerCount);
+  const bracketSize = players.length;
+  const rounds = Math.log2(bracketSize);
+
+  let html = `
+    <div class="bg-gray-900 border border-green-400/30 p-6">
+      <div class="text-green-300 font-bold mb-4">[${playerCount}-PLAYER BRACKET]</div>
+      <div class="text-green-500 text-sm mb-4">Bracket size: ${bracketSize} | Rounds: ${rounds} | Byes: ${bracketSize - playerCount}</div>
+  `;
+
+  // Generate bracket grid
+  html += `<div class="grid gap-4" style="grid-template-columns: repeat(${rounds}, 1fr);">`;
+
+  // Generate each round
+  for (let round = 0; round < rounds; round++) {
+    const matchesInRound = bracketSize / Math.pow(2, round + 1);
+    const roundName = getRoundName(round, rounds);
+
+    html += `<div class="space-y-4">`;
+    html += `<div class="text-green-400 text-xs mb-2 text-center font-bold">${roundName}</div>`;
+
+    if (round > 0) {
+      const spacerHeight = Math.pow(2, round) * 4;
       html += `<div style="height: ${spacerHeight}rem"></div>`;
     }
 
-    html += `
-      <div class="border border-green-400/50 bg-black/50">
-        <div class="text-green-500 text-xs px-2 py-1 border-b border-green-400/30">
-          Match ${matchId}
-        </div>
-        <div class="p-2 space-y-1">
-          <div class="text-green-400 text-sm flex justify-between items-center">
-            <span>Player ${player1Id}</span>
-            <span class="text-xs text-green-500">0</span>
-          </div>
-          <div class="border-t border-green-400/20"></div>
-          <div class="text-green-400 text-sm flex justify-between items-center">
-            <span>Player ${player2Id}</span>
-            <span class="text-xs text-green-500">0</span>
-          </div>
-        </div>
-      </div>
-    `;
+    // Generate matches for this round
+    for (let match = 0; match < matchesInRound; match++) {
+      const matchId = Math.pow(2, round + 1) - 1 + match + 1;
+
+      let player1: Player | null = null;
+      let player2: Player | null = null;
+
+      if (round === 0) {
+        // First round - assign players
+        player1 = players[match * 2];
+        player2 = players[match * 2 + 1];
+      }
+
+      html += generateMatchCard(matchId, player1, player2, round);
+
+      if (match < matchesInRound - 1 && round > 0) {
+        const spacingHeight = Math.pow(2, round + 1) * 4;
+        html += `<div style="height: ${spacingHeight}rem"></div>`;
+      }
+    }
+
+    html += `</div>`;
   }
+
+  html += `</div>`;
+
+  // Winner Display
+  html += `
+    <div class="mt-8 text-center">
+      <div class="inline-block bg-green-400/20 border border-green-400 px-8 py-4">
+        <div class="text-green-300 text-sm mb-2">TOURNAMENT WINNER</div>
+        <div id="tournament-winner" class="text-green-400 font-bold text-xl">TBD</div>
+      </div>
+    </div>
+  </div>
+  `;
+
   return html;
+}
+
+function getRoundName(round: number, totalRounds: number): string {
+  const roundsFromEnd = totalRounds - round - 1;
+
+  if (roundsFromEnd === 0) return "FINALS";
+  if (roundsFromEnd === 1) return "SEMI FINALS";
+  if (roundsFromEnd === 2) return "QUARTER FINALS";
+  return `ROUND ${round + 1}`;
+}
+
+function generateMatchCard(matchId: number, player1: Player | null, player2: Player | null, round: number): string {
+  const p1Name = player1 ? (player1.isBye ? `<span class="text-green-600">${player1.name}</span>` : player1.name) : "TBD";
+  const p2Name = player2 ? (player2.isBye ? `<span class="text-green-600">${player2.name}</span>` : player2.name) : "TBD";
+
+  // Determine if this is an auto-win (one player is a bye)
+  let winnerText = "";
+  if (player1 && player1.isBye && player2 && !player2.isBye) {
+    winnerText = `<div class="text-green-300 text-xs mt-1">${player2.name} advances</div>`;
+  } else if (player2 && player2.isBye && player1 && !player1.isBye) {
+    winnerText = `<div class="text-green-300 text-xs mt-1">${player1.name} advances</div>`;
+  }
+
+  return `
+    <div class="border border-green-400/50 bg-black/50">
+      <div class="text-green-500 text-xs px-2 py-1 border-b border-green-400/30">
+        Match ${matchId}
+      </div>
+      <div class="p-2 space-y-1">
+        <div class="text-green-400 text-sm flex justify-between items-center">
+          <span>${p1Name}</span>
+          <span class="text-xs text-green-500">0</span>
+        </div>
+        <div class="border-t border-green-400/20"></div>
+        <div class="text-green-400 text-sm flex justify-between items-center">
+          <span>${p2Name}</span>
+          <span class="text-xs text-green-500">0</span>
+        </div>
+        ${winnerText}
+      </div>
+    </div>
+  `;
 }
 
 function setupCreateTournamentButton(): void {
   const createBtn = document.getElementById("create-tournament-btn");
-  const bracket = document.getElementById("tournament-bracket");
+  const playerCountInput = document.getElementById("player-count-input") as HTMLInputElement;
+  const tournamentForm = document.getElementById("tournament-form");
+  const bracketContainer = document.getElementById("tournament-bracket");
 
-  if (createBtn && bracket) {
+  if (createBtn && playerCountInput && bracketContainer && tournamentForm) {
     createBtn.addEventListener("click", () => {
+      let playerCount = parseInt(playerCountInput.value);
+
+      // Validate input
+      if (isNaN(playerCount) || playerCount < 2 || playerCount > 16) {
+        alert("Please enter a valid number of players (2-16)");
+        return;
+      }
+
+      // Generate bracket
+      const bracketHtml = generateBracket(playerCount);
+      bracketContainer.innerHTML = bracketHtml;
+
       // Show the bracket
-      bracket.classList.remove("hidden");
-      bracket.classList.add("animate-fadeIn");
+      bracketContainer.classList.remove("hidden");
 
-      // Hide the create button
-      createBtn.style.display = "none";
+      // Hide the form
+      tournamentForm.style.display = "none";
 
-      // Simulate bracket animation
+      // Animate bracket reveal
       animateBracketReveal();
     });
   }
