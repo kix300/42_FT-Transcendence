@@ -16,7 +16,7 @@ export class Score {
     this.scoreText.text = "0 - 0";
     this.scoreText.color = "white";
     this.scoreText.fontSize = 60; // Slightly larger font
-    this.scoreText.top = "20px"; // Position from the top
+    this.scoreText.top = "-300px"; // Position from the top
     this.scoreText.verticalAlignment = 0; // Align to top
     adt.addControl(this.scoreText);
   }
@@ -39,6 +39,29 @@ export class Score {
   public incrementPlayer3Score(): void {
     this.player3Score++;
     this.updateScoreText();
+  }
+
+  public getPlayer1Score(): number {
+    return this.player1Score;
+  }
+
+  public getPlayer2Score(): number {
+    return this.player2Score;
+  }
+
+  public getPlayer3Score(): number {
+    return this.player3Score;
+  }
+
+  public hasWinner(winningScore: number = 7): boolean {
+    return this.player1Score >= winningScore ||
+           this.player2Score >= winningScore;
+  }
+
+  public getWinner(winningScore: number = 7): number {
+    if (this.player1Score >= winningScore) return 1;
+    if (this.player2Score >= winningScore) return 2;
+    return 0; // No winner yet
   }
 
   public reset(): void {

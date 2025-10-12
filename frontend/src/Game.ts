@@ -24,16 +24,20 @@ export class Game {
   private inputHandler!: InputHandler;
   private isThreePlayerMode = false;
   private table?: any;
+  private triangleVertices?: { v1: Vector3; v2: Vector3; v3: Vector3 };
+  private gameEnded = false;
+  private onGameEnd?: (winner: number, score1: number, score2: number) => void;
 
   constructor(engine: Engine, canvas: HTMLCanvasElement) {
     this.engine = engine;
     this.scene = new Scene(engine);
     this.scene.clearColor = new Color4(0.22, 0.21, 0.35, 1);
 
-    this.camera = new UniversalCamera("camera1", new Vector3(0, 10, -30), this.scene);
+    this.camera = new UniversalCamera("camera1", new Vector3(0, 10, 30), this.scene);
     this.camera.setTarget(Vector3.Zero());
     this.camera.attachControl(canvas, true);
     this.camera.inputs.remove(this.camera.inputs.attached.keyboard);
+    this.camera.inputs.remove(this.camera.inputs.attached.mouse);
 
     const light = new HemisphericLight("light1", new Vector3(0, 1, 0), this.scene);
     light.intensity = 0.7;
@@ -59,15 +63,17 @@ export class Game {
   }
 
   createTriangularGameObjects(): void {
-    const r = 15;
-    const a1 = Math.PI / 2, a2 = a1 + 2 * Math.PI / 3, a3 = a2 + 2 * Math.PI / 3;
+    const r = 20;
+    // Reversed triangle: rotate all angles by 180 degrees (Math.PI)
+    const a1 = Math.PI / 2 + Math.PI, a2 = a1 + 2 * Math.PI / 3, a3 = a2 + 2 * Math.PI / 3;
     const v1 = new Vector3(Math.cos(a1) * r, 0, Math.sin(a1) * r);
     const v2 = new Vector3(Math.cos(a2) * r, 0, Math.sin(a2) * r);
     const v3 = new Vector3(Math.cos(a3) * r, 0, Math.sin(a3) * r);
 
+
     this.table = MeshBuilder.CreateDisc("triangleTable", { radius: r, tessellation: 3 }, this.scene);
     this.table.rotation.x = Math.PI / 2;
-    this.table.rotation.y = Math.PI / 6; // Align disc triangle with calculated vertices
+    this.table.rotation.y = Math.PI / 6 + Math.PI; // Reversed triangle orientation
     const mat = new StandardMaterial("triangleTableMat", this.scene);
     mat.diffuseColor = new Color3(0.53, 0.58, 0.95);
     mat.backFaceCulling = false;
@@ -75,17 +81,22 @@ export class Game {
 
     const mid = (a: Vector3, b: Vector3) => new Vector3((a.x + b.x) / 2, 0.5, (a.z + b.z) / 2);
     const edgeLen = v1.subtract(v2).length();
+    //p1 = v1, v3
+    //p3 = v3, v2
+    //p2 = v2, v1
 
     this.paddle1 = new Paddle("paddle1", mid(v1, v3), edgeLen, this.scene, v1, v3);
     // this.paddle1.mesh.rotation.y = Math.atan2(v3.z - v1.z, v3.x - v1.x) + Math.PI / 2;
     this.paddle1.mesh.rotation.y = 2.6;
 
-    this.paddle2 = new Paddle("paddle2", mid(v2, v1), edgeLen, this.scene, v2, v1);
+    this.paddle2 = new Paddle("paddle2", mid(v1, v2), edgeLen, this.scene, v1, v2);
     // this.paddle2.mesh.rotation.y = Math.atan2(v1.z - v2.z, v1.x - v2.x) + Math.PI / 2;
     this.paddle2.mesh.rotation.y = -2.6;
 
-    this.paddle3 = new Paddle("paddle3", mid(v3, v2), edgeLen, this.scene, v3, v2);
+    this.paddle3 = new Paddle("paddle3", mid(v2, v3), edgeLen, this.scene, v2, v3);
     this.paddle3.mesh.rotation.y = Math.atan2(v2.z - v3.z, v2.x - v3.x) + Math.PI / 2;
+
+    this.triangleVertices = { v1, v2, v3 };
   }
 
   public switchToThreePlayerMode(): void {
@@ -96,9 +107,10 @@ export class Game {
 
     this.ball.dispose();
     this.ball = new Ball("ball", this.scene,
-      () => { this.score.incrementPlayer1Score(); this.ball.reset(); },
       () => { this.score.incrementPlayer2Score(); this.ball.reset(); },
-      () => { this.score.incrementPlayer3Score(); this.ball.reset(); }
+      () => { this.score.incrementPlayer3Score(); this.ball.reset(); },
+      () => { this.score.incrementPlayer1Score(); this.ball.reset(); },
+      this.triangleVertices
     );
     this.ball.reset();
     this.inputHandler = new InputHandler(this.scene, this.paddle1, this.paddle2, this.paddle3);
@@ -112,8 +124,8 @@ export class Game {
 
     this.ball.dispose();
     this.ball = new Ball("ball", this.scene,
-      () => { this.score.incrementPlayer2Score(); this.ball.reset(); },
-      () => { this.score.incrementPlayer1Score(); this.ball.reset(); }
+      () => { this.score.incrementPlayer1Score(); this.ball.reset(); },
+      () => { this.score.incrementPlayer2Score(); this.ball.reset(); }
     );
     this.ball.reset();
     this.inputHandler = new InputHandler(this.scene, this.paddle1, this.paddle2);
@@ -134,6 +146,10 @@ export class Game {
   }
 
   update(): void {
+    if (this.gameEnded) {
+      return; // Stop updating if game has ended
+    }
+
     this.paddle1.update();
     this.paddle2.update();
     if (this.paddle3) this.paddle3.update();
@@ -142,6 +158,40 @@ export class Game {
       ? [this.paddle1.mesh, this.paddle2.mesh, this.paddle3.mesh]
       : [this.paddle1.mesh, this.paddle2.mesh];
 
-    this.ball.update(paddles, { width: 25, depth: 15 });
+    const tableConfig = this.isThreePlayerMode
+      ? { width: 30, depth: 30, isTriangular: true, radius: 15 }
+      : { width: 25, depth: 15 };
+
+    this.ball.update(paddles, tableConfig);
+
+    // Check for winner (only in 2-player mode for tournaments)
+    if (!this.isThreePlayerMode && this.score.hasWinner(2)) {
+      this.endGame();
+    }
+  }
+
+  public setGameEndCallback(callback: (winner: number, score1: number, score2: number) => void): void {
+    this.onGameEnd = callback;
+  }
+
+  private endGame(): void {
+    if (this.gameEnded) return;
+
+    this.gameEnded = true;
+    const winner = this.score.getWinner(7);
+    const score1 = this.score.getPlayer1Score();
+    const score2 = this.score.getPlayer2Score();
+
+    // Stop the ball
+    this.ball.dispose();
+
+    // Call the callback if set
+    if (this.onGameEnd) {
+      this.onGameEnd(winner, score1, score2);
+    }
+  }
+
+  public isGameEnded(): boolean {
+    return this.gameEnded;
   }
 }

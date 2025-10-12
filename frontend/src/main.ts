@@ -4,6 +4,7 @@ import { LoginPage } from "./pages/LoginPage";
 import { RegisterPage } from "./pages/RegisterPage";
 import { HomePage } from "./pages/HomePage";
 import { GamePage } from "./pages/GamePage";
+import { TournamentPage } from "./pages/TournamentPage";
 
 // Initialiser l'application
 function initApp(): void {
@@ -47,10 +48,16 @@ function initApp(): void {
     component: GamePage,
   });
 
+  router.addRoute({
+    path: "/tournament",
+    name: "tournament",
+    component: TournamentPage,
+  });
+
   // Démarrer le router avec la route initiale
   // Si on est déjà sur une route spécifique, l'utiliser, sinon aller au login
   const currentPath = window.location.pathname;
-  const validPaths = ["/", "/login", "/register", "/home", "/game"];
+  const validPaths = ["/", "/login", "/register", "/home", "/game", "/tournament"];
   const startPath = validPaths.includes(currentPath) ? currentPath : "/login";
 
   router.start(startPath);
