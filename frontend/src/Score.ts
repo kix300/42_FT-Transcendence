@@ -41,6 +41,29 @@ export class Score {
     this.updateScoreText();
   }
 
+  public getPlayer1Score(): number {
+    return this.player1Score;
+  }
+
+  public getPlayer2Score(): number {
+    return this.player2Score;
+  }
+
+  public getPlayer3Score(): number {
+    return this.player3Score;
+  }
+
+  public hasWinner(winningScore: number = 7): boolean {
+    return this.player1Score >= winningScore ||
+           this.player2Score >= winningScore;
+  }
+
+  public getWinner(winningScore: number = 7): number {
+    if (this.player1Score >= winningScore) return 1;
+    if (this.player2Score >= winningScore) return 2;
+    return 0; // No winner yet
+  }
+
   public reset(): void {
     this.player1Score = 0;
     this.player2Score = 0;

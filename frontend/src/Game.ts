@@ -25,6 +25,8 @@ export class Game {
   private isThreePlayerMode = false;
   private table?: any;
   private triangleVertices?: { v1: Vector3; v2: Vector3; v3: Vector3 };
+  private gameEnded = false;
+  private onGameEnd?: (winner: number, score1: number, score2: number) => void;
 
   constructor(engine: Engine, canvas: HTMLCanvasElement) {
     this.engine = engine;
@@ -144,6 +146,10 @@ export class Game {
   }
 
   update(): void {
+    if (this.gameEnded) {
+      return; // Stop updating if game has ended
+    }
+
     this.paddle1.update();
     this.paddle2.update();
     if (this.paddle3) this.paddle3.update();
@@ -157,5 +163,35 @@ export class Game {
       : { width: 25, depth: 15 };
 
     this.ball.update(paddles, tableConfig);
+
+    // Check for winner (only in 2-player mode for tournaments)
+    if (!this.isThreePlayerMode && this.score.hasWinner(2)) {
+      this.endGame();
+    }
+  }
+
+  public setGameEndCallback(callback: (winner: number, score1: number, score2: number) => void): void {
+    this.onGameEnd = callback;
+  }
+
+  private endGame(): void {
+    if (this.gameEnded) return;
+
+    this.gameEnded = true;
+    const winner = this.score.getWinner(7);
+    const score1 = this.score.getPlayer1Score();
+    const score2 = this.score.getPlayer2Score();
+
+    // Stop the ball
+    this.ball.dispose();
+
+    // Call the callback if set
+    if (this.onGameEnd) {
+      this.onGameEnd(winner, score1, score2);
+    }
+  }
+
+  public isGameEnded(): boolean {
+    return this.gameEnded;
   }
 }
