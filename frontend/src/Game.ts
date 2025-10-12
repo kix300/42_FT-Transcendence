@@ -31,10 +31,11 @@ export class Game {
     this.scene = new Scene(engine);
     this.scene.clearColor = new Color4(0.22, 0.21, 0.35, 1);
 
-    this.camera = new UniversalCamera("camera1", new Vector3(0, 10, -30), this.scene);
+    this.camera = new UniversalCamera("camera1", new Vector3(0, 10, 30), this.scene);
     this.camera.setTarget(Vector3.Zero());
     this.camera.attachControl(canvas, true);
     this.camera.inputs.remove(this.camera.inputs.attached.keyboard);
+    this.camera.inputs.remove(this.camera.inputs.attached.mouse);
 
     const light = new HemisphericLight("light1", new Vector3(0, 1, 0), this.scene);
     light.intensity = 0.7;
@@ -42,8 +43,8 @@ export class Game {
     this.createGameObjects();
     this.score = new Score(this.scene);
     this.ball = new Ball("ball", this.scene,
-      () => { this.score.incrementPlayer1Score(); this.ball.reset(); },
-      () => { this.score.incrementPlayer2Score(); this.ball.reset(); }
+      () => { this.score.incrementPlayer2Score(); this.ball.reset(); },
+      () => { this.score.incrementPlayer1Score(); this.ball.reset(); }
     );
     this.ball.reset();
     this.inputHandler = new InputHandler(this.scene, this.paddle1, this.paddle2);
@@ -61,14 +62,16 @@ export class Game {
 
   createTriangularGameObjects(): void {
     const r = 20;
-    const a1 = Math.PI / 2, a2 = a1 + 2 * Math.PI / 3, a3 = a2 + 2 * Math.PI / 3;
+    // Reversed triangle: rotate all angles by 180 degrees (Math.PI)
+    const a1 = Math.PI / 2 + Math.PI, a2 = a1 + 2 * Math.PI / 3, a3 = a2 + 2 * Math.PI / 3;
     const v1 = new Vector3(Math.cos(a1) * r, 0, Math.sin(a1) * r);
     const v2 = new Vector3(Math.cos(a2) * r, 0, Math.sin(a2) * r);
     const v3 = new Vector3(Math.cos(a3) * r, 0, Math.sin(a3) * r);
 
+
     this.table = MeshBuilder.CreateDisc("triangleTable", { radius: r, tessellation: 3 }, this.scene);
     this.table.rotation.x = Math.PI / 2;
-    this.table.rotation.y = Math.PI / 6; // Align disc triangle with calculated vertices
+    this.table.rotation.y = Math.PI / 6 + Math.PI; // Reversed triangle orientation
     const mat = new StandardMaterial("triangleTableMat", this.scene);
     mat.diffuseColor = new Color3(0.53, 0.58, 0.95);
     mat.backFaceCulling = false;
@@ -76,16 +79,19 @@ export class Game {
 
     const mid = (a: Vector3, b: Vector3) => new Vector3((a.x + b.x) / 2, 0.5, (a.z + b.z) / 2);
     const edgeLen = v1.subtract(v2).length();
+    //p1 = v1, v3
+    //p3 = v3, v2
+    //p2 = v2, v1
 
     this.paddle1 = new Paddle("paddle1", mid(v1, v3), edgeLen, this.scene, v1, v3);
     // this.paddle1.mesh.rotation.y = Math.atan2(v3.z - v1.z, v3.x - v1.x) + Math.PI / 2;
     this.paddle1.mesh.rotation.y = 2.6;
 
-    this.paddle2 = new Paddle("paddle2", mid(v2, v1), edgeLen, this.scene, v2, v1);
+    this.paddle2 = new Paddle("paddle2", mid(v1, v2), edgeLen, this.scene, v1, v2);
     // this.paddle2.mesh.rotation.y = Math.atan2(v1.z - v2.z, v1.x - v2.x) + Math.PI / 2;
     this.paddle2.mesh.rotation.y = -2.6;
 
-    this.paddle3 = new Paddle("paddle3", mid(v3, v2), edgeLen, this.scene, v3, v2);
+    this.paddle3 = new Paddle("paddle3", mid(v2, v3), edgeLen, this.scene, v2, v3);
     this.paddle3.mesh.rotation.y = Math.atan2(v2.z - v3.z, v2.x - v3.x) + Math.PI / 2;
 
     this.triangleVertices = { v1, v2, v3 };
@@ -116,8 +122,8 @@ export class Game {
 
     this.ball.dispose();
     this.ball = new Ball("ball", this.scene,
-      () => { this.score.incrementPlayer2Score(); this.ball.reset(); },
-      () => { this.score.incrementPlayer1Score(); this.ball.reset(); }
+      () => { this.score.incrementPlayer1Score(); this.ball.reset(); },
+      () => { this.score.incrementPlayer2Score(); this.ball.reset(); }
     );
     this.ball.reset();
     this.inputHandler = new InputHandler(this.scene, this.paddle1, this.paddle2);
