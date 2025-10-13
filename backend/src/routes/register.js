@@ -3,6 +3,7 @@ import db from "../db.js";
 import multipart from "@fastify/multipart";
 import fs from "fs";
 import path from "path";
+import { pipeline } from "stream/promises";
 
 export default async function registerRoutes(fastify ){
 	fastify.register(multipart);
@@ -10,10 +11,17 @@ export default async function registerRoutes(fastify ){
 		let username, email, password;
 		let avatarPath = './uploads/avatar.png';
 		let avatar;
+		const uploadsDir = path.join(process.cwd(), 'uploads');
 
 		const parts = request.parts();
 		for await (const part of parts) {
-			if (part.file) avatar = part;
+			if (part.file) {
+				avatar = part;
+				const newFilename = Date.now() + '_' + avatar.filename;
+				const filePath = path.join(uploadsDir, newFilename);
+				avatarPath = `./uploads/${newFilename}`;
+				await pipeline(avatar.file, fs.createWriteStream(filePath));
+			}
 			else if (part.fieldname === "username") username = part.value;
 			else if (part.fieldname === "email") email = part.value;
 			else if (part.fieldname === "password") password = part.value;
@@ -21,17 +29,7 @@ export default async function registerRoutes(fastify ){
 		console.log('✅ On va enregistrer un nouveau user: ', username);
 		if (avatar)
 		{
-			const uploadsDir = path.join(process.cwd(), 'uploads');
-			const newFilename = Date.now() + '_' + avatar.filename;
-			const filePath = path.join(uploadsDir, newFilename);
-			const writeStream = fs.createWriteStream(filePath);
-			await avatar.file.pipe(writeStream);
-			await new Promise((resolve, reject) => {
-				writeStream.on('finish', resolve);
-				writeStream.on('error', reject);
-			});
-			console.log('Fichier uploadé:', filePath);
-			avatarPath = `./uploads/${newFilename}`;
+			console.log('Fichier uploadé:',  path.join(uploadsDir, avatar.filename));
 		}
 		
         try{
