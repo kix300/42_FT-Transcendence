@@ -90,8 +90,12 @@ export async function ProfilePage(): Promise<void> {
           <div class="mb-8" id="profile-header" style="opacity: 0;">
             <div class="flex items-center space-x-6 bg-gray-900 border border-green-400/30 p-6 rounded">
               <!-- Avatar -->
-              <div class="w-24 h-24 rounded-full bg-green-400/20 border-2 border-green-400/50 flex items-center justify-center">
-                <span class="text-green-400 text-3xl font-bold">${(userProfile?.username || 'U').charAt(0).toUpperCase()}</span>
+              <div class="w-24 h-24 rounded-full bg-green-400/20 border-2 border-green-400/50 flex items-center justify-center overflow-hidden">
+                ${userProfile?.photo ? 
+                  `<img src="${userProfile.photo}" alt="${userProfile.username}" class="w-full h-full object-cover rounded-full" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" />
+                   <span class="text-green-400 text-3xl font-bold hidden">${(userProfile?.username || 'U').charAt(0).toUpperCase()}</span>` :
+                  `<span class="text-green-400 text-3xl font-bold">${(userProfile?.username || 'U').charAt(0).toUpperCase()}</span>`
+                }
               </div>
               
               <!-- User Info -->
@@ -118,10 +122,14 @@ export async function ProfilePage(): Promise<void> {
               </div>
               
               <!-- Edit Button -->
-              <div>
+              <div class="flex flex-col space-y-2">
                 <button id="edit-profile-btn" class="bg-green-400/10 border border-green-400/30 px-4 py-2 rounded hover:bg-green-400/20 transition-colors">
                   <span class="text-green-400">Edit Profile</span>
                 </button>
+                <button id="change-photo-btn" class="bg-blue-400/10 border border-blue-400/30 px-4 py-2 rounded hover:bg-blue-400/20 transition-colors">
+                  <span class="text-blue-400">Change Photo</span>
+                </button>
+                <input type="file" id="photo-input" accept="image/*" class="hidden" />
               </div>
             </div>
           </div>
@@ -176,15 +184,15 @@ export async function ProfilePage(): Promise<void> {
             <h2 class="text-green-300 font-bold mb-4 text-xl">[ACHIEVEMENTS]</h2>
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div class="bg-black border border-green-400/20 p-4 rounded">
-                <div class="text-green-400 font-bold">🏆 First Victory</div>
+                <div class="text-green-400 font-bold">First Victory</div>
                 <div class="text-green-500 text-sm">Win your first game</div>
               </div>
               <div class="bg-black border border-green-400/20 p-4 rounded opacity-50">
-                <div class="text-green-400 font-bold">🚀 Speed Demon</div>
+                <div class="text-green-400 font-bold">Speed Demon</div>
                 <div class="text-green-500 text-sm">Win 10 games in a row</div>
               </div>
               <div class="bg-black border border-green-400/20 p-4 rounded opacity-50">
-                <div class="text-green-400 font-bold">👑 Tournament Champion</div>
+                <div class="text-green-400 font-bold">Tournament Champion</div>
                 <div class="text-green-500 text-sm">Win a tournament</div>
               </div>
             </div>

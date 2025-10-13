@@ -69,8 +69,12 @@ export async function HomePage(): Promise<void> {
             <!-- User Profile Avatar -->
             <div class="flex items-center space-x-3" id="user-profile" style="opacity: 0;">
               <button data-route="/profile" class="flex items-center space-x-3 bg-gray-900 border border-green-400/30 px-3 py-2 rounded hover:bg-green-400/10 transition-colors">
-                <div class="w-8 h-8 rounded-full bg-green-400/20 border border-green-400/50 flex items-center justify-center">
-                  <span class="text-green-400 text-sm font-bold">${(userProfile?.username || 'U').charAt(0).toUpperCase()}</span>
+                <div class="w-8 h-8 rounded-full bg-green-400/20 border border-green-400/50 flex items-center justify-center overflow-hidden">
+                  ${userProfile?.photo ? 
+                    `<img src="${userProfile.photo}" alt="${userProfile.username}" class="w-full h-full object-cover rounded-full" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" />
+                     <span class="text-green-400 text-sm font-bold hidden">${(userProfile?.username || 'U').charAt(0).toUpperCase()}</span>` :
+                    `<span class="text-green-400 text-sm font-bold">${(userProfile?.username || 'U').charAt(0).toUpperCase()}</span>`
+                  }
                 </div>
                 <div class="text-left">
                   <div class="text-green-400 text-sm font-medium">${userProfile?.username || 'Unknown'}</div>
