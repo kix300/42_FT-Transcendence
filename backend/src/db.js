@@ -87,25 +87,25 @@ db.prepare(`CREATE TABLE IF NOT EXISTS matches (
 
 
 /*inserer une nouvelle stat*/
-db.prepare(`
-  INSERT INTO matches (player1_id, player2_id, winner_id, score, is_tournament)
-  VALUES (?, ?, ?, ?, ?)
-`).run(player1_id, player2_id, winner_id, "3-2", true);
+// db.prepare(`
+//   INSERT INTO matches (player1_id, player2_id, winner_id, score, is_tournament)
+//   VALUES (?, ?, ?, ?, ?)
+// `).run(player1_id, player2_id, winner_id, "3-2", true);
 
 
 /*recuperer lhistorique dun joueur*/
-const matches = db.prepare(`
-  SELECT m.*, 
-         u1.username AS player1_name,
-         u2.username AS player2_name,
-         uw.username AS winner_name
-  FROM matches m
-  JOIN users u1 ON m.player1_id = u1.id
-  JOIN users u2 ON m.player2_id = u2.id
-  JOIN users uw ON m.winner_id = uw.id
-  WHERE m.player1_id = ? OR m.player2_id = ?
-  ORDER BY m.played_at DESC
-`).all(userId, userId);
+// const matches = db.prepare(`
+//   SELECT m.*, 
+//          u1.username AS player1_name,
+//          u2.username AS player2_name,
+//          uw.username AS winner_name
+//   FROM matches m
+//   JOIN users u1 ON m.player1_id = u1.id
+//   JOIN users u2 ON m.player2_id = u2.id
+//   JOIN users uw ON m.winner_id = uw.id
+//   WHERE m.player1_id = ? OR m.player2_id = ?
+//   ORDER BY m.played_at DESC
+// `).all(userId, userId);
 
 
 
