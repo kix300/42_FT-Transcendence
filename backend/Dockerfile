@@ -10,7 +10,7 @@ RUN		apt-get update && apt-get install -y python3 make g++ \
 COPY	public/ ./public/
 COPY	src/ .
 
-RUN		chmod 777 ./uploads/
+RUN		chown -R 1000:1000 ./uploads/
 
 # Créer un dossier pour la base SQLite et donner les droits à node
 RUN		mkdir -p /data && chown -R 1000:1000 /data
