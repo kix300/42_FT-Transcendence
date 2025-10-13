@@ -7,6 +7,7 @@ all: init build up
 init:
 	mkdir -p ./database
 	chmod 777 ./database
+	chmod 777 ./database/database.db
 	mkdir -p ./frontend/dist
 	chmod 777 ./frontend/dist
 
