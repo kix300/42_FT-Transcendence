@@ -6,12 +6,12 @@ interface Player {
   isBye: boolean;
 }
 
-interface Match {
-  id: number;
-  player1: Player | null;
-  player2: Player | null;
-  winner: Player | null;
-}
+// interface Match {
+//   id: number;
+//   player1: Player | null;
+//   player2: Player | null;
+//   winner: Player | null;
+// }
 
 export async function TournamentPage(): Promise<void> {
   const appDiv = document.querySelector<HTMLDivElement>("#app");
@@ -402,7 +402,7 @@ function generateMatchCardWithResult(matchId: number, player1: Player | null, pl
   return `
     <div class="border border-green-400/50 bg-black/50 ${hasResult ? 'border-green-300' : ''}">
       <div class="text-green-500 text-xs px-2 py-1 border-b border-green-400/30">
-        Match ${matchId}
+        Match ${matchId}, round ${round}
       </div>
       <div class="p-2 space-y-1">
         <div class="${p1Class} text-sm flex justify-between items-center">
