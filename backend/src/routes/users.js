@@ -29,7 +29,24 @@ export default async function usersRoutes(fastify, options) {
         if (!user) {
             return reply.code(404).send({ error: "Utilisateur introuvable" });
         }
-        reply.send(user);
+
+		// Récupérer les matchs où l'utilisateur est player1 ou player2
+    	const matches = db
+        .prepare(`SELECT * FROM matches 
+                  WHERE player1_id = ? OR player2_id = ? 
+                  ORDER BY date DESC`)
+        .all(userId, userId);
+
+		const stats = {
+			totalMatches: matches.length,
+			wins: matches.filter(m => m.winner_id === userId).length,
+			losses: matches.filter(m => m.winner_id !== userId).length
+		};
+		reply.send({
+			user,
+			stats,
+			matches
+		});
     });
 
     //modifier ses infos
