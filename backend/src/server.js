@@ -15,7 +15,14 @@ import statsRoutes from './routes/stats.js';
 // import oauthRoutes from './routes/oauth.js';
 
 //variables
-const fastify = Fastify({ logger: true });
+//CONFIG HTTPS A FAIRE
+const fastify = Fastify({
+  https: {
+    key: fs.readFileSync(path.join(__dirname, "certs/server.key")),
+    cert: fs.readFileSync(path.join(__dirname, "certs/server.crt")),
+  },
+  logger: true,
+});
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
 // Servir les fichiers statiques du répertoire 'dist' (créé par npm run build)
@@ -32,14 +39,6 @@ fastify.register(fastifyStatic, {
   prefix: '/uploads/',
   decorateReply: false,
 });
-
-// Certificat et cle
-// const fastify = Fastify({
-//   https: {
-//     key: fs.readFileSync('./certs/server.key'),
-//     cert: fs.readFileSync('./certs/server.crt'),
-//   }
-// });
 
 // Clé secrète JWT
 fastify.register(fastifyJwt, {
