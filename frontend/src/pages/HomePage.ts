@@ -1,6 +1,13 @@
 import { getRouter } from "../router";
 import { AuthManager } from "../utils/auth";
 
+// Interface pour les données utilisateur
+interface UserProfile {
+  id: number;
+  username: string;
+  email?: string;
+  photo?: string;
+}
 
 // Variable globale pour contrôler la vitesse d'écriture des animations
 const ANIMATION_SPEED = {
@@ -24,8 +31,20 @@ export async function HomePage(): Promise<void> {
     }
     return;
   }
+
   const appDiv = document.querySelector<HTMLDivElement>("#app");
   if (!appDiv) return;
+
+  // Récupérer les informations utilisateur depuis le backend
+  let userProfile: UserProfile | null = null;
+  try {
+    const response = await AuthManager.fetchWithAuth('/api/me');
+    if (response.ok) {
+      userProfile = await response.json();
+    }
+  } catch (error) {
+    console.error('Erreur lors de la récupération du profil:', error);
+  }
 
   // Classes CSS pour le body et conteneur principal
   const body = document.querySelector("body");
@@ -44,12 +63,32 @@ export async function HomePage(): Promise<void> {
             <span id="header-command" class="text-green-300 font-bold"></span>
             <span id="header-cursor" class="text-green-300 animate-pulse">_</span>
           </div>
-          <div class="flex space-x-6" id="nav-menu" style="opacity: 0;">
-            <a href="#" data-route="/home" class="hover:text-green-300 transition-colors">> home</a>
-            <a href="#" data-route="/game" class="hover:text-green-300 transition-colors">> game</a>
-            <a href="#" data-route="/tournament" class="hover:text-green-300 transition-colors">> tournament</a>
-            <a href="#" data-route="/dashboard" class="hover:text-green-300 transition-colors">> dashboard</a>
-            <button id="logout-btn" class="hover:text-red-400 transition-colors text-left">> logout</button>
+          
+          <!-- Profile Info -->
+          <div class="flex items-center space-x-6">
+            <div class="flex items-center space-x-4" id="profile-info" style="opacity: 0;">
+              <div class="bg-gray-900 border border-green-400/30 px-3 py-1 rounded">
+                <div class="text-green-300 text-xs">User Profile:</div>
+                <div class="text-green-400 text-sm">
+                  <span class="text-green-300">ID:</span> ${userProfile?.id || 'N/A'} | 
+                  <span class="text-green-300">User:</span> ${userProfile?.username || 'Unknown'} | 
+                  <span class="text-green-300">Email:</span> ${userProfile?.email || 'N/A'}
+                </div>
+              </div>
+              <div class="bg-gray-900 border border-green-400/30 px-3 py-1 rounded">
+                <div class="text-green-300 text-xs">Token:</div>
+                <div class="text-green-400 text-sm font-mono">${AuthManager.getToken()?.substring(0, 20) || 'N/A'}...</div>
+              </div>
+            </div>
+            
+            <!-- Navigation Menu -->
+            <div class="flex space-x-6" id="nav-menu" style="opacity: 0;">
+              <a href="#" data-route="/home" class="hover:text-green-300 transition-colors">> home</a>
+              <a href="#" data-route="/game" class="hover:text-green-300 transition-colors">> game</a>
+              <a href="#" data-route="/tournament" class="hover:text-green-300 transition-colors">> tournament</a>
+              <a href="#" data-route="/dashboard" class="hover:text-green-300 transition-colors">> dashboard</a>
+              <button id="logout-btn" class="hover:text-red-400 transition-colors text-left">> logout</button>
+            </div>
           </div>
         </div>
       </header>
@@ -220,10 +259,18 @@ async function startTypewriterAnimations(): Promise<void> {
   await typeWriter("header-command", "./transcendence.sh", ANIMATION_SPEED.TYPEWRITER_FAST);
   await new Promise((resolve) => setTimeout(resolve, ANIMATION_SPEED.DELAY_SHORT));
 
-  // 2. Cacher le curseur du header et montrer le menu nav
+  // 2. Cacher le curseur du header et montrer le profil et menu nav
   const headerCursor = document.getElementById("header-cursor");
+  const profileInfo = document.getElementById("profile-info");
   const navMenu = document.getElementById("nav-menu");
+  
   if (headerCursor) headerCursor.style.display = "none";
+  
+  if (profileInfo) {
+    profileInfo.style.opacity = "1";
+    profileInfo.style.transition = `opacity ${ANIMATION_SPEED.TRANSITION_FAST}s`;
+  }
+  
   if (navMenu) {
     navMenu.style.opacity = "1";
     navMenu.style.transition = `opacity ${ANIMATION_SPEED.TRANSITION_FAST}s`;
