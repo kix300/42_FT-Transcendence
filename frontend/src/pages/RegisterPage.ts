@@ -677,9 +677,7 @@ async function handleRegister(): Promise<void> {
     "confirm-password",
   ) as HTMLInputElement;
   const termsInput = document.getElementById("terms") as HTMLInputElement;
-  const photoInput = document.getElementById(
-    "profile-photo",
-  ) as HTMLInputElement;
+  const photoInput = document.getElementById("profile-photo") as HTMLInputElement;
 
   const username = usernameInput?.value.trim();
   const email = emailInput?.value.trim();
@@ -727,29 +725,30 @@ async function handleRegister(): Promise<void> {
     return;
   }
 
-  showMessage("Creating account...", "info");
-
   // TODO: Replace with actual registration API call
-  // Note: When you implement the backend, you'll need to use FormData for file upload
   try {
 
     let response;
 
-    
-      // Use FormData for file upload
-      const formData = new FormData();
-      formData.append("username", username);
-      formData.append("email", email);
-      formData.append("password", password);
-	  if (profilePhoto) {
-      formData.append("profilePhoto", profilePhoto);
-	  }
-      response = await fetch("/api/register", {
-        method: "POST",
-        body: formData,
-      });
+	// Use FormData for file upload
+	const formData = new FormData();
+	formData.append("username", username);
+	formData.append("email", email);
+	formData.append("password", password);
+	if (profilePhoto) {
+	console.log("Une photo a ete dectee", profilePhoto);
+	formData.append("profilePhoto", profilePhoto);
+	}
+	response = await fetch("/api/register", {
+	method: "POST",
+	body: formData,
+	});
+
+ 	showMessage("Creating account...", "info");
 
     const data = await response.json();
+
+ 	console.log("Response has been received from backend");
 
     console.log(response);
     if (response.ok) {
