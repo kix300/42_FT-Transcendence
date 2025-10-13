@@ -74,7 +74,6 @@ export async function HomePage(): Promise<void> {
                 </div>
                 <div class="text-left">
                   <div class="text-green-400 text-sm font-medium">${userProfile?.username || 'Unknown'}</div>
-                  <div class="text-green-500 text-xs">Click to view profile</div>
                 </div>
               </button>
             </div>
@@ -99,7 +98,6 @@ export async function HomePage(): Promise<void> {
               <a href="#" data-route="/home" class="hover:text-green-300 transition-colors">> home</a>
               <a href="#" data-route="/game" class="hover:text-green-300 transition-colors">> game</a>
               <a href="#" data-route="/tournament" class="hover:text-green-300 transition-colors">> tournament</a>
-              <a href="#" data-route="/profile" class="hover:text-green-300 transition-colors">> profile</a>
               <button id="logout-btn" class="hover:text-red-400 transition-colors text-left">> logout</button>
             </div>
           </div>
