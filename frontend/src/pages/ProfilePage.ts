@@ -3,16 +3,32 @@ import { AuthManager } from "../utils/auth";
 import { Header } from "../components/Header";
 import { createHeader, HeaderConfigs } from "../components/Header";
 
+// Interface pour l'historique des matchs
+interface Match {
+  id: number;
+  player1_id: number;
+  player2_id: number;
+  winner_id: number;
+  player1_score?: number;
+  player2_score?: number;
+  is_tournament: boolean;
+  date: string;
+}
+
 // Interface pour les données utilisateur étendues
 interface UserProfile {
   id: number;
   username: string;
-  email?: string;
-  photo?: string;
+  email: string;
+  photo: string;
   created_at?: string;
   last_login?: string;
-  games_played?: number;
-  games_won?: number;
+  stats: {
+    totalMatches: number;
+    wins: number;
+    losses: number;
+  }
+  matches: Match[];
   level?: number;
   achievements?: string[];
 }
@@ -46,9 +62,17 @@ export async function ProfilePage(): Promise<void> {
   // Récupérer les informations utilisateur depuis le backend
   let userProfile: UserProfile | null = null;
   try {
+	console.log('Authentification...');
     const response = await AuthManager.fetchWithAuth('/api/me');
     if (response.ok) {
-      userProfile = await response.json();
+	  console.log('Début de ProfilePage');
+      const data = await response.json();
+	  userProfile = {
+		...data.user,
+		stats: data.stats,
+		matches: data.matches
+      };
+	  console.log("✅ Ok, userProfile is set!");
     }
   } catch (error) {
     console.error('Erreur lors de la récupération du profil:', error);
@@ -128,15 +152,15 @@ export async function ProfilePage(): Promise<void> {
               <div class="space-y-3">
                 <div class="flex justify-between">
                   <span class="text-green-500">Games Played:</span>
-                  <span class="text-green-400 font-mono">${userProfile?.games_played || '0'}</span>
+                  <span class="text-green-400 font-mono">${userProfile?.stats.totalMatches || '0'}</span>
                 </div>
                 <div class="flex justify-between">
                   <span class="text-green-500">Games Won:</span>
-                  <span class="text-green-400 font-mono">${userProfile?.games_won || '0'}</span>
+                  <span class="text-green-400 font-mono">${userProfile?.stats.wins || '0'}</span>
                 </div>
                 <div class="flex justify-between">
                   <span class="text-green-500">Win Rate:</span>
-                  <span class="text-green-400 font-mono">${userProfile?.games_played ? Math.round((userProfile.games_won || 0) / userProfile.games_played * 100) : 0}%</span>
+                  <span class="text-green-400 font-mono">${userProfile?.stats.totalMatches ? Math.round((userProfile.stats.wins || 0) / userProfile.stats.totalMatches * 100) : 0}%</span>
                 </div>
                 <div class="flex justify-between">
                   <span class="text-green-500">Current Level:</span>
