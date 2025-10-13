@@ -3,6 +3,7 @@ import db from "../db.js";
 import multipart from "@fastify/multipart";
 import fs from "fs";
 import path from "path";
+import { pipeline } from "stream/promises";
 
 export default async function registerRoutes(fastify ){
 	fastify.register(multipart);
@@ -10,31 +11,25 @@ export default async function registerRoutes(fastify ){
 		let username, email, password;
 		let avatarPath = './uploads/avatar.png';
 		let avatar;
+		const uploadsDir = path.join(process.cwd(), 'uploads');
 
 		const parts = request.parts();
 		for await (const part of parts) {
 			if (part.file) {
 				avatar = part;
-			} else {
-				if (part.fieldname === "username") username = part.value;
-				if (part.fieldname === "email") email = part.value;
-				if (part.fieldname === "password") password = part.value;
+				const newFilename = Date.now() + '_' + avatar.filename;
+				const filePath = path.join(uploadsDir, newFilename);
+				avatarPath = `./uploads/${newFilename}`;
+				await pipeline(avatar.file, fs.createWriteStream(filePath));
 			}
+			else if (part.fieldname === "username") username = part.value;
+			else if (part.fieldname === "email") email = part.value;
+			else if (part.fieldname === "password") password = part.value;
 		}
 		console.log('✅ On va enregistrer un nouveau user: ', username);
 		if (avatar)
 		{
-			const uploadsDir = path.join(process.cwd(), 'uploads');
-			const newFilename = Date.now() + '_' + avatar.filename;
-			const filePath = path.join(uploadsDir, newFilename);
-			const writeStream = fs.createWriteStream(filePath);
-			await avatar.file.pipe(writeStream);
-			await new Promise((resolve, reject) => {
-				writeStream.on('finish', resolve);
-				writeStream.on('error', reject);
-			});
-			console.log('Fichier uploadé:', filePath);
-			avatarPath = `./uploads/${newFilename}`;
+			console.log('Fichier uploadé:',  path.join(uploadsDir, avatar.filename));
 		}
 		
         try{
@@ -52,34 +47,3 @@ export default async function registerRoutes(fastify ){
         }
     });
 }
-
-
-
-
-// import bcrypt from "bcrypt";
-// import db from "../db.js";
-
-// export default async function registerRoutes(fastify ){
-//     fastify.post("/api/register", async(request, reply) => {
-//         const {username, email, password, photo} = request.body;
-
-//         try{
-//             const hashedPassword = await bcrypt.hash(password, 10);
-// 			if (photo){
-//             	db.prepare('INSERT INTO users (username, email, password, photo) VALUES (?, ?, ?, ?)').run(username, email, hashedPassword, photo);
-// 			} else {
-
-// 				db.prepare('INSERT INTO users (username, email, password) VALUES (?, ?, ?)').run(username, email, hashedPassword);
-// 			}
-//             reply.code(201).send({message:"User created successfully"});
-//         } catch (err) {
-//             if (err.code == "SQLITE_CONSTRAINT_UNIQUE"){
-//                 reply.code(400).send({error: "Username or email already exists"});
-//             }
-//             else {
-//                 console.error(err);
-//                 reply.code(500).send({error: "Internal server error"});
-//             }
-//         }
-//     });
-// }

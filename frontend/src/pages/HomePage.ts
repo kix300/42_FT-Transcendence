@@ -13,11 +13,19 @@ const ANIMATION_SPEED = {
   TRANSITION_FAST: 0,   // Transition rapide
   TRANSITION_NORMAL: 0.5, // Transition normale
 };
+// Interface pour les données utilisateur
+interface UserProfile {
+  id: number;
+  username: string;
+  email?: string;
+  photo?: string;
+}
 
 // Variables globales pour gérer l'état des animations
 let animationInProgress = false;
 
 export async function HomePage(): Promise<void> {
+  
     // Vérifier l'authentification AVANT d'afficher la page
   if (!AuthManager.isAuthenticated()) {
     console.log('Utilisateur non authentifié, redirection vers login');
@@ -29,6 +37,15 @@ export async function HomePage(): Promise<void> {
   }
 
   const appDiv = document.querySelector<HTMLDivElement>("#app");
+  let userProfile: UserProfile | null = null;
+  try {
+    const response = await AuthManager.fetchWithAuth('/api/me');
+    if (response.ok) {
+      userProfile = await response.json();
+    }
+  } catch (error) {
+    console.error('Erreur lors de la récupération du profil:', error);
+  }
   if (!appDiv) return;
 
   // Classes CSS pour le body et conteneur principal
@@ -38,19 +55,66 @@ export async function HomePage(): Promise<void> {
   }
 
   // Créer le header
-  const header = new Header({
-    title: "Transcendence Home",
-    command: "./transcendence.sh",
-    showProfile: true,
-    showNavigation: true,
-    activeRoute: "/home"
-  });
-  const headerHtml = await header.render();
+  // const header = new Header({
+  //   title: "Transcendence Home",
+  //   command: "./transcendence.sh",
+  //   showProfile: true,
+  //   showNavigation: true,
+  //   activeRoute: "/home"
+  // });
+  // const headerHtml = await header.render();
 
   // HTML de la page d'accueil
   const homePageHtml = `
     <div class="min-h-screen flex flex-col bg-black text-green-400 font-mono">
-      ${headerHtml}
+      <!-- Header style terminal -->
+      <header class="border-b border-green-400/30 p-4">
+        <div class="flex items-center justify-between max-w-6xl mx-auto">
+          <div class="flex items-center">
+            <span class="text-green-400 mr-2">[root@transcendence]$</span>
+            <span id="header-command" class="text-green-300 font-bold"></span>
+            <span id="header-cursor" class="text-green-300 animate-pulse">_</span>
+          </div>
+          
+          <!-- Profile Info -->
+          <div class="flex items-center space-x-6">
+            <!-- User Profile Avatar -->
+            <div class="flex items-center space-x-3" id="user-profile" style="opacity: 0;">
+              <button data-route="/profile" class="flex items-center space-x-3 bg-gray-900 border border-green-400/30 px-3 py-2 rounded hover:bg-green-400/10 transition-colors">
+                <div class="w-8 h-8 rounded-full bg-green-400/20 border border-green-400/50 flex items-center justify-center">
+                  <span class="text-green-400 text-sm font-bold">${(userProfile?.username || 'U').charAt(0).toUpperCase()}</span>
+                </div>
+                <div class="text-left">
+                  <div class="text-green-400 text-sm font-medium">${userProfile?.username || 'Unknown'}</div>
+                </div>
+              </button>
+            </div>
+            
+            <!-- Debug Info (Optional - can be hidden in production) -->
+            <div class="flex items-center space-x-4" id="debug-info" style="opacity: 0; display: none;">
+              <div class="bg-gray-900 border border-green-400/30 px-3 py-1 rounded">
+                <div class="text-green-300 text-xs">Debug Info:</div>
+                <div class="text-green-400 text-sm">
+                  <span class="text-green-300">ID:</span> ${userProfile?.id || 'N/A'} | 
+                  <span class="text-green-300">Email:</span> ${userProfile?.email || 'N/A'}
+                </div>
+              </div>
+              <div class="bg-gray-900 border border-green-400/30 px-3 py-1 rounded">
+                <div class="text-green-300 text-xs">Token:</div>
+                <div class="text-green-400 text-sm font-mono">${AuthManager.getToken()?.substring(0, 20) || 'N/A'}...</div>
+              </div>
+            </div>
+            
+            <!-- Navigation Menu -->
+            <div class="flex space-x-6" id="nav-menu" style="opacity: 0;">
+              <a href="#" data-route="/home" class="hover:text-green-300 transition-colors">> home</a>
+              <a href="#" data-route="/game" class="hover:text-green-300 transition-colors">> game</a>
+              <a href="#" data-route="/tournament" class="hover:text-green-300 transition-colors">> tournament</a>
+              <button id="logout-btn" class="hover:text-red-400 transition-colors text-left">> logout</button>
+            </div>
+          </div>
+        </div>
+      </header>
 
       <!-- Terminal content -->
       <main class="flex-1 p-6">

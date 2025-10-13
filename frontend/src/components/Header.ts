@@ -103,6 +103,8 @@ export class Header {
     `;
   }
 
+  
+
   private async loadUserProfile(): Promise<void> {
     try {
       const response = await AuthManager.fetchWithAuth('/api/me');
