@@ -14,6 +14,24 @@ const ANIMATION_SPEED = {
   TRANSITION_NORMAL: 0.5, // Transition normale
 };
 
+// Variables globales pour gérer l'état des animations et event listeners
+let animationInProgress = false;
+let isPageLoading = false;
+let animationTimeouts: number[] = [];
+
+// Fonction pour nettoyer complètement la page
+function cleanupHomePage(): void {
+  animationInProgress = false;
+  isPageLoading = false;
+  
+  // Nettoyer tous les timeouts en cours
+  animationTimeouts.forEach(id => clearTimeout(id));
+  animationTimeouts = [];
+  
+  // Nettoyer les event listeners
+  cleanupEventListeners();
+}
+
 export async function HomePage(): Promise<void> {
     // Vérifier l'authentification AVANT d'afficher la page
   if (!AuthManager.isAuthenticated()) {
@@ -25,8 +43,22 @@ export async function HomePage(): Promise<void> {
     return;
   }
 
+  // Empêcher les rechargements multiples simultanés
+  if (isPageLoading) {
+    console.log('Page already loading, ignoring duplicate navigation');
+    return;
+  }
+  
+  isPageLoading = true;
+
   const appDiv = document.querySelector<HTMLDivElement>("#app");
-  if (!appDiv) return;
+  if (!appDiv) {
+    isPageLoading = false;
+    return;
+  }
+
+  // Nettoyer complètement la page précédente
+  cleanupHomePage();
 
   // Classes CSS pour le body et conteneur principal
   const body = document.querySelector("body");
@@ -158,29 +190,35 @@ export async function HomePage(): Promise<void> {
   // Démarrer les animations
   startTypewriterAnimations();
 
-  // Ajouter les event listeners pour la navigation
-  setupNavigationListeners();
-  
-  // Ajouter les event listeners du header
+  // Ajouter les event listeners du header (pour logout uniquement)
   Header.setupEventListeners();
+  
+  // Marquer la fin du chargement
+  isPageLoading = false;
 }
 
-function setupNavigationListeners(): void {
-  const router = getRouter();
-  if (!router) return;
+function cleanupEventListeners(): void {
+  // Plus besoin de nettoyer les event listeners puisqu'on n'en ajoute plus
+  // Le routeur gère tout
+}
 
-  // Gérer les clics sur les boutons avec data-route
-  document.addEventListener("click", (event) => {
-    const target = event.target as HTMLElement;
-    const button = target.closest("[data-route]");
-
-    if (button) {
-      event.preventDefault();
-      const route = button.getAttribute("data-route");
-      if (route) {
-        router.navigate(route);
-      }
+// Version sécurisée de setTimeout qui enregistre les timeouts
+function safeSetTimeout(callback: () => void, delay: number): void {
+  const id = window.setTimeout(() => {
+    // Supprimer le timeout de la liste une fois exécuté
+    const index = animationTimeouts.indexOf(id);
+    if (index > -1) {
+      animationTimeouts.splice(index, 1);
     }
+    callback();
+  }, delay);
+  animationTimeouts.push(id);
+}
+
+// Version async sécurisée de setTimeout
+function safeDelay(delay: number): Promise<void> {
+  return new Promise((resolve) => {
+    safeSetTimeout(resolve, delay);
   });
 }
 
@@ -191,13 +229,16 @@ async function typeWriter(
   speed: number = ANIMATION_SPEED.TYPEWRITER_FAST,
 ): Promise<void> {
   const element = document.getElementById(elementId);
-  if (!element) return;
+  if (!element || !animationInProgress) return;
 
   element.textContent = "";
 
   for (let i = 0; i < text.length; i++) {
+    if (!animationInProgress) break; // Arrêter l'animation si nécessaire
     element.textContent += text.charAt(i);
-    await new Promise((resolve) => setTimeout(resolve, speed));
+    if (speed > 0) {
+      await safeDelay(speed);
+    }
   }
 }
 
@@ -206,42 +247,58 @@ async function typeLines(
   lines: { id: string; text: string; speed?: number }[],
 ): Promise<void> {
   for (const line of lines) {
+    if (!animationInProgress) break; // Arrêter l'animation si nécessaire
     await typeWriter(line.id, line.text, line.speed || ANIMATION_SPEED.TYPEWRITER_FAST);
-    await new Promise((resolve) => setTimeout(resolve, ANIMATION_SPEED.DELAY_SHORT));
+    if (!animationInProgress) break;
+    if (ANIMATION_SPEED.DELAY_SHORT > 0) {
+      await safeDelay(ANIMATION_SPEED.DELAY_SHORT);
+    }
   }
 }
 
 // Démarrer toutes les animations en séquence
 async function startTypewriterAnimations(): Promise<void> {
+  // Marquer le début des animations
+  animationInProgress = true;
+
   // 1. Afficher ASCII art
   const asciiArt = document.getElementById("ascii-art");
-  if (asciiArt) {
+  if (asciiArt && animationInProgress) {
     asciiArt.style.opacity = "1";
     asciiArt.style.transition = `opacity ${ANIMATION_SPEED.TRANSITION_FAST}s`;
   }
-  await new Promise((resolve) => setTimeout(resolve, ANIMATION_SPEED.DELAY_SHORT));
+  if (!animationInProgress) return;
+  if (ANIMATION_SPEED.DELAY_SHORT > 0) {
+    await safeDelay(ANIMATION_SPEED.DELAY_SHORT);
+  }
 
   // 2. Terminal prompt
   const terminalPrompt = document.getElementById("terminal-prompt");
-  if (terminalPrompt) {
+  if (terminalPrompt && animationInProgress) {
     terminalPrompt.style.opacity = "1";
     terminalPrompt.style.transition = `opacity ${ANIMATION_SPEED.TRANSITION_FAST}s`;
   }
-  await new Promise((resolve) => setTimeout(resolve, ANIMATION_SPEED.DELAY_SHORT));
+  if (!animationInProgress) return;
+  if (ANIMATION_SPEED.DELAY_SHORT > 0) {
+    await safeDelay(ANIMATION_SPEED.DELAY_SHORT);
+  }
 
+  if (!animationInProgress) return;
   await typeWriter("cat-command", "cat welcome.txt", ANIMATION_SPEED.TYPEWRITER_FAST);
 
   // 3. Cacher le curseur cat et afficher les messages
+  if (!animationInProgress) return;
   const catCursor = document.getElementById("cat-cursor");
   if (catCursor) catCursor.style.display = "none";
 
   const welcomeMessages = document.getElementById("welcome-messages");
-  if (welcomeMessages) {
+  if (welcomeMessages && animationInProgress) {
     welcomeMessages.style.opacity = "1";
     welcomeMessages.style.transition = `opacity ${ANIMATION_SPEED.TRANSITION_FAST}s`;
   }
 
   // 4. Messages de bienvenue
+  if (!animationInProgress) return;
   await typeLines([
     {
       id: "msg-1",
@@ -253,32 +310,49 @@ async function startTypewriterAnimations(): Promise<void> {
     { id: "msg-4", text: "> Prêt pour le combat !", speed: ANIMATION_SPEED.TYPEWRITER_FAST },
   ]);
 
-  await new Promise((resolve) => setTimeout(resolve, ANIMATION_SPEED.DELAY_SHORT));
+  if (!animationInProgress) return;
+  if (ANIMATION_SPEED.DELAY_SHORT > 0) {
+    await safeDelay(ANIMATION_SPEED.DELAY_SHORT);
+  }
 
   // 5. Available commands
   const commandMenu = document.getElementById("command-menu");
-  if (commandMenu) {
+  if (commandMenu && animationInProgress) {
     commandMenu.style.opacity = "1";
     commandMenu.style.transition = `opacity ${ANIMATION_SPEED.TRANSITION_FAST}s`;
   }
+  if (!animationInProgress) return;
   await typeWriter("available-commands", "Available commands:", ANIMATION_SPEED.TYPEWRITER_FAST);
 
-  await new Promise((resolve) => setTimeout(resolve, ANIMATION_SPEED.DELAY_SHORT));
+  if (!animationInProgress) return;
+  if (ANIMATION_SPEED.DELAY_SHORT > 0) {
+    await safeDelay(ANIMATION_SPEED.DELAY_SHORT);
+  }
 
   // 6. System info
   const systemInfo = document.getElementById("system-info");
-  if (systemInfo) {
+  if (systemInfo && animationInProgress) {
     systemInfo.style.opacity = "1";
     systemInfo.style.transition = `opacity ${ANIMATION_SPEED.TRANSITION_FAST}s`;
   }
 
-  await new Promise((resolve) => setTimeout(resolve, ANIMATION_SPEED.DELAY_SHORT));
+  if (!animationInProgress) return;
+  if (ANIMATION_SPEED.DELAY_SHORT > 0) {
+    await safeDelay(ANIMATION_SPEED.DELAY_SHORT);
+  }
 
   // 7. Quick start
   const quickStart = document.getElementById("quick-start");
-  if (quickStart) {
+  if (quickStart && animationInProgress) {
     quickStart.style.opacity = "1";
     quickStart.style.transition = `opacity ${ANIMATION_SPEED.TRANSITION_FAST}s`;
   }
+  if (!animationInProgress) return;
   await typeWriter("quick-start-title", "Quick Start Guide:", ANIMATION_SPEED.TYPEWRITER_FAST);
+  
+  // Marquer la fin des animations
+  animationInProgress = false;
 }
+
+// Export de la fonction de nettoyage pour le routeur
+export { cleanupHomePage };

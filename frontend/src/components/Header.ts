@@ -1,4 +1,3 @@
-import { getRouter } from "../router";
 import { AuthManager } from "../utils/auth";
 
 // Interface pour les données utilisateur
@@ -115,24 +114,16 @@ export class Header {
     }
   }
 
+  // Variable statique pour éviter les event listeners multiples
+  private static eventListenersSetup: boolean = false;
+
   // Méthode statique pour initialiser les event listeners du header
   static setupEventListeners(): void {
-    // Navigation
-    const router = getRouter();
-    if (router) {
-      document.addEventListener("click", (event) => {
-        const target = event.target as HTMLElement;
-        const button = target.closest("[data-route]");
-
-        if (button) {
-          event.preventDefault();
-          const route = button.getAttribute("data-route");
-          if (route) {
-            router.navigate(route);
-          }
-        }
-      });
+    // Éviter de configurer les event listeners plusieurs fois
+    if (Header.eventListenersSetup) {
+      return;
     }
+    Header.eventListenersSetup = true;
 
     // Logout
     const logoutBtn = document.getElementById("logout-btn");
