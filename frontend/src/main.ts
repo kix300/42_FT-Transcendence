@@ -6,6 +6,7 @@ import { HomePage } from "./pages/HomePage";
 import { GamePage } from "./pages/GamePage";
 import { TournamentPage } from "./pages/TournamentPage";
 import { ProfilePage } from "./pages/ProfilePage";
+import { UsersPage } from "./pages/UsersPage";
 import { AuthManager } from './utils/auth';
 
 
@@ -63,9 +64,15 @@ function initApp(): void {
     component: ProfilePage,
   });
 
+  router.addRoute({
+    path: "/users",
+    name: "users",
+    component: UsersPage,
+  });
+
 // Vérifier l'authentification au démarrage
   const currentPath = window.location.pathname;
-  const protectedPaths = ["/home", "/game", "/tournament", "/profile"];
+  const protectedPaths = ["/home", "/game", "/tournament", "/profile", "/users"];
   
   if (protectedPaths.includes(currentPath)) {
     // Si on est sur une page protégée, vérifier l'auth
@@ -79,7 +86,7 @@ function initApp(): void {
   }
 
   // Démarrer avec la route actuelle ou login par défaut
-  const validPaths = ["/", "/login", "/register", "/home", "/game", "/tournament", "/profile"];
+  const validPaths = ["/", "/login", "/register", "/home", "/game", "/tournament", "/profile", "/users"];
   const startPath = validPaths.includes(currentPath) ? currentPath : "/";
 
   router.start(startPath);

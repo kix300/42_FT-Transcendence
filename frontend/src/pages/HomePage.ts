@@ -104,6 +104,7 @@ export async function HomePage(): Promise<void> {
               <a href="#" data-route="/game" class="hover:text-green-300 transition-colors">> game</a>
               <a href="#" data-route="/tournament" class="hover:text-green-300 transition-colors">> tournament</a>
               <a href="#" data-route="/profile" class="hover:text-green-300 transition-colors">> profile</a>
+              <a href="#" data-route="/users" class="hover:text-green-300 transition-colors">> users</a>
               <button id="logout-btn" class="hover:text-red-400 transition-colors text-left">> logout</button>
             </div>
           </div>
