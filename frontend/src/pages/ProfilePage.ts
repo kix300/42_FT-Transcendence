@@ -238,7 +238,6 @@ export async function ProfilePage(): Promise<void> {
   startProfileAnimations();
 
   // Setup event listeners
-  setupNavigationListeners();
   setupProfileListeners();
   
   // Ajouter les event listeners du header
@@ -297,33 +296,8 @@ async function startProfileAnimations(): Promise<void> {
   }
 }
 
-function setupNavigationListeners(): void {
-  const router = getRouter();
-  if (!router) return;
-
-  // Gérer les clics sur les boutons avec data-route
-  document.addEventListener("click", (event) => {
-    const target = event.target as HTMLElement;
-    const button = target.closest("[data-route]");
-
-    if (button) {
-      event.preventDefault();
-      const route = button.getAttribute("data-route");
-      if (route) {
-        router.navigate(route);
-      }
-    }
-  });
-
-  // Logout
-  const logoutBtn = document.getElementById("logout-btn");
-  if (logoutBtn) {
-    logoutBtn.addEventListener("click", () => {
-      console.log('Déconnexion en cours...');
-      AuthManager.logout();
-    });
-  }
-}
+// La navigation est gérée par le routeur
+// Le logout est géré par le Header
 
 function setupProfileListeners(): void {
   // Edit profile button

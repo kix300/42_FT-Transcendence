@@ -14,23 +14,8 @@ const ANIMATION_SPEED = {
   TRANSITION_NORMAL: 0.5, // Transition normale
 };
 
-// Variables globales pour gérer l'état des animations et event listeners
+// Variables globales pour gérer l'état des animations
 let animationInProgress = false;
-let isPageLoading = false;
-let animationTimeouts: number[] = [];
-
-// Fonction pour nettoyer complètement la page
-function cleanupHomePage(): void {
-  animationInProgress = false;
-  isPageLoading = false;
-  
-  // Nettoyer tous les timeouts en cours
-  animationTimeouts.forEach(id => clearTimeout(id));
-  animationTimeouts = [];
-  
-  // Nettoyer les event listeners
-  cleanupEventListeners();
-}
 
 export async function HomePage(): Promise<void> {
     // Vérifier l'authentification AVANT d'afficher la page
@@ -43,22 +28,8 @@ export async function HomePage(): Promise<void> {
     return;
   }
 
-  // Empêcher les rechargements multiples simultanés
-  if (isPageLoading) {
-    console.log('Page already loading, ignoring duplicate navigation');
-    return;
-  }
-  
-  isPageLoading = true;
-
   const appDiv = document.querySelector<HTMLDivElement>("#app");
-  if (!appDiv) {
-    isPageLoading = false;
-    return;
-  }
-
-  // Nettoyer complètement la page précédente
-  cleanupHomePage();
+  if (!appDiv) return;
 
   // Classes CSS pour le body et conteneur principal
   const body = document.querySelector("body");
@@ -192,34 +163,11 @@ export async function HomePage(): Promise<void> {
 
   // Ajouter les event listeners du header (pour logout uniquement)
   Header.setupEventListeners();
-  
-  // Marquer la fin du chargement
-  isPageLoading = false;
 }
 
-function cleanupEventListeners(): void {
-  // Plus besoin de nettoyer les event listeners puisqu'on n'en ajoute plus
-  // Le routeur gère tout
-}
-
-// Version sécurisée de setTimeout qui enregistre les timeouts
-function safeSetTimeout(callback: () => void, delay: number): void {
-  const id = window.setTimeout(() => {
-    // Supprimer le timeout de la liste une fois exécuté
-    const index = animationTimeouts.indexOf(id);
-    if (index > -1) {
-      animationTimeouts.splice(index, 1);
-    }
-    callback();
-  }, delay);
-  animationTimeouts.push(id);
-}
-
-// Version async sécurisée de setTimeout
-function safeDelay(delay: number): Promise<void> {
-  return new Promise((resolve) => {
-    safeSetTimeout(resolve, delay);
-  });
+// Simple délai pour les animations
+function delay(ms: number): Promise<void> {
+  return new Promise(resolve => setTimeout(resolve, ms));
 }
 
 // Animation typewriter
@@ -237,7 +185,7 @@ async function typeWriter(
     if (!animationInProgress) break; // Arrêter l'animation si nécessaire
     element.textContent += text.charAt(i);
     if (speed > 0) {
-      await safeDelay(speed);
+      await delay(speed);
     }
   }
 }
@@ -251,7 +199,7 @@ async function typeLines(
     await typeWriter(line.id, line.text, line.speed || ANIMATION_SPEED.TYPEWRITER_FAST);
     if (!animationInProgress) break;
     if (ANIMATION_SPEED.DELAY_SHORT > 0) {
-      await safeDelay(ANIMATION_SPEED.DELAY_SHORT);
+      await delay(ANIMATION_SPEED.DELAY_SHORT);
     }
   }
 }
@@ -269,7 +217,7 @@ async function startTypewriterAnimations(): Promise<void> {
   }
   if (!animationInProgress) return;
   if (ANIMATION_SPEED.DELAY_SHORT > 0) {
-    await safeDelay(ANIMATION_SPEED.DELAY_SHORT);
+    await delay(ANIMATION_SPEED.DELAY_SHORT);
   }
 
   // 2. Terminal prompt
@@ -280,7 +228,7 @@ async function startTypewriterAnimations(): Promise<void> {
   }
   if (!animationInProgress) return;
   if (ANIMATION_SPEED.DELAY_SHORT > 0) {
-    await safeDelay(ANIMATION_SPEED.DELAY_SHORT);
+    await delay(ANIMATION_SPEED.DELAY_SHORT);
   }
 
   if (!animationInProgress) return;
@@ -312,7 +260,7 @@ async function startTypewriterAnimations(): Promise<void> {
 
   if (!animationInProgress) return;
   if (ANIMATION_SPEED.DELAY_SHORT > 0) {
-    await safeDelay(ANIMATION_SPEED.DELAY_SHORT);
+    await delay(ANIMATION_SPEED.DELAY_SHORT);
   }
 
   // 5. Available commands
@@ -326,7 +274,7 @@ async function startTypewriterAnimations(): Promise<void> {
 
   if (!animationInProgress) return;
   if (ANIMATION_SPEED.DELAY_SHORT > 0) {
-    await safeDelay(ANIMATION_SPEED.DELAY_SHORT);
+    await delay(ANIMATION_SPEED.DELAY_SHORT);
   }
 
   // 6. System info
@@ -338,7 +286,7 @@ async function startTypewriterAnimations(): Promise<void> {
 
   if (!animationInProgress) return;
   if (ANIMATION_SPEED.DELAY_SHORT > 0) {
-    await safeDelay(ANIMATION_SPEED.DELAY_SHORT);
+    await delay(ANIMATION_SPEED.DELAY_SHORT);
   }
 
   // 7. Quick start
@@ -353,6 +301,3 @@ async function startTypewriterAnimations(): Promise<void> {
   // Marquer la fin des animations
   animationInProgress = false;
 }
-
-// Export de la fonction de nettoyage pour le routeur
-export { cleanupHomePage };

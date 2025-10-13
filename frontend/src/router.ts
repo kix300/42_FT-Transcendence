@@ -10,7 +10,8 @@ export class Router {
   private routes: Map<string, Route> = new Map();
   private currentRoute: string = "/";
   private appContainer: HTMLElement;
-  private isNavigating: boolean = false;
+  private isPopstateNavigation = false;
+
 
   constructor(appContainer: HTMLElement) {
     this.appContainer = appContainer;
@@ -24,40 +25,35 @@ export class Router {
 
   // Naviguer vers une route
   async navigate(path: string): Promise<void> {
-    // Éviter les navigations multiples simultanées
-    if (this.isNavigating) {
-      console.log('Navigation already in progress, ignoring');
-      return;
-    }
-
-    // Éviter la navigation vers la même route
-    if (this.currentRoute === path) {
-      console.log(`Already on route ${path}, ignoring navigation`);
-      return;
-    }
-
     const route = this.routes.get(path);
     if (!route) {
       console.error(`Route not found: ${path}`);
       return;
     }
 
-    this.isNavigating = true;
-
     try {
       // Nettoyer la page actuelle
       this.cleanup();
 
-      // Mettre à jour l'URL sans recharger la page
-      window.history.pushState({ path }, "", path);
+     // Mettre à jour l'URL seulement si ce n'est PAS une navigation popstate
+      if (!this.isPopstateNavigation) {
+        if (path === this.currentRoute) {
+          // Même page : remplacer l'entrée actuelle
+          window.history.replaceState({ path }, "", path);
+        } else {
+          // Nouvelle page : ajouter à l'historique
+          window.history.pushState({ path }, "", path);
+        }
+      }
       this.currentRoute = path;
+
 
       // Charger la nouvelle page
       await route.component();
     } catch (error) {
       console.error(`Error loading route ${path}:`, error);
-    } finally {
-      this.isNavigating = false;
+    } finally{
+      this.isPopstateNavigation = false;     
     }
   }
 
@@ -75,8 +71,6 @@ export class Router {
 
     // Arrêter les animations/timers si nécessaire
     this.appContainer.innerHTML = "";
-
-    // Supprimer les event listeners globaux s'ils existent
   }
 
   // Initialiser le router
@@ -84,6 +78,7 @@ export class Router {
     // Gérer les boutons précédent/suivant du navigateur
     window.addEventListener("popstate", (event) => {
       const path = event.state?.path || "/";
+      this.isPopstateNavigation = true;
       this.navigate(path);
     });
 
