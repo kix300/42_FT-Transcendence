@@ -750,16 +750,26 @@ async function handleRegister(): Promise<void> {
 
  	console.log("Response has been received from backend");
 
-    console.log(response);
     if (response.ok) {
       showMessage(
-        "Account created successfully! Please check your email to verify your account.",
+        "Account created successfully!",
         "success",
       );
-      setTimeout(() => {
-        showMessage("Redirecting to login page...", "info");
-        setTimeout(() => router.navigate("/login"), 1500);
-      }, 2000);
+    if (data.token) {
+        // Si le backend renvoie directement un token        
+        // Import AuthManager dynamically to avoid circular dependencies
+        const { AuthManager } = await import('../utils/auth');
+        AuthManager.setToken(data.token);
+        
+        setTimeout(() => {
+          showMessage("Welcome! Redirecting to home page...", "success");
+          setTimeout(() => router.navigate("/home"), 1000);
+        }, 1000);
+      } else {
+        // Si pas de token direct, faire un login automatique
+        showMessage("Did not recive tag", "error");
+        // await performAutoLogin(username, password);
+      }
     } else {
       showMessage(
         `Registration failed: ${data.error || "Unknown error"}`,
