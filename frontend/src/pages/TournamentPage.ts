@@ -1,4 +1,7 @@
 import { getRouter } from "../router";
+import { AuthManager } from "../utils/auth";
+import { createHeader, HeaderConfigs } from "../components/Header";
+import { Header } from "../components/Header";
 
 interface Player {
   id: number;
@@ -14,6 +17,16 @@ interface Match {
 }
 
 export async function TournamentPage(): Promise<void> {
+  // Vérifier l'authentification AVANT d'afficher la page
+  if (!AuthManager.isAuthenticated()) {
+    console.log('Utilisateur non authentifié, redirection vers login');
+    const router = getRouter();
+    if (router) {
+      router.navigate("/login");
+    }
+    return;
+  }
+
   const appDiv = document.querySelector<HTMLDivElement>("#app");
   if (!appDiv) return;
 
@@ -23,24 +36,14 @@ export async function TournamentPage(): Promise<void> {
     body.className = "bg-black min-h-screen font-mono text-green-400";
   }
 
+  // Créer le header
+  const header = createHeader(HeaderConfigs.tournament);
+  const headerHtml = await header.render();
+
   // HTML de la page tournoi
   const tournamentPageHtml = `
     <div class="min-h-screen flex flex-col bg-black text-green-400 font-mono">
-      <!-- Header -->
-      <header class="border-b border-green-400/30 p-4">
-        <div class="flex items-center justify-between max-w-7xl mx-auto">
-          <div class="flex items-center">
-            <span class="text-green-400 mr-2">[tournament@transcendence]$</span>
-            <span class="text-green-300 font-bold">./bracket_viewer.sh</span>
-          </div>
-          <div class="flex space-x-6">
-            <a href="#" data-route="/home" class="hover:text-green-300 transition-colors">> home</a>
-            <a href="#" data-route="/game" class="hover:text-green-300 transition-colors">> game</a>
-            <a href="#" data-route="/tournament" class="hover:text-green-300 transition-colors">> tournament</a>
-            <a href="#" data-route="/dashboard" class="hover:text-green-300 transition-colors">> dashboard</a>
-          </div>
-        </div>
-      </header>
+      ${headerHtml}
 
       <!-- Main Content -->
       <main class="flex-1 p-6 overflow-auto">
@@ -108,6 +111,9 @@ export async function TournamentPage(): Promise<void> {
   }
 
   setupNavigationListeners();
+  
+  // Ajouter les event listeners du header
+  Header.setupEventListeners();
 }
 
 function restoreTournament(tournamentData: any): void {

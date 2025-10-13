@@ -1,5 +1,7 @@
 import { getRouter } from "../router";
 import { AuthManager } from "../utils/auth";
+import { createHeader, HeaderConfigs } from "../components/Header";
+import { Header } from "../components/Header";
 
 // Interface pour les données utilisateur
 interface User {
@@ -41,28 +43,14 @@ export async function UsersPage(): Promise<void> {
     body.className = "bg-black min-h-screen font-mono text-green-400";
   }
 
+  // Créer le header
+  const header = createHeader(HeaderConfigs.users);
+  const headerHtml = await header.render();
+
   // HTML de la page des utilisateurs
   const usersPageHtml = `
     <div class="min-h-screen flex flex-col bg-black text-green-400 font-mono">
-      <!-- Header style terminal -->
-      <header class="border-b border-green-400/30 p-4">
-        <div class="flex items-center justify-between max-w-6xl mx-auto">
-          <div class="flex items-center">
-            <span class="text-green-400 mr-2">[root@transcendence]$</span>
-            <span class="text-green-300 font-bold">./users_management.sh</span>
-          </div>
-          
-          <!-- Navigation Menu -->
-          <div class="flex space-x-6">
-            <a href="#" data-route="/home" class="hover:text-green-300 transition-colors">> home</a>
-            <a href="#" data-route="/game" class="hover:text-green-300 transition-colors">> game</a>
-            <a href="#" data-route="/tournament" class="hover:text-green-300 transition-colors">> tournament</a>
-            <a href="#" data-route="/profile" class="hover:text-green-300 transition-colors">> profile</a>
-            <a href="#" data-route="/users" class="text-green-300 font-bold">> users</a>
-            <button id="logout-btn" class="hover:text-red-400 transition-colors text-left">> logout</button>
-          </div>
-        </div>
-      </header>
+      ${headerHtml}
 
       <!-- Main content -->
       <main class="flex-1 p-6">
@@ -256,7 +244,6 @@ let currentEditingUser: User | null = null;
 
 async function initializeUsersPage(): Promise<void> {
   await loadUsers();
-  setupEventListeners();
 }
 
 async function loadUsers(): Promise<void> {
@@ -428,9 +415,8 @@ function filterUsers(): void {
 }
 
 function setupEventListeners(): void {
-  // Navigation
-  setupNavigationListeners();
-  setupLogoutListener();
+  // Importer les event listeners du header
+  Header.setupEventListeners();
 
   // Controls
   const addUserBtn = document.getElementById("add-user-btn");
@@ -474,34 +460,6 @@ function setupEventListeners(): void {
   // Rendre les fonctions globales pour les boutons inline
   (window as any).editUser = editUser;
   (window as any).deleteUser = deleteUser;
-}
-
-function setupNavigationListeners(): void {
-  const router = getRouter();
-  if (!router) return;
-
-  document.addEventListener("click", (event) => {
-    const target = event.target as HTMLElement;
-    const button = target.closest("[data-route]");
-
-    if (button) {
-      event.preventDefault();
-      const route = button.getAttribute("data-route");
-      if (route) {
-        router.navigate(route);
-      }
-    }
-  });
-}
-
-function setupLogoutListener(): void {
-  const logoutBtn = document.getElementById("logout-btn");
-  if (logoutBtn) {
-    logoutBtn.addEventListener("click", () => {
-      console.log('Déconnexion en cours...');
-      AuthManager.logout();
-    });
-  }
 }
 
 function openUserModal(user?: User): void {

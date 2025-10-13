@@ -1,5 +1,7 @@
 import { getRouter } from "../router";
 import { AuthManager } from "../utils/auth";
+import { Header } from "../components/Header";
+import { createHeader, HeaderConfigs } from "../components/Header";
 
 // Interface pour les données utilisateur étendues
 interface UserProfile {
@@ -58,30 +60,14 @@ export async function ProfilePage(): Promise<void> {
     body.className = "bg-black min-h-screen font-mono text-green-400";
   }
 
+  // Créer le header
+  const header = createHeader(HeaderConfigs.profile);
+  const headerHtml = await header.render();
+
   // HTML de la page profil
   const profilePageHtml = `
     <div class="min-h-screen flex flex-col bg-black text-green-400 font-mono">
-      <!-- Header style terminal -->
-      <header class="border-b border-green-400/30 p-4">
-        <div class="flex items-center justify-between max-w-6xl mx-auto">
-          <div class="flex items-center">
-            <span class="text-green-400 mr-2">[root@transcendence]$</span>
-            <span id="header-command" class="text-green-300 font-bold"></span>
-            <span id="header-cursor" class="text-green-300 animate-pulse">_</span>
-          </div>
-          
-          <!-- Navigation Menu -->
-          <div class="flex items-center space-x-6">
-            <div class="flex space-x-6" id="nav-menu" style="opacity: 0;">
-              <a href="#" data-route="/home" class="hover:text-green-300 transition-colors">> home</a>
-              <a href="#" data-route="/game" class="hover:text-green-300 transition-colors">> game</a>
-              <a href="#" data-route="/tournament" class="hover:text-green-300 transition-colors">> tournament</a>
-              <a href="#" data-route="/profile" class="hover:text-green-300 transition-colors text-green-300">> profile</a>
-              <button id="logout-btn" class="hover:text-red-400 transition-colors text-left">> logout</button>
-            </div>
-          </div>
-        </div>
-      </header>
+      ${headerHtml}
 
       <!-- Main content -->
       <main class="flex-1 p-6">
@@ -254,6 +240,9 @@ export async function ProfilePage(): Promise<void> {
   // Setup event listeners
   setupNavigationListeners();
   setupProfileListeners();
+  
+  // Ajouter les event listeners du header
+  Header.setupEventListeners();
 }
 
 // Animation typewriter

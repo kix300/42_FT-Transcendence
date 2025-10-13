@@ -1,13 +1,6 @@
 import { getRouter } from "../router";
 import { AuthManager } from "../utils/auth";
-
-// Interface pour les données utilisateur
-interface UserProfile {
-  id: number;
-  username: string;
-  email?: string;
-  photo?: string;
-}
+import { Header } from "../components/Header";
 
 // Variable globale pour contrôler la vitesse d'écriture des animations
 const ANIMATION_SPEED = {
@@ -35,81 +28,26 @@ export async function HomePage(): Promise<void> {
   const appDiv = document.querySelector<HTMLDivElement>("#app");
   if (!appDiv) return;
 
-  // Récupérer les informations utilisateur depuis le backend
-  let userProfile: UserProfile | null = null;
-  try {
-    const response = await AuthManager.fetchWithAuth('/api/me');
-    if (response.ok) {
-      userProfile = await response.json();
-    }
-  } catch (error) {
-    console.error('Erreur lors de la récupération du profil:', error);
-  }
-
   // Classes CSS pour le body et conteneur principal
   const body = document.querySelector("body");
   if (body) {
     body.className = "bg-black min-h-screen font-mono text-green-400";
   }
 
+  // Créer le header
+  const header = new Header({
+    title: "Transcendence Home",
+    command: "./transcendence.sh",
+    showProfile: true,
+    showNavigation: true,
+    activeRoute: "/home"
+  });
+  const headerHtml = await header.render();
+
   // HTML de la page d'accueil
   const homePageHtml = `
     <div class="min-h-screen flex flex-col bg-black text-green-400 font-mono">
-      <!-- Header style terminal -->
-      <header class="border-b border-green-400/30 p-4">
-        <div class="flex items-center justify-between max-w-6xl mx-auto">
-          <div class="flex items-center">
-            <span class="text-green-400 mr-2">[root@transcendence]$</span>
-            <span id="header-command" class="text-green-300 font-bold"></span>
-            <span id="header-cursor" class="text-green-300 animate-pulse">_</span>
-          </div>
-          
-          <!-- Profile Info -->
-          <div class="flex items-center space-x-6">
-            <!-- User Profile Avatar -->
-            <div class="flex items-center space-x-3" id="user-profile" style="opacity: 0;">
-              <button data-route="/profile" class="flex items-center space-x-3 bg-gray-900 border border-green-400/30 px-3 py-2 rounded hover:bg-green-400/10 transition-colors">
-                <div class="w-8 h-8 rounded-full bg-green-400/20 border border-green-400/50 flex items-center justify-center overflow-hidden">
-                  ${userProfile?.photo ? 
-                    `<img src="${userProfile.photo}" alt="${userProfile.username}" class="w-full h-full object-cover rounded-full" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" />
-                     <span class="text-green-400 text-sm font-bold hidden">${(userProfile?.username || 'U').charAt(0).toUpperCase()}</span>` :
-                    `<span class="text-green-400 text-sm font-bold">${(userProfile?.username || 'U').charAt(0).toUpperCase()}</span>`
-                  }
-                </div>
-                <div class="text-left">
-                  <div class="text-green-400 text-sm font-medium">${userProfile?.username || 'Unknown'}</div>
-                  <div class="text-green-500 text-xs">Click to view profile</div>
-                </div>
-              </button>
-            </div>
-            
-            <!-- Debug Info (Optional - can be hidden in production) -->
-            <div class="flex items-center space-x-4" id="debug-info" style="opacity: 0; display: none;">
-              <div class="bg-gray-900 border border-green-400/30 px-3 py-1 rounded">
-                <div class="text-green-300 text-xs">Debug Info:</div>
-                <div class="text-green-400 text-sm">
-                  <span class="text-green-300">ID:</span> ${userProfile?.id || 'N/A'} | 
-                  <span class="text-green-300">Email:</span> ${userProfile?.email || 'N/A'}
-                </div>
-              </div>
-              <div class="bg-gray-900 border border-green-400/30 px-3 py-1 rounded">
-                <div class="text-green-300 text-xs">Token:</div>
-                <div class="text-green-400 text-sm font-mono">${AuthManager.getToken()?.substring(0, 20) || 'N/A'}...</div>
-              </div>
-            </div>
-            
-            <!-- Navigation Menu -->
-            <div class="flex space-x-6" id="nav-menu" style="opacity: 0;">
-              <a href="#" data-route="/home" class="hover:text-green-300 transition-colors">> home</a>
-              <a href="#" data-route="/game" class="hover:text-green-300 transition-colors">> game</a>
-              <a href="#" data-route="/tournament" class="hover:text-green-300 transition-colors">> tournament</a>
-              <a href="#" data-route="/profile" class="hover:text-green-300 transition-colors">> profile</a>
-              <a href="#" data-route="/users" class="hover:text-green-300 transition-colors">> users</a>
-              <button id="logout-btn" class="hover:text-red-400 transition-colors text-left">> logout</button>
-            </div>
-          </div>
-        </div>
-      </header>
+      ${headerHtml}
 
       <!-- Terminal content -->
       <main class="flex-1 p-6">
@@ -222,7 +160,9 @@ export async function HomePage(): Promise<void> {
 
   // Ajouter les event listeners pour la navigation
   setupNavigationListeners();
-  setupLogoutListener();
+  
+  // Ajouter les event listeners du header
+  Header.setupEventListeners();
 }
 
 function setupNavigationListeners(): void {
@@ -273,28 +213,7 @@ async function typeLines(
 
 // Démarrer toutes les animations en séquence
 async function startTypewriterAnimations(): Promise<void> {
-  // 1. Header command
-  await typeWriter("header-command", "./transcendence.sh", ANIMATION_SPEED.TYPEWRITER_FAST);
-  await new Promise((resolve) => setTimeout(resolve, ANIMATION_SPEED.DELAY_SHORT));
-
-  // 2. Cacher le curseur du header et montrer le profil et menu nav
-  const headerCursor = document.getElementById("header-cursor");
-  const userProfile = document.getElementById("user-profile");
-  const navMenu = document.getElementById("nav-menu");
-  
-  if (headerCursor) headerCursor.style.display = "none";
-  
-  if (userProfile) {
-    userProfile.style.opacity = "1";
-    userProfile.style.transition = `opacity ${ANIMATION_SPEED.TRANSITION_FAST}s`;
-  }
-  
-  if (navMenu) {
-    navMenu.style.opacity = "1";
-    navMenu.style.transition = `opacity ${ANIMATION_SPEED.TRANSITION_FAST}s`;
-  }
-
-  // 3. Afficher ASCII art
+  // 1. Afficher ASCII art
   const asciiArt = document.getElementById("ascii-art");
   if (asciiArt) {
     asciiArt.style.opacity = "1";
@@ -302,7 +221,7 @@ async function startTypewriterAnimations(): Promise<void> {
   }
   await new Promise((resolve) => setTimeout(resolve, ANIMATION_SPEED.DELAY_SHORT));
 
-  // 4. Terminal prompt
+  // 2. Terminal prompt
   const terminalPrompt = document.getElementById("terminal-prompt");
   if (terminalPrompt) {
     terminalPrompt.style.opacity = "1";
@@ -312,7 +231,7 @@ async function startTypewriterAnimations(): Promise<void> {
 
   await typeWriter("cat-command", "cat welcome.txt", ANIMATION_SPEED.TYPEWRITER_FAST);
 
-  // 5. Cacher le curseur cat et afficher les messages
+  // 3. Cacher le curseur cat et afficher les messages
   const catCursor = document.getElementById("cat-cursor");
   if (catCursor) catCursor.style.display = "none";
 
@@ -322,7 +241,7 @@ async function startTypewriterAnimations(): Promise<void> {
     welcomeMessages.style.transition = `opacity ${ANIMATION_SPEED.TRANSITION_FAST}s`;
   }
 
-  // 6. Messages de bienvenue
+  // 4. Messages de bienvenue
   await typeLines([
     {
       id: "msg-1",
@@ -336,7 +255,7 @@ async function startTypewriterAnimations(): Promise<void> {
 
   await new Promise((resolve) => setTimeout(resolve, ANIMATION_SPEED.DELAY_SHORT));
 
-  // 7. Available commands
+  // 5. Available commands
   const commandMenu = document.getElementById("command-menu");
   if (commandMenu) {
     commandMenu.style.opacity = "1";
@@ -346,7 +265,7 @@ async function startTypewriterAnimations(): Promise<void> {
 
   await new Promise((resolve) => setTimeout(resolve, ANIMATION_SPEED.DELAY_SHORT));
 
-  // 8. System info
+  // 6. System info
   const systemInfo = document.getElementById("system-info");
   if (systemInfo) {
     systemInfo.style.opacity = "1";
@@ -355,22 +274,11 @@ async function startTypewriterAnimations(): Promise<void> {
 
   await new Promise((resolve) => setTimeout(resolve, ANIMATION_SPEED.DELAY_SHORT));
 
-  // 9. Quick start
+  // 7. Quick start
   const quickStart = document.getElementById("quick-start");
   if (quickStart) {
     quickStart.style.opacity = "1";
     quickStart.style.transition = `opacity ${ANIMATION_SPEED.TRANSITION_FAST}s`;
   }
   await typeWriter("quick-start-title", "Quick Start Guide:", ANIMATION_SPEED.TYPEWRITER_FAST);
-}
-
-function setupLogoutListener(): void {
-  const logoutBtn = document.getElementById("logout-btn");
-  if (logoutBtn) {
-    logoutBtn.addEventListener("click", () => {
-      // Utiliser AuthManager.logout()
-      console.log('Déconnexion en cours...');
-      AuthManager.logout();
-    });
-  }
 }
