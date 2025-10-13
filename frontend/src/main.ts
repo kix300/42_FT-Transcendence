@@ -5,6 +5,8 @@ import { RegisterPage } from "./pages/RegisterPage";
 import { HomePage } from "./pages/HomePage";
 import { GamePage } from "./pages/GamePage";
 import { TournamentPage } from "./pages/TournamentPage";
+import { AuthManager } from './utils/auth';
+
 
 // Initialiser l'application
 function initApp(): void {
@@ -54,9 +56,22 @@ function initApp(): void {
     component: TournamentPage,
   });
 
-  // Démarrer le router avec la route initiale
-  // Si on est déjà sur une route spécifique, l'utiliser, sinon aller au login
+// Vérifier l'authentification au démarrage
   const currentPath = window.location.pathname;
+  const protectedPaths = ["/home", "/game", "/tournament"];
+  
+  if (protectedPaths.includes(currentPath)) {
+    // Si on est sur une page protégée, vérifier l'auth
+    const isAuthenticated = AuthManager.isAuthenticated();
+    
+    if (!isAuthenticated) {
+      // Pas d'auth valide, rediriger vers login
+      router.start("/login");
+      return;
+    }
+  }
+
+  // Démarrer avec la route actuelle ou login par défaut
   const validPaths = ["/", "/login", "/register", "/home", "/game", "/tournament"];
   const startPath = validPaths.includes(currentPath) ? currentPath : "/";
 

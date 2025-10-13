@@ -1,4 +1,6 @@
 import { getRouter } from "../router";
+import { AuthManager } from "../utils/auth";
+
 
 // Variable globale pour contrôler la vitesse d'écriture des animations
 const ANIMATION_SPEED = {
@@ -13,6 +15,15 @@ const ANIMATION_SPEED = {
 };
 
 export async function HomePage(): Promise<void> {
+    // Vérifier l'authentification AVANT d'afficher la page
+  if (!AuthManager.isAuthenticated()) {
+    console.log('Utilisateur non authentifié, redirection vers login');
+    const router = getRouter();
+    if (router) {
+      router.navigate("/login");
+    }
+    return;
+  }
   const appDiv = document.querySelector<HTMLDivElement>("#app");
   if (!appDiv) return;
 
@@ -289,30 +300,12 @@ async function startTypewriterAnimations(): Promise<void> {
 }
 
 function setupLogoutListener(): void {
-  const router = getRouter();
-  if (!router) return;
-
   const logoutBtn = document.getElementById("logout-btn");
   if (logoutBtn) {
     logoutBtn.addEventListener("click", () => {
-      // TODO: Add actual logout logic here
-      // Clear authentication tokens, session data, etc.
-      /*
-      localStorage.removeItem('auth_token');
-      localStorage.removeItem('remember_login');
-      sessionStorage.clear();
-
-      // Optional: Call logout API endpoint
-      fetch('/api/auth/logout', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
-        }
-      });
-      */
-
-      // Redirect to login page
-      router.navigate("/");
+      // ✅ Utiliser AuthManager.logout()
+      console.log('Déconnexion en cours...');
+      AuthManager.logout();
     });
   }
 }

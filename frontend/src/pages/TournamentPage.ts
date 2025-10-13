@@ -5,7 +5,7 @@ interface Player {
   name: string;
   isBye: boolean;
 }
-
+// @ts-ignore
 interface Match {
   id: number;
   player1: Player | null;
@@ -349,6 +349,7 @@ function generateMatchCard(matchId: number, player1: Player | null, player2: Pla
   return generateMatchCardWithResult(matchId, player1, player2, round, null);
 }
 
+//@ts-ignore
 function generateMatchCardWithResult(matchId: number, player1: Player | null, player2: Player | null, round: number, matchResult: any): string {
   const p1Name = player1 ? (player1.isBye ? `<span class="text-green-600">${player1.name}</span>` : player1.name) : "TBD";
   const p2Name = player2 ? (player2.isBye ? `<span class="text-green-600">${player2.name}</span>` : player2.name) : "TBD";
