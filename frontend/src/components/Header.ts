@@ -32,78 +32,72 @@ export class Header {
     }
 
     return `
-      <header class="border-b border-green-400/30 p-6 bg-gray-900/20">
-        <div class="flex items-center justify-between max-w-7xl mx-auto">
+      <!-- Header style terminal -->
+      <header class="border-b border-green-400/30 p-4">
+        <div class="flex items-center justify-between max-w-6xl mx-auto">
           <div class="flex items-center">
             <span class="text-green-400 mr-2">[root@transcendence]$</span>
-            <span class="text-green-300 font-bold">${this.config.command}</span>
+            <span id="header-command" class="text-green-300 font-bold">${this.config.command}</span>
+            <span id="header-cursor" class="text-green-300 animate-pulse">_</span>
           </div>
           
-          ${this.config.showNavigation !== false ? this.renderNavigation() : ''}
-          ${this.config.showProfile !== false ? this.renderProfile() : ''}
+          <!-- Profile Info -->
+          <div class="flex items-center space-x-6">
+            ${this.config.showProfile !== false ? this.renderProfile() : ''}
+            ${this.config.showNavigation !== false ? this.renderNavigation() : ''}
+          </div>
         </div>
       </header>
     `;
   }
+  // ${this.renderDebugInfo()}
 
   private renderNavigation(): string {
-    const routes = [
-      { path: '/home', label: 'home' },
-      { path: '/game', label: 'game' },
-      { path: '/tournament', label: 'tournament' },
-      { path: '/profile', label: 'profile' },
-      { path: '/users', label: 'users' }
-    ];
-
     return `
-      <div class="flex items-center space-x-8">
-        ${routes.map(route => `
-          <a href="#" 
-             data-route="${route.path}" 
-             class="hover:text-green-300 transition-colors ${this.config.activeRoute === route.path ? 'text-green-300 font-bold' : 'text-green-400'}"
-          >
-            > ${route.label}
-          </a>
-        `).join('')}
-        <button id="logout-btn" class="hover:text-red-400 transition-colors text-left text-green-400">
-          > logout
-        </button>
+      <!-- Navigation Menu -->
+      <div class="flex space-x-6" id="nav-menu" style="opacity: 0;">
+        <a href="#" data-route="/home" class="hover:text-green-300 transition-colors ${this.config.activeRoute === '/home' ? 'text-green-300 font-bold' : 'text-green-400'}">> home</a>
+        <a href="#" data-route="/game" class="hover:text-green-300 transition-colors ${this.config.activeRoute === '/game' ? 'text-green-300 font-bold' : 'text-green-400'}">> game</a>
+        <a href="#" data-route="/tournament" class="hover:text-green-300 transition-colors ${this.config.activeRoute === '/tournament' ? 'text-green-300 font-bold' : 'text-green-400'}">> tournament</a>
+        <button id="logout-btn" class="hover:text-red-400 transition-colors text-left text-green-400">> logout</button>
       </div>
     `;
   }
 
   private renderProfile(): string {
-    if (!this.userProfile) {
-      return `
-        <div class="flex items-center space-x-3">
-          <div class="w-8 h-8 rounded-full bg-green-400/20 border border-green-400/50 flex items-center justify-center">
-            <span class="text-green-400 text-sm font-bold">?</span>
-          </div>
-          <div class="text-green-500 text-sm">Chargement...</div>
-        </div>
-      `;
-    }
-
     return `
-      <div class="flex items-center space-x-4">
-        <button data-route="/profile" class="flex items-center space-x-3 bg-gray-900/50 border border-green-400/30 px-4 py-2 rounded hover:bg-green-400/10 transition-colors">
-          <div class="w-10 h-10 rounded-full bg-green-400/20 border border-green-400/50 flex items-center justify-center overflow-hidden">
-            ${this.userProfile.photo ? 
-              `<img src="${this.userProfile.photo}" alt="${this.userProfile.username}" class="w-full h-full object-cover rounded-full" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" />
-               <span class="text-green-400 text-sm font-bold hidden">${(this.userProfile.username || 'U').charAt(0).toUpperCase()}</span>` :
-              `<span class="text-green-400 text-sm font-bold">${(this.userProfile.username || 'U').charAt(0).toUpperCase()}</span>`
-            }
+      <!-- User Profile Avatar -->
+      <div class="flex items-center space-x-3" id="user-profile" style="opacity: 0;">
+        <button data-route="/profile" class="flex items-center space-x-3 bg-gray-900 border border-green-400/30 px-3 py-2 rounded hover:bg-green-400/10 transition-colors">
+          <div class="w-8 h-8 rounded-full bg-green-400/20 border border-green-400/50 flex items-center justify-center">
+            <span class="text-green-400 text-sm font-bold">${this.userProfile ? (this.userProfile.username || 'U').charAt(0).toUpperCase() : 'U'}</span>
           </div>
           <div class="text-left">
-            <div class="text-green-400 text-sm font-medium">${this.userProfile.username}</div>
-            <div class="text-green-500 text-xs">Profile</div>
+            <div class="text-green-400 text-sm font-medium">${this.userProfile?.username || 'Unknown'}</div>
           </div>
         </button>
       </div>
     `;
   }
 
-  
+//   private renderDebugInfo(): string {
+//     return `
+//       <!-- Debug Info (Optional - can be hidden in production) -->
+//       <div class="flex items-center space-x-4" id="debug-info" style="opacity: 0; display: none;">
+//         <div class="bg-gray-900 border border-green-400/30 px-3 py-1 rounded">
+//           <div class="text-green-300 text-xs">Debug Info:</div>
+//           <div class="text-green-400 text-sm">
+//             <span class="text-green-300">ID:</span> ${this.userProfile?.id || 'N/A'} | 
+//             <span class="text-green-300">Email:</span> ${this.userProfile?.email || 'N/A'}
+//           </div>
+//         </div>
+//         <div class="bg-gray-900 border border-green-400/30 px-3 py-1 rounded">
+//           <div class="text-green-300 text-xs">Token:</div>
+//           <div class="text-green-400 text-sm font-mono">${AuthManager.getToken()?.substring(0, 20) || 'N/A'}...</div>
+//         </div>
+//       </div>
+//     `;
+//   }
 
   private async loadUserProfile(): Promise<void> {
     try {
@@ -116,16 +110,9 @@ export class Header {
     }
   }
 
-  // Variable statique pour éviter les event listeners multiples
-  private static eventListenersSetup: boolean = false;
-
   // Méthode statique pour initialiser les event listeners du header
   static setupEventListeners(): void {
-    // Éviter de configurer les event listeners plusieurs fois
-    if (Header.eventListenersSetup) {
-      return;
-    }
-    Header.eventListenersSetup = true;
+    // Toujours re-setup les event listeners car le DOM peut avoir changé
 
     // Logout
     const logoutBtn = document.getElementById("logout-btn");
@@ -133,6 +120,21 @@ export class Header {
       logoutBtn.addEventListener("click", () => {
         console.log('Déconnexion en cours...');
         AuthManager.logout();
+      });
+    }
+
+
+    // Profile button navigation
+    const profileBtn = document.querySelector('[data-route="/profile"]');
+    if (profileBtn) {
+      profileBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        import('../router').then(({ getRouter }) => {
+          const router = getRouter();
+          if (router) {
+            router.navigate('/profile');
+          }
+        });
       });
     }
   }

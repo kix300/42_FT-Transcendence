@@ -1,13 +1,15 @@
 import { getRouter } from "../router";
 import { AuthManager } from "../utils/auth";
+import { Header } from "../components/Header";
+import { createHeader, HeaderConfigs } from "../components/Header";
 
 // Interface pour les données utilisateur
-interface UserProfile {
-  id: number;
-  username: string;
-  email?: string;
-  photo?: string;
-}
+// interface UserProfile {
+//   id: number;
+//   username: string;
+//   email?: string;
+//   photo?: string;
+// }
 
 // Variable globale pour contrôler la vitesse d'écriture des animations
 const ANIMATION_SPEED = {
@@ -36,73 +38,29 @@ export async function HomePage(): Promise<void> {
   if (!appDiv) return;
 
   // Récupérer les informations utilisateur depuis le backend
-  let userProfile: UserProfile | null = null;
-  try {
-    const response = await AuthManager.fetchWithAuth('/api/me');
-    if (response.ok) {
-      userProfile = await response.json();
-    }
-  } catch (error) {
-    console.error('Erreur lors de la récupération du profil:', error);
-  }
+  // let userProfile: UserProfile | null = null;
+  // try {
+  //   const response = await AuthManager.fetchWithAuth('/api/me');
+  //   if (response.ok) {
+  //     userProfile = await response.json();
+  //   }
+  // } catch (error) {
+  //   console.error('Erreur lors de la récupération du profil:', error);
+  // }
 
   // Classes CSS pour le body et conteneur principal
   const body = document.querySelector("body");
   if (body) {
     body.className = "bg-black min-h-screen font-mono text-green-400";
   }
+    // Créer le header
+    const header = createHeader(HeaderConfigs.profile);
+    const headerHtml = await header.render();
 
   // HTML de la page d'accueil
   const homePageHtml = `
     <div class="min-h-screen flex flex-col bg-black text-green-400 font-mono">
-      <!-- Header style terminal -->
-      <header class="border-b border-green-400/30 p-4">
-        <div class="flex items-center justify-between max-w-6xl mx-auto">
-          <div class="flex items-center">
-            <span class="text-green-400 mr-2">[root@transcendence]$</span>
-            <span id="header-command" class="text-green-300 font-bold"></span>
-            <span id="header-cursor" class="text-green-300 animate-pulse">_</span>
-          </div>
-          
-          <!-- Profile Info -->
-          <div class="flex items-center space-x-6">
-            <!-- User Profile Avatar -->
-            <div class="flex items-center space-x-3" id="user-profile" style="opacity: 0;">
-              <button data-route="/profile" class="flex items-center space-x-3 bg-gray-900 border border-green-400/30 px-3 py-2 rounded hover:bg-green-400/10 transition-colors">
-                <div class="w-8 h-8 rounded-full bg-green-400/20 border border-green-400/50 flex items-center justify-center">
-                  <span class="text-green-400 text-sm font-bold">${(userProfile?.username || 'U').charAt(0).toUpperCase()}</span>
-                </div>
-                <div class="text-left">
-                  <div class="text-green-400 text-sm font-medium">${userProfile?.username || 'Unknown'}</div>
-                </div>
-              </button>
-            </div>
-            
-            <!-- Debug Info (Optional - can be hidden in production) -->
-            <div class="flex items-center space-x-4" id="debug-info" style="opacity: 0; display: none;">
-              <div class="bg-gray-900 border border-green-400/30 px-3 py-1 rounded">
-                <div class="text-green-300 text-xs">Debug Info:</div>
-                <div class="text-green-400 text-sm">
-                  <span class="text-green-300">ID:</span> ${userProfile?.id || 'N/A'} | 
-                  <span class="text-green-300">Email:</span> ${userProfile?.email || 'N/A'}
-                </div>
-              </div>
-              <div class="bg-gray-900 border border-green-400/30 px-3 py-1 rounded">
-                <div class="text-green-300 text-xs">Token:</div>
-                <div class="text-green-400 text-sm font-mono">${AuthManager.getToken()?.substring(0, 20) || 'N/A'}...</div>
-              </div>
-            </div>
-            
-            <!-- Navigation Menu -->
-            <div class="flex space-x-6" id="nav-menu" style="opacity: 0;">
-              <a href="#" data-route="/home" class="hover:text-green-300 transition-colors">> home</a>
-              <a href="#" data-route="/game" class="hover:text-green-300 transition-colors">> game</a>
-              <a href="#" data-route="/tournament" class="hover:text-green-300 transition-colors">> tournament</a>
-              <button id="logout-btn" class="hover:text-red-400 transition-colors text-left">> logout</button>
-            </div>
-          </div>
-        </div>
-      </header>
+      ${headerHtml}
 
       <!-- Terminal content -->
       <main class="flex-1 p-6">
@@ -215,27 +173,8 @@ export async function HomePage(): Promise<void> {
 
   // Ajouter les event listeners pour la navigation
   // setupNavigationListeners();
-  setupLogoutListener();
+  Header.setupEventListeners();
 }
-
-// function setupNavigationListeners(): void {
-//   const router = getRouter();
-//   if (!router) return;
-
-//   // Gérer les clics sur les boutons avec data-route
-//   document.addEventListener("click", (event) => {
-//     const target = event.target as HTMLElement;
-//     const button = target.closest("[data-route]");
-
-//     if (button) {
-//       event.preventDefault();
-//       const route = button.getAttribute("data-route");
-//       if (route) {
-//         router.navigate(route);
-//       }
-//     }
-//   });
-// }
 
 // Animation typewriter
 async function typeWriter(
@@ -355,15 +294,4 @@ async function startTypewriterAnimations(): Promise<void> {
     quickStart.style.transition = `opacity ${ANIMATION_SPEED.TRANSITION_FAST}s`;
   }
   await typeWriter("quick-start-title", "Quick Start Guide:", ANIMATION_SPEED.TYPEWRITER_FAST);
-}
-
-function setupLogoutListener(): void {
-  const logoutBtn = document.getElementById("logout-btn");
-  if (logoutBtn) {
-    logoutBtn.addEventListener("click", () => {
-      // Utiliser AuthManager.logout()
-      console.log('Déconnexion en cours...');
-      AuthManager.logout();
-    });
-  }
 }

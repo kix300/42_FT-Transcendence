@@ -442,37 +442,6 @@ async function handleLogin(): Promise<void> {
     } else {
       alert('Login failed');
     }
-  // TODO: Replace with actual authentication logic
-  // try {
-  //   const response = await fetch("/api/login", {
-  //     method: "POST",
-  //     headers: {
-  //       "Content-Type": "application/json",
-  //     },
-  //     body: JSON.stringify({
-  //       username,
-  //       password,
-  //       remember,
-  //     }),
-  //   });
-
-  //   const data = await response.json();
-
-  //   if (response.ok) {
-  //     // Store JWT token
-  //     localStorage.setItem("auth_token", data.token);
-  //     if (remember) {
-  //       localStorage.setItem("remember_login", "true");
-  //     }
-
-  //     showMessage("Authentication successful! Redirecting...", "success");
-  //     setTimeout(() => router.navigate("/home"), 1500);
-  //   } else {
-  //     showMessage(`Authentication failed: ${data.error}`, "error");
-  //   }
-  // } catch (error) {
-  //   showMessage("Network error: Unable to connect to server", "error");
-  // }
 }
 
 // Show messages in terminal style

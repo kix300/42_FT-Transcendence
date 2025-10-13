@@ -114,6 +114,9 @@ export async function TournamentPage(): Promise<void> {
   
   // Ajouter les event listeners du header
   Header.setupEventListeners();
+  
+  // Rendre le header visible
+  showHeaderElements();
 }
 
 function restoreTournament(tournamentData: any): void {
@@ -409,11 +412,7 @@ function generateMatchCardWithResult(matchId: number, player1: Player | null, pl
   return `
     <div class="border border-green-400/50 bg-black/50 ${hasResult ? 'border-green-300' : ''}">
       <div class="text-green-500 text-xs px-2 py-1 border-b border-green-400/30">
-<<<<<<< HEAD
-        Match ${matchId}
-=======
         Match ${matchId}, round ${round}
->>>>>>> master
       </div>
       <div class="p-2 space-y-1">
         <div class="${p1Class} text-sm flex justify-between items-center">
@@ -542,6 +541,29 @@ function setupNavigationListeners(): void {
   (window as any).tournamentPageCleanup = () => {
     window.removeEventListener("keydown", handleEscape);
   };
+}
+
+function showHeaderElements(): void {
+  // Rendre le profil utilisateur visible
+  const userProfile = document.getElementById("user-profile");
+  if (userProfile) {
+    userProfile.style.opacity = "1";
+    userProfile.style.transition = "opacity 0.3s";
+  }
+  
+  // Rendre le menu de navigation visible
+  const navMenu = document.getElementById("nav-menu");
+  if (navMenu) {
+    navMenu.style.opacity = "1";
+    navMenu.style.transition = "opacity 0.3s";
+  }
+  
+  // Optionnel : rendre les infos de debug visibles si nécessaire
+  // const debugInfo = document.getElementById("debug-info");
+  // if (debugInfo) {
+  //   debugInfo.style.opacity = "1";
+  //   debugInfo.style.display = "block";
+  // }
 }
 
 // Cleanup function for when leaving the page
