@@ -15,7 +15,14 @@ import statsRoutes from './routes/stats.js';
 // import oauthRoutes from './routes/oauth.js';
 
 //variables
-const fastify = Fastify({ logger: true });
+//CONFIG HTTPS A FAIRE
+const fastify = Fastify({
+  https: {
+    key: fs.readFileSync(path.join(__dirname, "certs/server.key")),
+    cert: fs.readFileSync(path.join(__dirname, "certs/server.crt")),
+  },
+  logger: true,
+});
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
 // Servir les fichiers statiques du répertoire 'dist' (créé par npm run build)
@@ -24,6 +31,13 @@ fastify.register(fastifyStatic, {
   root: path.join(__dirname, "public/dist"),
   // En ne mettant pas de préfixe, les requêtes sont mappées directement à la structure de fichiers dans 'public/dist'.
   // Par exemple, une requête pour /assets/some.js servira public/dist/assets/some.js
+});
+
+// Servir les fichiers statiques du répertoire 'uploads'
+fastify.register(fastifyStatic, {
+  root: path.join(process.cwd(), 'uploads'),
+  prefix: '/uploads/',
+  decorateReply: false,
 });
 
 // Clé secrète JWT

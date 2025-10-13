@@ -17,19 +17,37 @@ export default async function usersRoutes(fastify, options) {
     }
     });
 
-    //page utilisateur connecte
+    //Info de lutilisateur connecte
     fastify.get("/api/me", { preHandler: [fastify.authenticate] }, async (request, reply) => {
         // le token contient l'id de l'utilisateur connecté
         const userId = request.user.id;
 
+		//table users
         const user = db
             .prepare("SELECT * FROM users WHERE id = ?")
             .get(userId);
-
         if (!user) {
             return reply.code(404).send({ error: "Utilisateur introuvable" });
         }
-        reply.send(user);
+
+		//table matches
+    	const matches = db
+        .prepare(`SELECT * FROM matches 
+                  WHERE player1_id = ? OR player2_id = ? 
+                  ORDER BY date DESC`)
+        .all(userId, userId);
+
+		//stats
+		const stats = {
+			totalMatches: matches.length,
+			wins: matches.filter(m => m.winner_id === userId).length,
+			losses: matches.filter(m => m.winner_id !== userId).length
+		};
+		reply.send({
+			user,
+			stats,
+			matches
+		});
     });
 
     //modifier ses infos

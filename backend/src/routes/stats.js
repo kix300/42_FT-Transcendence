@@ -1,7 +1,7 @@
 import db from '../db.js';
 
 export default async function statsRoutes(fastify) {
-  fastify.get("/api/stats/:userId", async (request, reply) => {
+  fastify.get("/api/stats",  { preHandler: [fastify.authenticate] }, async (request, reply) => {
     const userId = request.user.id;
 
     if (!userId) {
