@@ -66,12 +66,25 @@ export async function HomePage(): Promise<void> {
           
           <!-- Profile Info -->
           <div class="flex items-center space-x-6">
-            <div class="flex items-center space-x-4" id="profile-info" style="opacity: 0;">
+            <!-- User Profile Avatar -->
+            <div class="flex items-center space-x-3" id="user-profile" style="opacity: 0;">
+              <button data-route="/profile" class="flex items-center space-x-3 bg-gray-900 border border-green-400/30 px-3 py-2 rounded hover:bg-green-400/10 transition-colors">
+                <div class="w-8 h-8 rounded-full bg-green-400/20 border border-green-400/50 flex items-center justify-center">
+                  <span class="text-green-400 text-sm font-bold">${(userProfile?.username || 'U').charAt(0).toUpperCase()}</span>
+                </div>
+                <div class="text-left">
+                  <div class="text-green-400 text-sm font-medium">${userProfile?.username || 'Unknown'}</div>
+                  <div class="text-green-500 text-xs">Click to view profile</div>
+                </div>
+              </button>
+            </div>
+            
+            <!-- Debug Info (Optional - can be hidden in production) -->
+            <div class="flex items-center space-x-4" id="debug-info" style="opacity: 0; display: none;">
               <div class="bg-gray-900 border border-green-400/30 px-3 py-1 rounded">
-                <div class="text-green-300 text-xs">User Profile:</div>
+                <div class="text-green-300 text-xs">Debug Info:</div>
                 <div class="text-green-400 text-sm">
                   <span class="text-green-300">ID:</span> ${userProfile?.id || 'N/A'} | 
-                  <span class="text-green-300">User:</span> ${userProfile?.username || 'Unknown'} | 
                   <span class="text-green-300">Email:</span> ${userProfile?.email || 'N/A'}
                 </div>
               </div>
@@ -86,7 +99,7 @@ export async function HomePage(): Promise<void> {
               <a href="#" data-route="/home" class="hover:text-green-300 transition-colors">> home</a>
               <a href="#" data-route="/game" class="hover:text-green-300 transition-colors">> game</a>
               <a href="#" data-route="/tournament" class="hover:text-green-300 transition-colors">> tournament</a>
-              <a href="#" data-route="/dashboard" class="hover:text-green-300 transition-colors">> dashboard</a>
+              <a href="#" data-route="/profile" class="hover:text-green-300 transition-colors">> profile</a>
               <button id="logout-btn" class="hover:text-red-400 transition-colors text-left">> logout</button>
             </div>
           </div>
@@ -261,14 +274,14 @@ async function startTypewriterAnimations(): Promise<void> {
 
   // 2. Cacher le curseur du header et montrer le profil et menu nav
   const headerCursor = document.getElementById("header-cursor");
-  const profileInfo = document.getElementById("profile-info");
+  const userProfile = document.getElementById("user-profile");
   const navMenu = document.getElementById("nav-menu");
   
   if (headerCursor) headerCursor.style.display = "none";
   
-  if (profileInfo) {
-    profileInfo.style.opacity = "1";
-    profileInfo.style.transition = `opacity ${ANIMATION_SPEED.TRANSITION_FAST}s`;
+  if (userProfile) {
+    userProfile.style.opacity = "1";
+    userProfile.style.transition = `opacity ${ANIMATION_SPEED.TRANSITION_FAST}s`;
   }
   
   if (navMenu) {
@@ -350,7 +363,7 @@ function setupLogoutListener(): void {
   const logoutBtn = document.getElementById("logout-btn");
   if (logoutBtn) {
     logoutBtn.addEventListener("click", () => {
-      // ✅ Utiliser AuthManager.logout()
+      // Utiliser AuthManager.logout()
       console.log('Déconnexion en cours...');
       AuthManager.logout();
     });
