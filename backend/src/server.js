@@ -70,5 +70,4 @@ fastify.setNotFoundHandler((request, reply) => {
   reply.sendFile('index.html'); 
 });
 
-
 start();

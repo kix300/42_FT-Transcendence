@@ -1,4 +1,6 @@
 import { getRouter } from "../router";
+import { AuthManager } from '../utils/auth';
+
 
 // Variable globale pour contrôler la vitesse d'écriture des animations
 const ANIMATION_SPEED = {
@@ -422,7 +424,7 @@ async function handleLogin(): Promise<void> {
 
   const username = usernameInput?.value.trim();
   const password = passwordInput?.value;
-  const remember = rememberInput?.checked;
+  const remember = rememberInput?.checked || false;
 
   // Basic validation
   if (!username || !password) {
@@ -432,37 +434,45 @@ async function handleLogin(): Promise<void> {
 
   showMessage("Authenticating...", "info");
 
-  // Authentication logic
-  try {
-    const response = await fetch("/api/login", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        username,
-        password,
-        remember,
-      }),
-    });
-
-    const data = await response.json();
-	console.log("Réponse du backend :", data);
-    if (response.ok) {
-      // Store JWT token
-      localStorage.setItem("auth_token", data.token);
-      if (remember) {
-        localStorage.setItem("remember_login", "true");
-      }
-
-      showMessage("Authentication successful! Redirecting...", "success");
+  const success = await AuthManager.login({ username, password, remember });
+    
+    if (success) {
+      // Rediriger vers la page d'accueil après login réussi
       setTimeout(() => router.navigate("/home"), 1500);
     } else {
-      showMessage(`Authentication failed: ${data.error}`, "error");
+      alert('Login failed');
     }
-  } catch (error) {
-    showMessage("Network error: Unable to connect to server", "error");
-  }
+  // TODO: Replace with actual authentication logic
+  // try {
+  //   const response = await fetch("/api/login", {
+  //     method: "POST",
+  //     headers: {
+  //       "Content-Type": "application/json",
+  //     },
+  //     body: JSON.stringify({
+  //       username,
+  //       password,
+  //       remember,
+  //     }),
+  //   });
+
+  //   const data = await response.json();
+
+  //   if (response.ok) {
+  //     // Store JWT token
+  //     localStorage.setItem("auth_token", data.token);
+  //     if (remember) {
+  //       localStorage.setItem("remember_login", "true");
+  //     }
+
+  //     showMessage("Authentication successful! Redirecting...", "success");
+  //     setTimeout(() => router.navigate("/home"), 1500);
+  //   } else {
+  //     showMessage(`Authentication failed: ${data.error}`, "error");
+  //   }
+  // } catch (error) {
+  //   showMessage("Network error: Unable to connect to server", "error");
+  // }
 }
 
 // Show messages in terminal style

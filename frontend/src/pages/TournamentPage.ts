@@ -5,13 +5,13 @@ interface Player {
   name: string;
   isBye: boolean;
 }
-
-// interface Match {
-//   id: number;
-//   player1: Player | null;
-//   player2: Player | null;
-//   winner: Player | null;
-// }
+// @ts-ignore
+interface Match {
+  id: number;
+  player1: Player | null;
+  player2: Player | null;
+  winner: Player | null;
+}
 
 export async function TournamentPage(): Promise<void> {
   const appDiv = document.querySelector<HTMLDivElement>("#app");
@@ -349,6 +349,7 @@ function generateMatchCard(matchId: number, player1: Player | null, player2: Pla
   return generateMatchCardWithResult(matchId, player1, player2, round, null);
 }
 
+//@ts-ignore
 function generateMatchCardWithResult(matchId: number, player1: Player | null, player2: Player | null, round: number, matchResult: any): string {
   const p1Name = player1 ? (player1.isBye ? `<span class="text-green-600">${player1.name}</span>` : player1.name) : "TBD";
   const p2Name = player2 ? (player2.isBye ? `<span class="text-green-600">${player2.name}</span>` : player2.name) : "TBD";
@@ -402,7 +403,11 @@ function generateMatchCardWithResult(matchId: number, player1: Player | null, pl
   return `
     <div class="border border-green-400/50 bg-black/50 ${hasResult ? 'border-green-300' : ''}">
       <div class="text-green-500 text-xs px-2 py-1 border-b border-green-400/30">
+<<<<<<< HEAD
+        Match ${matchId}
+=======
         Match ${matchId}, round ${round}
+>>>>>>> master
       </div>
       <div class="p-2 space-y-1">
         <div class="${p1Class} text-sm flex justify-between items-center">
