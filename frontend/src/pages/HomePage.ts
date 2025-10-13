@@ -1,6 +1,13 @@
 import { getRouter } from "../router";
 import { AuthManager } from "../utils/auth";
-import { Header } from "../components/Header";
+
+// Interface pour les données utilisateur
+interface UserProfile {
+  id: number;
+  username: string;
+  email?: string;
+  photo?: string;
+}
 
 // Variable globale pour contrôler la vitesse d'écriture des animations
 const ANIMATION_SPEED = {
@@ -13,19 +20,8 @@ const ANIMATION_SPEED = {
   TRANSITION_FAST: 0,   // Transition rapide
   TRANSITION_NORMAL: 0.5, // Transition normale
 };
-// Interface pour les données utilisateur
-interface UserProfile {
-  id: number;
-  username: string;
-  email?: string;
-  photo?: string;
-}
-
-// Variables globales pour gérer l'état des animations
-let animationInProgress = false;
 
 export async function HomePage(): Promise<void> {
-  
     // Vérifier l'authentification AVANT d'afficher la page
   if (!AuthManager.isAuthenticated()) {
     console.log('Utilisateur non authentifié, redirection vers login');
@@ -37,6 +33,9 @@ export async function HomePage(): Promise<void> {
   }
 
   const appDiv = document.querySelector<HTMLDivElement>("#app");
+  if (!appDiv) return;
+
+  // Récupérer les informations utilisateur depuis le backend
   let userProfile: UserProfile | null = null;
   try {
     const response = await AuthManager.fetchWithAuth('/api/me');
@@ -46,23 +45,12 @@ export async function HomePage(): Promise<void> {
   } catch (error) {
     console.error('Erreur lors de la récupération du profil:', error);
   }
-  if (!appDiv) return;
 
   // Classes CSS pour le body et conteneur principal
   const body = document.querySelector("body");
   if (body) {
     body.className = "bg-black min-h-screen font-mono text-green-400";
   }
-
-  // Créer le header
-  // const header = new Header({
-  //   title: "Transcendence Home",
-  //   command: "./transcendence.sh",
-  //   showProfile: true,
-  //   showNavigation: true,
-  //   activeRoute: "/home"
-  // });
-  // const headerHtml = await header.render();
 
   // HTML de la page d'accueil
   const homePageHtml = `
@@ -225,14 +213,29 @@ export async function HomePage(): Promise<void> {
   // Démarrer les animations
   startTypewriterAnimations();
 
-  // Ajouter les event listeners du header (pour logout uniquement)
-  Header.setupEventListeners();
+  // Ajouter les event listeners pour la navigation
+  // setupNavigationListeners();
+  setupLogoutListener();
 }
 
-// Simple délai pour les animations
-function delay(ms: number): Promise<void> {
-  return new Promise(resolve => setTimeout(resolve, ms));
-}
+// function setupNavigationListeners(): void {
+//   const router = getRouter();
+//   if (!router) return;
+
+//   // Gérer les clics sur les boutons avec data-route
+//   document.addEventListener("click", (event) => {
+//     const target = event.target as HTMLElement;
+//     const button = target.closest("[data-route]");
+
+//     if (button) {
+//       event.preventDefault();
+//       const route = button.getAttribute("data-route");
+//       if (route) {
+//         router.navigate(route);
+//       }
+//     }
+//   });
+// }
 
 // Animation typewriter
 async function typeWriter(
@@ -241,16 +244,13 @@ async function typeWriter(
   speed: number = ANIMATION_SPEED.TYPEWRITER_FAST,
 ): Promise<void> {
   const element = document.getElementById(elementId);
-  if (!element || !animationInProgress) return;
+  if (!element) return;
 
   element.textContent = "";
 
   for (let i = 0; i < text.length; i++) {
-    if (!animationInProgress) break; // Arrêter l'animation si nécessaire
     element.textContent += text.charAt(i);
-    if (speed > 0) {
-      await delay(speed);
-    }
+    await new Promise((resolve) => setTimeout(resolve, speed));
   }
 }
 
@@ -259,58 +259,63 @@ async function typeLines(
   lines: { id: string; text: string; speed?: number }[],
 ): Promise<void> {
   for (const line of lines) {
-    if (!animationInProgress) break; // Arrêter l'animation si nécessaire
     await typeWriter(line.id, line.text, line.speed || ANIMATION_SPEED.TYPEWRITER_FAST);
-    if (!animationInProgress) break;
-    if (ANIMATION_SPEED.DELAY_SHORT > 0) {
-      await delay(ANIMATION_SPEED.DELAY_SHORT);
-    }
+    await new Promise((resolve) => setTimeout(resolve, ANIMATION_SPEED.DELAY_SHORT));
   }
 }
 
 // Démarrer toutes les animations en séquence
 async function startTypewriterAnimations(): Promise<void> {
-  // Marquer le début des animations
-  animationInProgress = true;
+  // 1. Header command
+  await typeWriter("header-command", "./transcendence.sh", ANIMATION_SPEED.TYPEWRITER_FAST);
+  await new Promise((resolve) => setTimeout(resolve, ANIMATION_SPEED.DELAY_SHORT));
 
-  // 1. Afficher ASCII art
+  // 2. Cacher le curseur du header et montrer le profil et menu nav
+  const headerCursor = document.getElementById("header-cursor");
+  const userProfile = document.getElementById("user-profile");
+  const navMenu = document.getElementById("nav-menu");
+  
+  if (headerCursor) headerCursor.style.display = "none";
+  
+  if (userProfile) {
+    userProfile.style.opacity = "1";
+    userProfile.style.transition = `opacity ${ANIMATION_SPEED.TRANSITION_FAST}s`;
+  }
+  
+  if (navMenu) {
+    navMenu.style.opacity = "1";
+    navMenu.style.transition = `opacity ${ANIMATION_SPEED.TRANSITION_FAST}s`;
+  }
+
+  // 3. Afficher ASCII art
   const asciiArt = document.getElementById("ascii-art");
-  if (asciiArt && animationInProgress) {
+  if (asciiArt) {
     asciiArt.style.opacity = "1";
     asciiArt.style.transition = `opacity ${ANIMATION_SPEED.TRANSITION_FAST}s`;
   }
-  if (!animationInProgress) return;
-  if (ANIMATION_SPEED.DELAY_SHORT > 0) {
-    await delay(ANIMATION_SPEED.DELAY_SHORT);
-  }
+  await new Promise((resolve) => setTimeout(resolve, ANIMATION_SPEED.DELAY_SHORT));
 
-  // 2. Terminal prompt
+  // 4. Terminal prompt
   const terminalPrompt = document.getElementById("terminal-prompt");
-  if (terminalPrompt && animationInProgress) {
+  if (terminalPrompt) {
     terminalPrompt.style.opacity = "1";
     terminalPrompt.style.transition = `opacity ${ANIMATION_SPEED.TRANSITION_FAST}s`;
   }
-  if (!animationInProgress) return;
-  if (ANIMATION_SPEED.DELAY_SHORT > 0) {
-    await delay(ANIMATION_SPEED.DELAY_SHORT);
-  }
+  await new Promise((resolve) => setTimeout(resolve, ANIMATION_SPEED.DELAY_SHORT));
 
-  if (!animationInProgress) return;
   await typeWriter("cat-command", "cat welcome.txt", ANIMATION_SPEED.TYPEWRITER_FAST);
 
-  // 3. Cacher le curseur cat et afficher les messages
-  if (!animationInProgress) return;
+  // 5. Cacher le curseur cat et afficher les messages
   const catCursor = document.getElementById("cat-cursor");
   if (catCursor) catCursor.style.display = "none";
 
   const welcomeMessages = document.getElementById("welcome-messages");
-  if (welcomeMessages && animationInProgress) {
+  if (welcomeMessages) {
     welcomeMessages.style.opacity = "1";
     welcomeMessages.style.transition = `opacity ${ANIMATION_SPEED.TRANSITION_FAST}s`;
   }
 
-  // 4. Messages de bienvenue
-  if (!animationInProgress) return;
+  // 6. Messages de bienvenue
   await typeLines([
     {
       id: "msg-1",
@@ -322,46 +327,43 @@ async function startTypewriterAnimations(): Promise<void> {
     { id: "msg-4", text: "> Prêt pour le combat !", speed: ANIMATION_SPEED.TYPEWRITER_FAST },
   ]);
 
-  if (!animationInProgress) return;
-  if (ANIMATION_SPEED.DELAY_SHORT > 0) {
-    await delay(ANIMATION_SPEED.DELAY_SHORT);
-  }
+  await new Promise((resolve) => setTimeout(resolve, ANIMATION_SPEED.DELAY_SHORT));
 
-  // 5. Available commands
+  // 7. Available commands
   const commandMenu = document.getElementById("command-menu");
-  if (commandMenu && animationInProgress) {
+  if (commandMenu) {
     commandMenu.style.opacity = "1";
     commandMenu.style.transition = `opacity ${ANIMATION_SPEED.TRANSITION_FAST}s`;
   }
-  if (!animationInProgress) return;
   await typeWriter("available-commands", "Available commands:", ANIMATION_SPEED.TYPEWRITER_FAST);
 
-  if (!animationInProgress) return;
-  if (ANIMATION_SPEED.DELAY_SHORT > 0) {
-    await delay(ANIMATION_SPEED.DELAY_SHORT);
-  }
+  await new Promise((resolve) => setTimeout(resolve, ANIMATION_SPEED.DELAY_SHORT));
 
-  // 6. System info
+  // 8. System info
   const systemInfo = document.getElementById("system-info");
-  if (systemInfo && animationInProgress) {
+  if (systemInfo) {
     systemInfo.style.opacity = "1";
     systemInfo.style.transition = `opacity ${ANIMATION_SPEED.TRANSITION_FAST}s`;
   }
 
-  if (!animationInProgress) return;
-  if (ANIMATION_SPEED.DELAY_SHORT > 0) {
-    await delay(ANIMATION_SPEED.DELAY_SHORT);
-  }
+  await new Promise((resolve) => setTimeout(resolve, ANIMATION_SPEED.DELAY_SHORT));
 
-  // 7. Quick start
+  // 9. Quick start
   const quickStart = document.getElementById("quick-start");
-  if (quickStart && animationInProgress) {
+  if (quickStart) {
     quickStart.style.opacity = "1";
     quickStart.style.transition = `opacity ${ANIMATION_SPEED.TRANSITION_FAST}s`;
   }
-  if (!animationInProgress) return;
   await typeWriter("quick-start-title", "Quick Start Guide:", ANIMATION_SPEED.TYPEWRITER_FAST);
-  
-  // Marquer la fin des animations
-  animationInProgress = false;
+}
+
+function setupLogoutListener(): void {
+  const logoutBtn = document.getElementById("logout-btn");
+  if (logoutBtn) {
+    logoutBtn.addEventListener("click", () => {
+      // Utiliser AuthManager.logout()
+      console.log('Déconnexion en cours...');
+      AuthManager.logout();
+    });
+  }
 }
