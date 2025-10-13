@@ -3,13 +3,6 @@ import { AuthManager } from "../utils/auth";
 import { Header } from "../components/Header";
 import { createHeader, HeaderConfigs } from "../components/Header";
 
-// Interface pour les données utilisateur
-// interface UserProfile {
-//   id: number;
-//   username: string;
-//   email?: string;
-//   photo?: string;
-// }
 
 // Variable globale pour contrôler la vitesse d'écriture des animations
 const ANIMATION_SPEED = {
@@ -37,16 +30,6 @@ export async function HomePage(): Promise<void> {
   const appDiv = document.querySelector<HTMLDivElement>("#app");
   if (!appDiv) return;
 
-  // Récupérer les informations utilisateur depuis le backend
-  // let userProfile: UserProfile | null = null;
-  // try {
-  //   const response = await AuthManager.fetchWithAuth('/api/me');
-  //   if (response.ok) {
-  //     userProfile = await response.json();
-  //   }
-  // } catch (error) {
-  //   console.error('Erreur lors de la récupération du profil:', error);
-  // }
 
   // Classes CSS pour le body et conteneur principal
   const body = document.querySelector("body");
@@ -99,58 +82,14 @@ export async function HomePage(): Promise<void> {
                 <div class="text-green-300">./tournament.sh</div>
                 <div class="text-green-500 text-sm">Join competitive tournaments</div>
               </button>
-              <button data-route="/dashboard" class="text-left p-3 border border-green-400/30 hover:bg-green-400/10 transition-colors">
-                <div class="text-green-300">./stats.sh</div>
-                <div class="text-green-500 text-sm">View player statistics</div>
-              </button>
-              <div class="text-left p-3 border border-green-400/30">
-                <div class="text-green-300">./help.sh</div>
-                <div class="text-green-500 text-sm">Display help documentation</div>
-              </div>
-            </div>
-          </div>
-
-          <!-- System info -->
-          <div class="grid md:grid-cols-3 gap-6 mb-8" id="system-info" style="opacity: 0;">
-            <div class="bg-gray-900 border border-green-400/30 p-4">
-              <div class="text-green-300 font-bold mb-2">[SYSTEM STATUS]</div>
-              <div class="text-green-400 text-sm space-y-1">
-                <div>Players online: <span class="text-green-300">42</span></div>
-                <div>Active games: <span class="text-green-300">13</span></div>
-                <div>Server load: <span class="text-green-300">optimal</span></div>
-                <div>Ping: <span class="text-green-300">12ms</span></div>
-              </div>
-            </div>
-
-            <div class="bg-gray-900 border border-green-400/30 p-4">
-              <div class="text-green-300 font-bold mb-2">[TOURNAMENT INFO]</div>
-              <div class="text-green-400 text-sm space-y-1">
-                <div>Next tournament: <span class="text-green-300">15:30</span></div>
-                <div>Prize pool: <span class="text-green-300">1000 pts</span></div>
-                <div>Participants: <span class="text-green-300">8/16</span></div>
-                <div>Status: <span class="text-green-300">registration open</span></div>
-              </div>
-            </div>
-
-            <div class="bg-gray-900 border border-green-400/30 p-4">
-              <div class="text-green-300 font-bold mb-2">[LEADERBOARD]</div>
-              <div class="text-green-400 text-sm space-y-1">
-                <div>1. <span class="text-green-300">h4ck3r42</span> - 2847 pts</div>
-                <div>2. <span class="text-green-300">pingpong_master</span> - 2634 pts</div>
-                <div>3. <span class="text-green-300">coder_elite</span> - 2421 pts</div>
-                <div class="text-green-500">...</div>
-              </div>
             </div>
           </div>
 
           <!-- Quick start -->
-          <div class="bg-gray-900 border border-green-400/30 p-6" id="quick-start" style="opacity: 0;">
-            <div class="text-green-300 mb-4" id="quick-start-title"></div>
+          <div class="bg-gray-900 border border-green-400/30 p-6" id="History" style="opacity: 0;">
+            <div class="text-green-300 mb-4" id="History-title"></div>
             <div class="text-green-400 space-y-2">
-              <div><span class="text-green-500">$</span> Ready to play? Execute the game launcher:</div>
-              <button data-route="/game" class="block bg-black border border-green-400/50 p-3 hover:bg-green-400/10 transition-colors w-full text-left">
-                <span class="text-green-300">./transcendence --mode=quickplay --difficulty=normal</span>
-              </button>
+              <div><span class="text-green-500">$</span> Ready to play? Look at your match:</div
             </div>
           </div>
         </div>
@@ -172,8 +111,35 @@ export async function HomePage(): Promise<void> {
   startTypewriterAnimations();
 
   // Ajouter les event listeners pour la navigation
-  // setupNavigationListeners();
   Header.setupEventListeners();
+
+  // Navigation des boutons redondans
+  setupHomePageNavigation();
+}
+
+function setupHomePageNavigation(): void {
+  // Boutons de navigation dans le contenu principal
+  const navigationButtons = document.querySelectorAll('[data-route]');
+  
+  navigationButtons.forEach(button => {
+    // Skip les boutons du header qui sont déjà gérés par Header.setupEventListeners()
+    if (button.closest('header')) return;
+    
+    button.addEventListener('click', (e) => {
+      e.preventDefault();
+      const route = button.getAttribute('data-route');
+      
+      if (route) {
+        console.log(`Navigation vers: ${route}`);
+        import('../router').then(({ getRouter }) => {
+          const router = getRouter();
+          if (router) {
+            router.navigate(route);
+          }
+        });
+      }
+    });
+  });
 }
 
 // Animation typewriter
@@ -288,10 +254,10 @@ async function startTypewriterAnimations(): Promise<void> {
   await new Promise((resolve) => setTimeout(resolve, ANIMATION_SPEED.DELAY_SHORT));
 
   // 9. Quick start
-  const quickStart = document.getElementById("quick-start");
+  const quickStart = document.getElementById("History");
   if (quickStart) {
     quickStart.style.opacity = "1";
     quickStart.style.transition = `opacity ${ANIMATION_SPEED.TRANSITION_FAST}s`;
   }
-  await typeWriter("quick-start-title", "Quick Start Guide:", ANIMATION_SPEED.TYPEWRITER_FAST);
+  await typeWriter("History-title", "History:", ANIMATION_SPEED.TYPEWRITER_FAST);
 }
