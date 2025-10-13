@@ -26,6 +26,20 @@ fastify.register(fastifyStatic, {
   // Par exemple, une requête pour /assets/some.js servira public/dist/assets/some.js
 });
 
+// Servir les fichiers statiques du répertoire 'uploads'
+fastify.register(fastifyStatic, {
+  root: path.join(process.cwd(), 'uploads'),
+  prefix: '/uploads/',
+});
+
+// Certificat et cle
+// const fastify = Fastify({
+//   https: {
+//     key: fs.readFileSync('./certs/server.key'),
+//     cert: fs.readFileSync('./certs/server.crt'),
+//   }
+// });
+
 // Clé secrète JWT
 fastify.register(fastifyJwt, {
   secret: process.env.JWT_PWD ,
