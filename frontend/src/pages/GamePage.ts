@@ -47,7 +47,7 @@ export async function GamePage(): Promise<void> {
         </div>
         <ul class="flex space-x-6">
           <li><a href="#" data-route="/" class="font-medium text-gray-800 px-4 py-2 rounded-lg shadow-md transition-all duration-300 ease-in-out hover:bg-white/80 hover:shadow-xl hover:-translate-y-1">Accueil</a></li>
-          <li><a href="#" data-route="/tournament" class="font-medium text-gray-800 px-4 py-2 rounded-lg shadow-md transition-all duration-300 ease-in-out hover:bg-white/80 hover:shadow-xl hover:-translate-y-1">Tournois</a></li>
+          <li><a href="#" data-route="/tournament" class="font-medium text-gray-800 px-4 py-2 rounded-lg shadow-md transition-all duration-300 ease-in-out hover:bg-white/80 hover:shadow-xl hover:-translate-y-1">Tournaments</a></li>
           <li><a href="#" data-route="/dashboard" class="font-medium text-gray-800 px-4 py-2 rounded-lg shadow-md transition-all duration-300 ease-in-out hover:bg-white/80 hover:shadow-xl hover:-translate-y-1">Dashboard</a></li>
           <li><a href="#" class="font-medium text-gray-800 px-4 py-2 rounded-lg shadow-md transition-all duration-300 ease-in-out hover:bg-white/80 hover:shadow-xl hover:-translate-y-1">3 Players</a></li>
           <li><a href="#" class="font-medium text-gray-800 px-4 py-2 rounded-lg shadow-md transition-all duration-300 ease-in-out hover:bg-white/80 hover:shadow-xl hover:-translate-y-1">2 Players</a></li>
