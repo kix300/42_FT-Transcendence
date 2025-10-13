@@ -6,9 +6,9 @@ services:
     ports:
       - "3000:3000"
     volumes:
-      - ../backend/public:/app/public
       - ../database:/data
       - shared_frontend:/app/public/dist
+      - ../backend/src/uploads:/app/uploads
     env_file:
       - ".env"
     depends_on:
