@@ -732,36 +732,22 @@ async function handleRegister(): Promise<void> {
   // TODO: Replace with actual registration API call
   // Note: When you implement the backend, you'll need to use FormData for file upload
   try {
-    // If there's a photo, use FormData, otherwise use JSON
+
     let response;
 
-    if (profilePhoto) {
+    
       // Use FormData for file upload
       const formData = new FormData();
       formData.append("username", username);
       formData.append("email", email);
       formData.append("password", password);
+	  if (profilePhoto) {
       formData.append("profilePhoto", profilePhoto);
-
-      // TODO: Backend endpoint should handle multipart/form-data
+	  }
       response = await fetch("/api/register", {
         method: "POST",
-        body: formData, // Don't set Content-Type header for FormData
+        body: formData,
       });
-    } else {
-      // Regular JSON request
-      response = await fetch("/api/register", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          username,
-          email,
-          password,
-        }),
-      });
-    }
 
     const data = await response.json();
 

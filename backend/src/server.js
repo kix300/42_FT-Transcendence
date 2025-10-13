@@ -21,8 +21,7 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 // Cela inclut index.html, et les assets (JS, CSS)
 fastify.register(fastifyStatic, {
   root: path.join(__dirname, "public/dist"),
-  // En ne mettant pas de préfixe, les requêtes sont mappées directement
-  // à la structure de fichiers dans 'public/dist'.
+  // En ne mettant pas de préfixe, les requêtes sont mappées directement à la structure de fichiers dans 'public/dist'.
   // Par exemple, une requête pour /assets/some.js servira public/dist/assets/some.js
 });
 
@@ -34,8 +33,10 @@ fastify.register(fastifyJwt, {
 // décorateur pour vérifier le token facilement dans les routes
 fastify.decorate("authenticate", async (request, reply) => {
   try {
+	console.log("🪪 Header Authorization reçu:", request.headers.authorization);
     await request.jwtVerify();
   } catch (err) {
+	 console.error("❌ Erreur JWT:", err.message);
     reply.code(401).send({ error: "Unauthorized" });
   }
 });
@@ -48,7 +49,7 @@ fastify.register(loginRoutes);
 fastify.register(userRoutes);
 // fastify.register(oauthRoutes);
 
-// Route /pong -> index.html dans public/dist/
+// Renvoie la route '/' a public/dist/index.html 
 fastify.get("/", async (request, reply) => {
   return reply.sendFile("index.html");
 });
@@ -64,6 +65,7 @@ const start = async () => {
   }
 };
 
+// ⚙️ Catch-all route pour servir public/dist/index.html
 fastify.setNotFoundHandler((request, reply) => {
   reply.sendFile('index.html'); 
 });
