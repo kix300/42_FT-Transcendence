@@ -10,7 +10,7 @@ init:
 	chmod 777 ./database/database.db
 	mkdir -p ./frontend/dist
 	chmod 777 ./frontend/dist
-	chmod 777 ./backend/src/uploads
+	chmod 777 ./backend/uploads
 
 build:
 	$(DOCKER_COMPOSE) build
