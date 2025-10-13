@@ -58,12 +58,6 @@ export class AuthManager {
     localStorage.setItem(this.USER_KEY, JSON.stringify(user));
   }
 
-  // Récupérer les données utilisateur
-  static getUser(): any | null {
-    const userData = localStorage.getItem(this.USER_KEY);
-    return userData ? JSON.parse(userData) : null;
-  }
-
   // Vérifier l'expiration du token (si JWT)
   private static isTokenExpired(token: string): boolean {
     try {
