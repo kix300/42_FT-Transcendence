@@ -30,6 +30,7 @@ fastify.register(fastifyStatic, {
 fastify.register(fastifyStatic, {
   root: path.join(process.cwd(), 'uploads'),
   prefix: '/uploads/',
+  decorateReply: false,
 });
 
 // Certificat et cle
