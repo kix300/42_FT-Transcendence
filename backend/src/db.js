@@ -27,6 +27,26 @@ try{
 }
 
 
+// ajoute la colonne role
+const columnExists = db
+  .prepare("PRAGMA table_info(users)").all()
+  .some(col => col.name === "role");
+
+if (!columnExists) {
+  db.prepare("ALTER TABLE users ADD COLUMN role TEXT CHECK(role IN ('admin', 'user')) DEFAULT 'user'").run();
+  console.log("✅ Colonne 'role' ajoutée !");
+} else {
+  console.log("ℹ️ La colonne 'role' existe déjà, rien à faire.");
+}
+
+// mise a jour du role pour les utilisateurs deja existants
+const admins = ['kimnguye', 'kduroux', 'hgirard'];
+const placeholders = admins.map(() => '?').join(', ');
+
+db.prepare(`UPDATE users SET role = 'admin' WHERE username IN (${placeholders})`).run(...admins);
+db.prepare(`UPDATE users SET role = 'user' WHERE role IS NULL`).run();
+
+
 // lit les données et les affiche sur la console
 const rows = db.prepare("SELECT * FROM users").all();
 console.log(rows);
