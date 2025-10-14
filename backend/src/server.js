@@ -7,7 +7,7 @@ import path from "path";
 import 'dotenv/config';
 import { fileURLToPath } from "url";
 import { dirname } from "path";
-import requireHttps from 'https.js';
+import { requireHttps } from './https.js';
 
 //import routes
 import registerRoutes from './routes/register.js';
@@ -16,8 +16,8 @@ import userRoutes from './routes/users.js';
 import statsRoutes from './routes/stats.js';
 // import oauthRoutes from './routes/oauth.js';
 
-//variables
-//CONFIG HTTPS A FAIRE
+// https config
+const __dirname = dirname(fileURLToPath(import.meta.url));
 const fastify = Fastify({
 	http2: true,
 	https: {
@@ -26,7 +26,6 @@ const fastify = Fastify({
 	},
 	logger: true,
 });
-const __dirname = dirname(fileURLToPath(import.meta.url));
 
 // Servir les fichiers statiques du répertoire 'dist' (créé par npm run build)
 // Cela inclut index.html, et les assets (JS, CSS)
@@ -67,10 +66,12 @@ fastify.register(statsRoutes);
 // fastify.register(oauthRoutes);
 
 // Renvoie la route '/' a public/dist/index.html 
-fastify.get("/", { preHandler: requireHttps, secure: true }, async (request, reply) => {
+fastify.get("/", async (request, reply) => {
   return reply.sendFile("index.html");
 });
 
+// Proteger toutes les routes avec https
+fastify.addHook('preHandler', requireHttps);
 
 // fonction asynchrone pour demarrer le server
 const start = async () => {
