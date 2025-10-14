@@ -31,7 +31,6 @@ const fastify = Fastify({
 });
 
 // Servir les fichiers statiques du répertoire 'dist' (créé par npm run build)
-// Cela inclut index.html, et les assets (JS, CSS)
 fastify.register(fastifyStatic, {
   root: path.join(__dirname, "public/dist"),
 });

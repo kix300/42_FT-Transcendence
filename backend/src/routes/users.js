@@ -3,11 +3,11 @@ import db from "../db.js";
 
 export default async function usersRoutes(fastify, options) {
 
-    //liste des utilisateurs
-    fastify.get("/api/users", async () => db.prepare("SELECT * FROM users").all());
+    //liste des utilisateurs (pour utilisateur connecte)
+    fastify.get("/api/users", { preHandler: [fastify.authenticate] }, async () => db.prepare("SELECT * FROM users").all());
 
-    //ajouter un user
-    fastify.post("/api/users", async (req, reply) => {
+    //ajouter un user (seulement pour admin)
+    fastify.post("/api/users", { preHandler: [fastify.authenticate] }, async (req, reply) => {
     const { username } = req.body;
     try {
         db.prepare("INSERT INTO users (username) VALUES (?)").run(username);
@@ -53,21 +53,20 @@ export default async function usersRoutes(fastify, options) {
     //modifier ses infos
     fastify.patch("/api/me", { preHandler: [fastify.authenticate] }, async (request, reply) => {
         const userId = request.user.id;
-        const {email, photo, password} = request.body;
-
+        const {username, email, password} = request.body;
 
         try {
         const updates = [];
         const values = [];
 
+        if (username) {
+            updates.push("username = ?");
+            values.push(username);
+        }
+
         if (email) {
             updates.push("email = ?");
             values.push(email);
-        }
-
-        if (photo) {
-            updates.push("photo = ?");
-            values.push(photo);
         }
 
         if (password) {
@@ -92,4 +91,39 @@ export default async function usersRoutes(fastify, options) {
         }
     });
 
+	//modifier sa photo
+	fastify.patch("/api/me/avatar", { preHandler: [fastify.authenticate] }, async (request, reply) => {
+		const userId = request.params.id;
+		const uploadsDir = path.join(process.cwd(), "uploads");
+		let avatarFile;
+
+		try {
+		avatarFile = await request.file();
+		} catch {
+		return reply.code(400).send({ error: "No file uploaded" });
+		}
+
+		if (!avatarFile) return reply.code(400).send({ error: "No file uploaded" });
+
+		// Récupérer l'utilisateur actuel
+		const user = fastify.db.prepare("SELECT * FROM users WHERE id = ?").get(userId);
+		if (!user) return reply.code(404).send({ error: "User not found" });
+
+		// Supprimer l'ancienne photo si ce n'est pas l'avatar par défaut
+		if (user.photo && user.photo !== "./uploads/avatar.png" && fs.existsSync(user.photo)) {
+		fs.unlinkSync(user.photo);
+		}
+
+		// Enregistrer le nouveau fichier
+		const newFilename = Date.now() + "_" + avatarFile.filename;
+		const filePath = path.join(uploadsDir, newFilename);
+		await pipeline(avatarFile.file, fs.createWriteStream(filePath));
+
+		// SQLite
+		fastify.db.prepare("UPDATE users SET photo = ? WHERE id = ?").run(`./uploads/${newFilename}`, userId);
+
+		return reply.send({ message: "Avatar updated successfully", photo: `./uploads/${newFilename}` });
+	});
 }
+
+	
