@@ -1,11 +1,13 @@
 //import
-import Fastify from 'fastify';
+import Fastify from "fastify";
 import fastifyStatic from "@fastify/static";
 import fastifyJwt from "@fastify/jwt";
-import 'dotenv/config';
+import fs from "fs";
 import path from "path";
+import 'dotenv/config';
 import { fileURLToPath } from "url";
 import { dirname } from "path";
+import requireHttps from 'https.js';
 
 //import routes
 import registerRoutes from './routes/register.js';
@@ -17,11 +19,12 @@ import statsRoutes from './routes/stats.js';
 //variables
 //CONFIG HTTPS A FAIRE
 const fastify = Fastify({
-  https: {
-    key: fs.readFileSync(path.join(__dirname, "certs/server.key")),
-    cert: fs.readFileSync(path.join(__dirname, "certs/server.crt")),
-  },
-  logger: true,
+	http2: true,
+	https: {
+		key: fs.readFileSync(path.join(__dirname, "./https/server.key")),
+		cert: fs.readFileSync(path.join(__dirname, "./https/server.crt")),
+	},
+	logger: true,
 });
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
@@ -29,8 +32,6 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 // Cela inclut index.html, et les assets (JS, CSS)
 fastify.register(fastifyStatic, {
   root: path.join(__dirname, "public/dist"),
-  // En ne mettant pas de préfixe, les requêtes sont mappées directement à la structure de fichiers dans 'public/dist'.
-  // Par exemple, une requête pour /assets/some.js servira public/dist/assets/some.js
 });
 
 // Servir les fichiers statiques du répertoire 'uploads'
@@ -66,7 +67,7 @@ fastify.register(statsRoutes);
 // fastify.register(oauthRoutes);
 
 // Renvoie la route '/' a public/dist/index.html 
-fastify.get("/", async (request, reply) => {
+fastify.get("/", { preHandler: requireHttps, secure: true }, async (request, reply) => {
   return reply.sendFile("index.html");
 });
 
