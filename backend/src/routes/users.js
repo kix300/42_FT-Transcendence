@@ -1,6 +1,7 @@
 import db from "../db.js";
 import bcrypt from 'bcrypt';
 import multipart from '@fastify/multipart';
+import path from 'path';
 
 export default async function usersRoutes(fastify, options) {
 
