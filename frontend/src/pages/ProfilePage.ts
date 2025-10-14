@@ -33,6 +33,19 @@ interface UserProfile {
   achievements?: string[];
 }
 
+interface EditModalConfig {
+  id: string;
+  title: string;
+  label: string;
+  placeholder: string;
+  fieldName: string;
+  apiField: string;
+  inputType?: string;
+  minLength?: number;
+  maxLength?: number;
+  validation?: (value: string) => string | null; // Retourne null si valide, message d'erreur sinon
+}
+
 // Variable globale pour contrôler la vitesse d'écriture des animations
 const ANIMATION_SPEED = {
   TYPEWRITER_FAST: 0,
@@ -108,7 +121,7 @@ export async function ProfilePage(): Promise<void> {
                 }
               </div>
               
-              <!-- User Info -->
+     <!-- User Info -->
               <div class="flex-1">
                 <h1 class="text-2xl font-bold text-green-300 mb-2">${userProfile?.username || 'Unknown User'}</h1>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
@@ -133,9 +146,6 @@ export async function ProfilePage(): Promise<void> {
               
               <!-- Edit Button -->
               <div class="flex flex-col space-y-2">
-                <button id="edit-profile-btn" class="bg-green-400/10 border border-green-400/30 px-4 py-2 rounded hover:bg-green-400/20 transition-colors">
-                  <span class="text-green-400">Edit Profile</span>
-                </button>
                 <button id="change-photo-btn" class="bg-blue-400/10 border border-blue-400/30 px-4 py-2 rounded hover:bg-blue-400/20 transition-colors">
                   <span class="text-blue-400">Change Photo</span>
                 </button>
@@ -189,7 +199,7 @@ export async function ProfilePage(): Promise<void> {
             </div>
           </div>
 
-          <!-- Achievements Section -->
+          <!-- Friends Section -->
           <div class="bg-gray-900 border border-green-400/30 p-6 rounded mb-8" id="achievements" style="opacity: 0;">
             <h2 class="text-green-300 font-bold mb-4 text-xl">[ACHIEVEMENTS]</h2>
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -214,10 +224,30 @@ export async function ProfilePage(): Promise<void> {
             <div class="space-y-4">
               <div class="flex items-center justify-between p-3 bg-black border border-green-400/20 rounded">
                 <div>
+                  <div class="text-green-400 font-medium">Change Username</div>
+                  <div class="text-green-500 text-sm">Update your account username</div>
+                </div>
+                <button id="edit-username-btn" class="text-green-300 hover:text-green-400 transition-colors">
+                  <span class="text-sm">[EDIT]</span>
+                </button>
+              </div>
+
+              <div class="flex items-center justify-between p-3 bg-black border border-green-400/20 rounded">
+                <div>
+                  <div class="text-green-400 font-medium">Change Mail</div>
+                  <div class="text-green-500 text-sm">Update your account mail</div>
+                </div>
+                <button id="edit-mail-btn" class="text-green-300 hover:text-green-400 transition-colors">
+                  <span class="text-sm">[EDIT]</span>
+                </button>
+              </div>
+
+              <div class="flex items-center justify-between p-3 bg-black border border-green-400/20 rounded">
+                <div>
                   <div class="text-green-400 font-medium">Change Password</div>
                   <div class="text-green-500 text-sm">Update your account password</div>
                 </div>
-                <button class="text-green-300 hover:text-green-400 transition-colors">
+                <button id="edit-psswd-btn" class="text-green-300 hover:text-green-400 transition-colors">
                   <span class="text-sm">[EDIT]</span>
                 </button>
               </div>
@@ -231,15 +261,6 @@ export async function ProfilePage(): Promise<void> {
                   <span class="text-sm">[ENABLE]</span>
                 </button>
               </div>
-              
-              <div class="flex items-center justify-between p-3 bg-black border border-green-400/20 rounded">
-                <div>
-                  <div class="text-green-400 font-medium">Privacy Settings</div>
-                  <div class="text-green-500 text-sm">Control your profile visibility</div>
-                </div>
-                <button class="text-green-300 hover:text-green-400 transition-colors">
-                  <span class="text-sm">[CONFIGURE]</span>
-                </button>
               </div>
             </div>
           </div>
@@ -324,12 +345,76 @@ async function startProfileAnimations(): Promise<void> {
 // Le logout est géré par le Header
 
 function setupProfileListeners(): void {
-  // Edit profile button
-  const editProfileBtn = document.getElementById("edit-profile-btn");
-  if (editProfileBtn) {
-    editProfileBtn.addEventListener("click", () => {
-      // TODO: Implémenter la modal d'édition du profil
-      console.log("Edit profile clicked");
+  const editPhotoBtn = document.getElementById("change-photo-btn");
+  const photoInput = document.getElementById("photo-input") as HTMLInputElement;
+  
+  if (editPhotoBtn && photoInput) {
+    editPhotoBtn.addEventListener("click", () => {
+      photoInput.click(); // Ouvrir le sélecteur de fichier
+    });
+  }
+  
+  // Edit username button
+  const editUsernameBtn = document.getElementById("edit-username-btn");
+  if (editUsernameBtn) {
+    editUsernameBtn.addEventListener("click", () => {
+      showEditModal({
+        id: 'username',
+        title: '[EDIT USERNAME]',
+        label: 'New Username:',
+        placeholder: 'Enter new username',
+        fieldName: 'username',
+        apiField: 'username',
+        minLength: 3,
+        maxLength: 20,
+        validation: (value) => {
+          if (value.length < 3) return 'Username must be at least 3 characters long';
+          if (!/^[a-zA-Z0-9_-]+$/.test(value)) return 'Username can only contain letters, numbers, _ and -';
+          return null;
+        }
+      });
+    });
+  }
+  
+  const editMailBtn = document.getElementById("edit-mail-btn");
+  if (editMailBtn) {
+    editMailBtn.addEventListener("click", () => {
+      showEditModal({
+        id: 'mail',
+        title: '[EDIT MAIL]',
+        label: 'New Mail:',
+        placeholder: 'Enter new email',
+        fieldName: 'mail',
+        apiField: 'email',
+        inputType: 'email',
+        maxLength: 100,
+        validation: (value) => {
+          if (value.length < 3) return 'Email must be at least 3 characters long';
+          if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) return 'Please enter a valid email address';
+          return null;
+        }
+      });
+    });
+  }
+  
+  const editPasswordBtn = document.getElementById("edit-psswd-btn");
+  if (editPasswordBtn) {
+    editPasswordBtn.addEventListener("click", () => {
+      showEditModal({
+        id: 'password',
+        title: '[EDIT PASSWORD]',
+        label: 'New Password:',
+        placeholder: 'Enter new password',
+        fieldName: 'password',
+        apiField: 'password',
+        inputType: 'password',
+        minLength: 6,
+        maxLength: 50,
+        validation: (value) => {
+          if (value.length < 6) return 'Password must be at least 6 characters long';
+          return null;
+        }
+      });
     });
   }
 
@@ -337,19 +422,157 @@ function setupProfileListeners(): void {
   document.addEventListener("click", (event) => {
     const target = event.target as HTMLElement;
     
-    if (target.textContent?.includes("[EDIT]")) {
-      console.log("Change password clicked");
-      // TODO: Implémenter le changement de mot de passe
-    }
-    
     if (target.textContent?.includes("[ENABLE]")) {
       console.log("Enable 2FA clicked");
       // TODO: Implémenter l'activation 2FA
     }
-    
-    if (target.textContent?.includes("[CONFIGURE]")) {
-      console.log("Configure privacy clicked");
-      // TODO: Implémenter les paramètres de confidentialité
+  });
+}
+
+
+// Fonction générique pour afficher une modal d'édition
+function showEditModal(config: EditModalConfig): void {
+  const modalHtml = `
+    <div id="edit-${config.id}-modal" class="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50">
+      <div class="bg-gray-900 border border-green-400/30 p-6 rounded max-w-md w-full mx-4">
+        <h3 class="text-green-300 font-bold mb-4 text-xl">${config.title}</h3>
+        
+        <form id="edit-${config.id}-form">
+          <div class="mb-4">
+            <label class="block text-green-500 text-sm mb-2" for="new-${config.id}">
+              ${config.label}
+            </label>
+            <input 
+              type="${config.inputType || 'text'}" 
+              id="new-${config.id}" 
+              name="${config.fieldName}"
+              class="w-full bg-black border border-green-400/30 text-green-400 p-3 rounded focus:border-green-400 focus:outline-none"
+              placeholder="${config.placeholder}"
+              required
+              ${config.minLength ? `minlength="${config.minLength}"` : ''}
+              ${config.maxLength ? `maxlength="${config.maxLength}"` : ''}
+            />
+          </div>
+          
+          <div id="${config.id}-error" class="text-red-400 text-sm mb-4 hidden"></div>
+          
+          <div class="flex space-x-4">
+            <button 
+              type="submit" 
+              class="flex-1 bg-green-400/20 border border-green-400/50 text-green-400 py-2 px-4 rounded hover:bg-green-400/30 transition-colors"
+            >
+              [SAVE]
+            </button>
+            <button 
+              type="button" 
+              id="cancel-edit-${config.id}"
+              class="flex-1 bg-red-400/20 border border-red-400/50 text-red-400 py-2 px-4 rounded hover:bg-red-400/30 transition-colors"
+            >
+              [CANCEL]
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  `;
+
+  // Ajouter la modal au DOM
+  document.body.insertAdjacentHTML('beforeend', modalHtml);
+
+  // Event listeners pour la modal
+  const modal = document.getElementById(`edit-${config.id}-modal`);
+  const form = document.getElementById(`edit-${config.id}-form`) as HTMLFormElement;
+  const cancelBtn = document.getElementById(`cancel-edit-${config.id}`);
+  const errorDiv = document.getElementById(`${config.id}-error`);
+
+  // Fermer la modal
+  const closeModal = () => {
+    modal?.remove();
+  };
+
+  // Cancel button
+  cancelBtn?.addEventListener('click', closeModal);
+
+  // Fermer en cliquant à l'extérieur
+  modal?.addEventListener('click', (e) => {
+    if (e.target === modal) {
+      closeModal();
     }
   });
+
+  // Fermer avec Escape
+  const handleEscape = (e: KeyboardEvent) => {
+    if (e.key === 'Escape') {
+      closeModal();
+      document.removeEventListener('keydown', handleEscape);
+    }
+  };
+  document.addEventListener('keydown', handleEscape);
+
+  // Soumission du formulaire
+  form?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    
+    const formData = new FormData(form);
+    const newValue = formData.get(config.fieldName) as string;
+
+    // Validation personnalisée
+    if (config.validation) {
+      const validationError = config.validation(newValue.trim());
+      if (validationError) {
+        showError(errorDiv, validationError);
+        return;
+      }
+    }
+
+    try {
+      // Préparer le body de la requête
+      const requestBody = {
+        [config.apiField]: newValue.trim()
+      };
+
+      // Envoyer la requête au backend
+      const response = await AuthManager.fetchWithAuth('/api/me', {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(requestBody)
+      });
+
+      if (response.ok) {
+        console.log(`✅ ${config.id} updated successfully`);
+        closeModal();
+        
+        // Recharger la page profil pour afficher les nouvelles données
+        const router = getRouter();
+        if (router) {
+          router.navigate('/profile');
+        }
+      } else {
+        const errorData = await response.json();
+        showError(errorDiv, errorData.error || `Failed to update ${config.id}`);
+      }
+    } catch (error) {
+      console.error(`Error updating ${config.id}:`, error);
+      showError(errorDiv, 'Network error. Please try again.');
+    }
+  });
+
+  // Focus sur le champ de saisie
+  const input = document.getElementById(`new-${config.id}`) as HTMLInputElement;
+  input?.focus();
+}
+
+// Fonction helper pour afficher les erreurs
+function showError(errorDiv: HTMLElement | null, message: string): void {
+  if (errorDiv) {
+    errorDiv.textContent = message;
+    errorDiv.classList.remove('hidden');
+    
+    // Cacher l'erreur après 5 secondes
+    setTimeout(() => {
+      errorDiv.classList.add('hidden');
+    }, 5000);
+  }
 }

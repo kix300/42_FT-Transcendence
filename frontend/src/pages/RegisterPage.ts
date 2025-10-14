@@ -226,23 +226,6 @@ export async function RegisterPage(): Promise<void> {
                   <div class="text-xs text-green-500/70 ml-4">// optional, max 5MB (jpg, png, gif)</div>
                 </div>
 
-                <!-- Terms Acceptance -->
-                <div class="flex items-start space-x-2 pt-2">
-                  <input
-                    type="checkbox"
-                    id="terms"
-                    name="terms"
-                    class="w-4 h-4 text-green-400 bg-black border border-green-400/30 rounded focus:ring-green-400 mt-1"
-                    required
-                  />
-                  <label for="terms" class="text-green-400 text-sm">
-                    --accept-terms: I agree to the
-                    <a href="#" class="text-green-300 underline hover:text-green-200">Terms of Service</a>
-                    and
-                    <a href="#" class="text-green-300 underline hover:text-green-200">Privacy Policy</a>
-                  </label>
-                </div>
-
                 <!-- Register Buttons -->
                 <div class="pt-4 space-y-3">
                   <button
@@ -676,14 +659,13 @@ async function handleRegister(): Promise<void> {
   const confirmPasswordInput = document.getElementById(
     "confirm-password",
   ) as HTMLInputElement;
-  const termsInput = document.getElementById("terms") as HTMLInputElement;
   const photoInput = document.getElementById("profile-photo") as HTMLInputElement;
 
   const username = usernameInput?.value.trim();
   const email = emailInput?.value.trim();
   const password = passwordInput?.value;
   const confirmPassword = confirmPasswordInput?.value;
-  const termsAccepted = termsInput?.checked;
+
   const profilePhoto = photoInput?.files?.[0];
 
   // Validation côté client
@@ -717,11 +699,6 @@ async function handleRegister(): Promise<void> {
 
   if (password !== confirmPassword) {
     showMessage("Error: Passwords do not match", "error");
-    return;
-  }
-
-  if (!termsAccepted) {
-    showMessage("Error: You must accept the terms of service", "error");
     return;
   }
 
