@@ -42,6 +42,107 @@ const STORAGE_KEYS = {
   CURRENT_MATCH: "currentMatch"
 } as const;
 
+const API_ENDPOINTS = {
+  MATCH_RESULT: "/api/tournament/match-result",
+  TOURNAMENT_WINNER: "/api/tournament/winner"
+} as const;
+
+// ============================================================================
+// API COMMUNICATION
+// ============================================================================
+
+/**
+ * Sends match result to backend server.
+ */
+export async function submitMatchResultToBackend(matchData: {
+  matchId: number;
+  player1Id: number;
+  player1Name: string;
+  player2Id: number;
+  player2Name: string;
+  winnerId: number;
+  winnerName: string;
+  score1: number;
+  score2: number;
+  tournamentId?: string;
+}): Promise<void> {
+  try {
+    const response = await fetch(API_ENDPOINTS.MATCH_RESULT, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        match_id: matchData.matchId,
+        player1: {
+          id: matchData.player1Id,
+          name: matchData.player1Name,
+        },
+        player2: {
+          id: matchData.player2Id,
+          name: matchData.player2Name,
+        },
+        winner: {
+          id: matchData.winnerId,
+          name: matchData.winnerName,
+        },
+        score: {
+          player1: matchData.score1,
+          player2: matchData.score2,
+        },
+        tournament_id: matchData.tournamentId,
+        timestamp: new Date().toISOString(),
+      }),
+    });
+
+    if (!response.ok) {
+      console.warn("Failed to submit match result to backend:", response.statusText);
+    }
+  } catch (error) {
+    console.error("Error submitting match result to backend:", error);
+  }
+}
+
+/**
+ * Sends tournament winner to backend server.
+ */
+export async function submitTournamentWinnerToBackend(winnerData: {
+  winnerId: number;
+  winnerName: string;
+  playerCount: number;
+  totalRounds: number;
+  totalMatches: number;
+  tournamentId?: string;
+}): Promise<void> {
+  try {
+    const response = await fetch(API_ENDPOINTS.TOURNAMENT_WINNER, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        winner: {
+          id: winnerData.winnerId,
+          name: winnerData.winnerName,
+        },
+        tournament: {
+          id: winnerData.tournamentId,
+          player_count: winnerData.playerCount,
+          total_rounds: winnerData.totalRounds,
+          total_matches: winnerData.totalMatches,
+        },
+        timestamp: new Date().toISOString(),
+      }),
+    });
+
+    if (!response.ok) {
+      console.warn("Failed to submit tournament winner to backend:", response.statusText);
+    }
+  } catch (error) {
+    console.error("Error submitting tournament winner to backend:", error);
+  }
+}
+
 // ============================================================================
 // MATCH ID UTILITIES
 // ============================================================================
@@ -139,6 +240,9 @@ function createTournamentStructure(players: Player[]): TournamentData {
   const totalRounds = Math.log2(bracketSize);
   const matches = new Map<number, Match>();
 
+  // Calculate real player count (excluding BYEs)
+  const realPlayerCount = players.filter(p => !p.isBye).length;
+
   // Create all matches for all rounds
   for (let round = 0; round < totalRounds; round++) {
     const matchesInRound = bracketSize / Math.pow(2, round + 1);
@@ -176,7 +280,7 @@ function createTournamentStructure(players: Player[]): TournamentData {
   // Propagate BYE winners through bracket
   propagateAllWinners(matches, totalRounds);
 
-  return { playerCount: players.length, players, matches, totalRounds };
+  return { playerCount: realPlayerCount, players, matches, totalRounds };
 }
 
 /**
@@ -457,6 +561,96 @@ function updateTournamentWinner(tournament: TournamentData): void {
       winnerDisplay.textContent = finalMatch.winner.name;
       winnerDisplay.classList.add("animate-pulse");
     }
+
+    // Submit tournament winner to backend (fire and forget)
+    submitTournamentWinnerToBackend({
+      winnerId: finalMatch.winner.id,
+      winnerName: finalMatch.winner.name,
+      playerCount: tournament.playerCount,
+      totalRounds: tournament.totalRounds,
+      totalMatches: tournament.matches.size,
+    });
+
+    // Show winner overlay
+    showTournamentWinnerOverlay(finalMatch.winner, tournament);
+  }
+}
+
+/**
+ * Displays full-screen overlay celebrating tournament winner.
+ */
+function showTournamentWinnerOverlay(winner: Player, tournament: TournamentData): void {
+  const body = document.querySelector("body");
+  if (!body) return;
+
+  // Don't show if overlay already exists
+  if (document.getElementById("tournament-winner-overlay")) return;
+
+  const overlayHtml = `
+    <div id="tournament-winner-overlay" class="fixed inset-0 z-50 flex items-center justify-center bg-black/90 backdrop-blur-sm">
+      <div class="bg-gray-900 border-4 border-green-400 p-8 max-w-2xl w-full mx-4 shadow-2xl">
+        <!-- Header -->
+        <div class="text-center mb-8">
+          <h1 class="text-5xl font-bold text-green-300 mb-4 animate-pulse">TOURNAMENT COMPLETE!</h1>
+          <div class="h-1 bg-green-400 w-48 mx-auto mb-6"></div>
+          <div class="text-green-500 text-sm mb-2">CHAMPION</div>
+          <div class="text-6xl font-bold text-green-300 mb-4">${winner.name}</div>
+        </div>
+
+        <!-- Trophy Icon -->
+        <div class="text-center mb-8">
+          <div class="text-8xl">🏆</div>
+        </div>
+
+        <!-- Tournament Stats -->
+        <div class="bg-black/50 border border-green-400/30 p-6 mb-6">
+          <div class="grid grid-cols-3 gap-4 text-center">
+            <div>
+              <div class="text-green-500 text-xs mb-1">TOTAL PLAYERS</div>
+              <div class="text-green-300 text-2xl font-bold">${tournament.playerCount}</div>
+            </div>
+            <div>
+              <div class="text-green-500 text-xs mb-1">TOTAL ROUNDS</div>
+              <div class="text-green-300 text-2xl font-bold">${tournament.totalRounds}</div>
+            </div>
+            <div>
+              <div class="text-green-500 text-xs mb-1">TOTAL MATCHES</div>
+              <div class="text-green-300 text-2xl font-bold">${tournament.matches.size}</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Action buttons -->
+        <div class="flex gap-4 justify-center">
+          <button id="new-tournament-overlay-btn" class="bg-green-400/20 border border-green-400 px-8 py-3 hover:bg-green-400/30 transition-colors">
+            <span class="text-green-300 font-bold">> NEW TOURNAMENT</span>
+          </button>
+          <button id="return-home-overlay-btn" class="bg-gray-700/50 border border-gray-500 px-8 py-3 hover:bg-gray-700/70 transition-colors">
+            <span class="text-gray-300 font-bold">> BACK TO TOURNAMENT</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  `;
+
+  body.insertAdjacentHTML("beforeend", overlayHtml);
+
+  // Setup button handlers
+  const newTournamentBtn = document.getElementById("new-tournament-overlay-btn");
+  const returnHomeBtn = document.getElementById("return-home-overlay-btn");
+
+  if (newTournamentBtn) {
+    newTournamentBtn.addEventListener("click", () => {
+      clearTournamentStorage();
+      window.location.reload();
+    });
+  }
+
+  if (returnHomeBtn) {
+    returnHomeBtn.addEventListener("click", () => {
+      const overlay = document.getElementById("tournament-winner-overlay");
+      if (overlay) overlay.remove();
+    });
   }
 }
 
