@@ -735,7 +735,7 @@ function setupCreateTournamentButton(): void {
 /**
  * Sets up match start button handlers using event delegation.
  */
-function setupMatchStartButtons(tournament: TournamentData): void {
+function setupMatchStartButtons(_tournament: TournamentData): void {
   const router = getRouter();
   const bracketContainer = document.getElementById("tournament-bracket");
 
@@ -815,6 +815,16 @@ function showHeaderElements(): void {
  * Main tournament page initialization.
  */
 export async function TournamentPage(): Promise<void> {
+
+  if (!AuthManager.isAuthenticated()) {
+    console.log('Utilisateur non authentifié, redirection vers login');
+    const router = getRouter();
+    if (router) {
+      router.navigate("/login");
+    }
+    return;
+  }
+  
   const appDiv = document.querySelector<HTMLDivElement>("#app");
   if (!appDiv) return;
 

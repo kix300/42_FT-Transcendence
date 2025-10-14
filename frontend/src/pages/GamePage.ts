@@ -6,14 +6,14 @@ import { submitMatchResultToBackend } from "./TournamentPage";
 
 export async function GamePage(): Promise<void> {
       // Vérifier l'authentification AVANT d'afficher la page
-    // if (!AuthManager.isAuthenticated()) {
-    //   console.log('Utilisateur non authentifié, redirection vers login');
-    //   const router = getRouter();
-    //   if (router) {
-    //     router.navigate("/login");
-    //   }
-    //   return;
-    // }
+    if (!AuthManager.isAuthenticated()) {
+      console.log('Utilisateur non authentifié, redirection vers login');
+      const router = getRouter();
+      if (router) {
+        router.navigate("/login");
+      }
+      return;
+    }
   const appDiv = document.querySelector<HTMLDivElement>("#app");
   if (!appDiv) return;
 

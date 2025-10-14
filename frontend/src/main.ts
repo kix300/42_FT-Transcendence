@@ -22,29 +22,29 @@ function initApp(): void {
   const router = createRouter(appDiv);
 
   // Enregistrer les routes
-  // router.addRoute({
-  //   path: "/",
-  //   name: "home",
-  //   component: HomePage,
-  // });
+  router.addRoute({
+    path: "/",
+    name: "home",
+    component: HomePage,
+  });
 
-  // router.addRoute({
-  //   path: "/login",
-  //   name: "login",
-  //   component: LoginPage,
-  // });
+  router.addRoute({
+    path: "/login",
+    name: "login",
+    component: LoginPage,
+  });
 
-  // router.addRoute({
-  //   path: "/register",
-  //   name: "register",
-  //   component: RegisterPage,
-  // });
+  router.addRoute({
+    path: "/register",
+    name: "register",
+    component: RegisterPage,
+  });
 
-  // router.addRoute({
-  //   path: "/home",
-  //   name: "home",
-  //   component: HomePage,
-  // });
+  router.addRoute({
+    path: "/home",
+    name: "home",
+    component: HomePage,
+  });
 
   router.addRoute({
     path: "/game",
@@ -58,39 +58,39 @@ function initApp(): void {
     component: TournamentPage,
   });
 
-  // router.addRoute({
-  //   path: "/profile",
-  //   name: "profile",
-  //   component: ProfilePage,
-  // });
+  router.addRoute({
+    path: "/profile",
+    name: "profile",
+    component: ProfilePage,
+  });
 
-  // router.addRoute({
-  //   path: "/users",
-  //   name: "users",
-  //   component: UsersPage,
-  // });
+  router.addRoute({
+    path: "/users",
+    name: "users",
+    component: UsersPage,
+  });
 
   // Vérifier l'authentification au démarrage
-  // const currentPath = window.location.pathname;
-  // const protectedPaths = ["/home", "/game", "/tournament", "/profile", "/users"];
+  const currentPath = window.location.pathname;
+  const protectedPaths = ["/home", "/game", "/tournament", "/profile", "/users"];
 
-  // if (protectedPaths.includes(currentPath)) {
-  //   // Si on est sur une page protégée, vérifier l'auth
-  //   const isAuthenticated = AuthManager.isAuthenticated();
+  if (protectedPaths.includes(currentPath)) {
+    // Si on est sur une page protégée, vérifier l'auth
+    const isAuthenticated = AuthManager.isAuthenticated();
 
-  //   if (!isAuthenticated) {
-  //     // Pas d'auth valide, rediriger vers login
-  //     router.start("/login");
-  //     return;
-  //   }
-  // }
+    if (!isAuthenticated) {
+      // Pas d'auth valide, rediriger vers login
+      router.start("/login");
+      return;
+    }
+  }
 
   // // Démarrer avec la route actuelle ou login par défaut
-  // const validPaths = ["/", "/login", "/register", "/home", "/game", "/tournament", "/profile", "/users"];
-  // const startPath = validPaths.includes(currentPath) ? currentPath : "/";
+  const validPaths = ["/", "/login", "/register", "/home", "/game", "/tournament", "/profile", "/users"];
+  const startPath = validPaths.includes(currentPath) ? currentPath : "/";
 
-  // router.start(startPath);
-  router.start("/game");
+  router.start(startPath);
+  // router.start("/game");
 }
 // Démarrer l'application quand le DOM est prêt
 if (document.readyState === "loading") {
