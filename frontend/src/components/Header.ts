@@ -4,8 +4,29 @@ import { AuthManager } from "../utils/auth";
 interface UserProfile {
   id: number;
   username: string;
-  email?: string;
-  photo?: string;
+  email: string;
+  photo: string;
+  created_at?: string;
+  last_login?: string;
+  stats: {
+    totalMatches: number;
+    wins: number;
+    losses: number;
+  }
+  matches: Match[];
+  level?: number;
+  achievements?: string[];
+}
+
+interface Match {
+  id: number;
+  player1_id: number;
+  player2_id: number;
+  winner_id: number;
+  player1_score?: number;
+  player2_score?: number;
+  is_tournament: boolean;
+  date: string;
 }
 
 // Interface pour la configuration du header
@@ -70,7 +91,11 @@ export class Header {
       <div class="flex items-center space-x-3" id="user-profile" style="opacity: 0;">
         <button data-route="/profile" class="flex items-center space-x-3 bg-gray-900 border border-green-400/30 px-3 py-2 rounded hover:bg-green-400/10 transition-colors">
           <div class="w-8 h-8 rounded-full bg-green-400/20 border border-green-400/50 flex items-center justify-center">
-            <span class="text-green-400 text-sm font-bold">${this.userProfile ? (this.userProfile.username || 'U').charAt(0).toUpperCase() : 'U'}</span>
+            ${this.userProfile?.photo ? 
+                  `<img src="${this.userProfile.photo}" alt="${this.userProfile.username}" class="w-full h-full object-cover rounded-full" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" />
+                   <span class="text-green-400 text-3xl font-bold hidden">${(this.userProfile?.username || 'U').charAt(0).toUpperCase()}</span>` :
+                  `<span class="text-green-400 text-3xl font-bold">${(this.userProfile?.username || 'U').charAt(0).toUpperCase()}</span>`
+                }
           </div>
           <div class="text-left">
             <div class="text-green-400 text-sm font-medium">${this.userProfile?.username || 'Unknown'}</div>
@@ -103,12 +128,19 @@ export class Header {
     try {
       const response = await AuthManager.fetchWithAuth('/api/me');
       if (response.ok) {
-        this.userProfile = await response.json();
-      }
-    } catch (error) {
+        const data = await response.json();
+	  this.userProfile = {
+		...data.user,
+		stats: data.stats,
+		matches: data.matches
+      };
+	  console.log("✅ Ok, userProfile is set!");
+    }
+   }catch (error) {
       console.error('Erreur lors de la récupération du profil:', error);
     }
-  }
+  
+}
 
   // Méthode statique pour initialiser les event listeners du header
   static setupEventListeners(): void {
