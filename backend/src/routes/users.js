@@ -3,11 +3,11 @@ import db from "../db.js";
 
 export default async function usersRoutes(fastify, options) {
 
-    //liste des utilisateurs
-    fastify.get("/api/users", async () => db.prepare("SELECT * FROM users").all());
+    //liste des utilisateurs (pour utilisateur connecte)
+    fastify.get("/api/users", { preHandler: [fastify.authenticate] }, async () => db.prepare("SELECT * FROM users").all());
 
-    //ajouter un user
-    fastify.post("/api/users", async (req, reply) => {
+    //ajouter un user (seulement pour admin)
+    fastify.post("/api/users", { preHandler: [fastify.authenticate] }, async (req, reply) => {
     const { username } = req.body;
     try {
         db.prepare("INSERT INTO users (username) VALUES (?)").run(username);
@@ -91,13 +91,8 @@ export default async function usersRoutes(fastify, options) {
         }
     });
 
-}
-
-//modifier sa photo
-export async function avatarRoutes(fastify) {
-	fastify.register(multipart);
-
-	fastify.patch("/api/me/avatar", async (request, reply) => {
+	//modifier sa photo
+	fastify.patch("/api/me/avatar", { preHandler: [fastify.authenticate] }, async (request, reply) => {
 		const userId = request.params.id;
 		const uploadsDir = path.join(process.cwd(), "uploads");
 		let avatarFile;
@@ -124,9 +119,11 @@ export async function avatarRoutes(fastify) {
 		const filePath = path.join(uploadsDir, newFilename);
 		await pipeline(avatarFile.file, fs.createWriteStream(filePath));
 
-		// Mettre à jour la BDD
+		// SQLite
 		fastify.db.prepare("UPDATE users SET photo = ? WHERE id = ?").run(`./uploads/${newFilename}`, userId);
 
 		return reply.send({ message: "Avatar updated successfully", photo: `./uploads/${newFilename}` });
 	});
 }
+
+	
