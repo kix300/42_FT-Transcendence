@@ -33,17 +33,12 @@ interface UserProfile {
   achievements?: string[];
 }
 
-interface EditModalConfig {
-  id: string;
-  title: string;
-  label: string;
-  placeholder: string;
-  fieldName: string;
-  apiField: string;
-  inputType?: string;
-  minLength?: number;
-  maxLength?: number;
-  validation?: (value: string) => string | null; // Retourne null si valide, message d'erreur sinon
+// Interface pour les données du profil à éditer
+interface EditProfileData {
+  username?: string;
+  email?: string;
+  password?: string;
+  currentPassword: string;
 }
 
 // Variable globale pour contrôler la vitesse d'écriture des animations
@@ -146,6 +141,9 @@ export async function ProfilePage(): Promise<void> {
               
               <!-- Edit Button -->
               <div class="flex flex-col space-y-2">
+                <button id="edit-profile-btn" class="bg-green-400/10 border border-green-400/30 px-4 py-2 rounded hover:bg-green-400/20 transition-colors">
+                  <span class="text-green-400">Edit Profile</span>
+                </button>
                 <button id="change-photo-btn" class="bg-blue-400/10 border border-blue-400/30 px-4 py-2 rounded hover:bg-blue-400/20 transition-colors">
                   <span class="text-blue-400">Change Photo</span>
                 </button>
@@ -214,53 +212,6 @@ export async function ProfilePage(): Promise<void> {
               <div class="bg-black border border-green-400/20 p-4 rounded opacity-50">
                 <div class="text-green-400 font-bold">Tournament Champion</div>
                 <div class="text-green-500 text-sm">Win a tournament</div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Settings Section -->
-          <div class="bg-gray-900 border border-green-400/30 p-6 rounded" id="settings" style="opacity: 0;">
-            <h2 class="text-green-300 font-bold mb-4 text-xl">[ACCOUNT SETTINGS]</h2>
-            <div class="space-y-4">
-              <div class="flex items-center justify-between p-3 bg-black border border-green-400/20 rounded">
-                <div>
-                  <div class="text-green-400 font-medium">Change Username</div>
-                  <div class="text-green-500 text-sm">Update your account username</div>
-                </div>
-                <button id="edit-username-btn" class="text-green-300 hover:text-green-400 transition-colors">
-                  <span class="text-sm">[EDIT]</span>
-                </button>
-              </div>
-
-              <div class="flex items-center justify-between p-3 bg-black border border-green-400/20 rounded">
-                <div>
-                  <div class="text-green-400 font-medium">Change Mail</div>
-                  <div class="text-green-500 text-sm">Update your account mail</div>
-                </div>
-                <button id="edit-mail-btn" class="text-green-300 hover:text-green-400 transition-colors">
-                  <span class="text-sm">[EDIT]</span>
-                </button>
-              </div>
-
-              <div class="flex items-center justify-between p-3 bg-black border border-green-400/20 rounded">
-                <div>
-                  <div class="text-green-400 font-medium">Change Password</div>
-                  <div class="text-green-500 text-sm">Update your account password</div>
-                </div>
-                <button id="edit-psswd-btn" class="text-green-300 hover:text-green-400 transition-colors">
-                  <span class="text-sm">[EDIT]</span>
-                </button>
-              </div>
-              
-              <div class="flex items-center justify-between p-3 bg-black border border-green-400/20 rounded">
-                <div>
-                  <div class="text-green-400 font-medium">Two-Factor Authentication</div>
-                  <div class="text-green-500 text-sm">Secure your account with 2FA</div>
-                </div>
-                <button class="text-green-300 hover:text-green-400 transition-colors">
-                  <span class="text-sm">[ENABLE]</span>
-                </button>
-              </div>
               </div>
             </div>
           </div>
@@ -352,70 +303,21 @@ function setupProfileListeners(): void {
     editPhotoBtn.addEventListener("click", () => {
       photoInput.click(); // Ouvrir le sélecteur de fichier
     });
+
+    // // Gérer l'upload de photo
+    // photoInput.addEventListener("change", async (event) => {
+    //   const file = (event.target as HTMLInputElement).files?.[0];
+    //   if (file) {
+    //     await handlePhotoUpload(file);
+    //   }
+    // });
   }
   
-  // Edit username button
-  const editUsernameBtn = document.getElementById("edit-username-btn");
-  if (editUsernameBtn) {
-    editUsernameBtn.addEventListener("click", () => {
-      // showEditModal({
-      //   id: 'username',
-      //   title: '[EDIT USERNAME]',
-      //   label: 'New Username:',
-      //   placeholder: 'Enter new username',
-      //   fieldName: 'username',
-      //   apiField: 'username',
-      //   minLength: 3,
-      //   maxLength: 20,
-      //   validation: (value) => {
-      //     if (value.length < 3) return 'Username must be at least 3 characters long';
-      //     if (!/^[a-zA-Z0-9_-]+$/.test(value)) return 'Username can only contain letters, numbers, _ and -';
-      //     return null;
-      //   }
-      // });
-      console.log("button edit username");
-    });
-  }
-  
-  const editMailBtn = document.getElementById("edit-mail-btn");
-  if (editMailBtn) {
-    editMailBtn.addEventListener("click", () => {
-      showEditModal({
-        id: 'mail',
-        title: '[EDIT MAIL]',
-        label: 'New Mail:',
-        placeholder: 'Enter new email',
-        fieldName: 'mail',
-        apiField: 'email',
-        inputType: 'email',
-        maxLength: 100,
-        validation: (value) => {
-          if (value.length < 3) return 'Email must be at least 3 characters long';
-          if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) return 'Please enter a valid email address';
-          return null;
-        }
-      });
-    });
-  }
-  
-  const editPasswordBtn = document.getElementById("edit-psswd-btn");
-  if (editPasswordBtn) {
-    editPasswordBtn.addEventListener("click", () => {
-      showEditModal({
-        id: 'password',
-        title: '[EDIT PASSWORD]',
-        label: 'New Password:',
-        placeholder: 'Enter new password',
-        fieldName: 'password',
-        apiField: 'password',
-        inputType: 'password',
-        minLength: 6,
-        maxLength: 50,
-        validation: (value) => {
-          if (value.length < 6) return 'Password must be at least 6 characters long';
-          return null;
-        }
-      });
+  // Edit profile button
+  const editProfileBtn = document.getElementById("edit-profile-btn");
+  if (editProfileBtn) {
+    editProfileBtn.addEventListener("click", () => {
+      showEditProfileModal();
     });
   }
 
@@ -430,43 +332,101 @@ function setupProfileListeners(): void {
   });
 }
 
-
-// Fonction générique pour afficher une modal d'édition
-function showEditModal(config: EditModalConfig): void {
+// Modal pour éditer le profil complet
+function showEditProfileModal(): void {
   const modalHtml = `
-    <div id="edit-${config.id}-modal" class="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50">
+    <div id="edit-profile-modal" class="fixed inset-0 bg-black bg-opacity-25 flex items-center justify-center z-50">
       <div class="bg-gray-900 border border-green-400/30 p-6 rounded max-w-md w-full mx-4">
-        <h3 class="text-green-300 font-bold mb-4 text-xl">${config.title}</h3>
+        <h3 class="text-green-300 font-bold mb-4 text-xl">[EDIT PROFILE]</h3>
         
-        <form id="edit-${config.id}-form">
+        <form id="edit-profile-form">
+          <!-- Username -->
           <div class="mb-4">
-            <label class="block text-green-500 text-sm mb-2" for="new-${config.id}">
-              ${config.label}
+            <label class="block text-green-500 text-sm mb-2" for="new-username">
+              Username (optional):
             </label>
             <input 
-              type="${config.inputType || 'text'}" 
-              id="new-${config.id}" 
-              name="${config.fieldName}"
+              type="text" 
+              id="new-username" 
+              name="username"
               class="w-full bg-black border border-green-400/30 text-green-400 p-3 rounded focus:border-green-400 focus:outline-none"
-              placeholder="${config.placeholder}"
+              placeholder="Leave empty to keep current username"
+              minlength="3"
+              maxlength="20"
+            />
+          </div>
+
+          <!-- Email -->
+          <div class="mb-4">
+            <label class="block text-green-500 text-sm mb-2" for="new-email">
+              Email (optional):
+            </label>
+            <input 
+              type="email" 
+              id="new-email" 
+              name="email"
+              class="w-full bg-black border border-green-400/30 text-green-400 p-3 rounded focus:border-green-400 focus:outline-none"
+              placeholder="Leave empty to keep current email"
+              maxlength="100"
+            />
+          </div>
+
+          <!-- New Password -->
+          <div class="mb-4">
+            <label class="block text-green-500 text-sm mb-2" for="new-password">
+              New Password (optional):
+            </label>
+            <input 
+              type="password" 
+              id="new-password" 
+              name="password"
+              class="w-full bg-black border border-green-400/30 text-green-400 p-3 rounded focus:border-green-400 focus:outline-none"
+              placeholder="Leave empty to keep current password"
+              minlength="6"
+            />
+          </div>
+
+          <!-- Confirm New Password -->
+          <div class="mb-4" id="confirm-password-section" style="display: none;">
+            <label class="block text-green-500 text-sm mb-2" for="confirm-password">
+              Confirm New Password:
+            </label>
+            <input 
+              type="password" 
+              id="confirm-password" 
+              name="confirmPassword"
+              class="w-full bg-black border border-green-400/30 text-green-400 p-3 rounded focus:border-green-400 focus:outline-none"
+              placeholder="Confirm your new password"
+            />
+          </div>
+
+          <!-- Current Password (required for validation) -->
+          <div class="mb-4">
+            <label class="block text-green-500 text-sm mb-2" for="current-password">
+              Current Password <span class="text-red-400">*</span>:
+            </label>
+            <input 
+              type="password" 
+              id="current-password" 
+              name="currentPassword"
+              class="w-full bg-black border border-green-400/30 text-green-400 p-3 rounded focus:border-green-400 focus:outline-none"
+              placeholder="Enter your current password to confirm changes"
               required
-              ${config.minLength ? `minlength="${config.minLength}"` : ''}
-              ${config.maxLength ? `maxlength="${config.maxLength}"` : ''}
             />
           </div>
           
-          <div id="${config.id}-error" class="text-red-400 text-sm mb-4 hidden"></div>
+          <div id="profile-error" class="text-red-400 text-sm mb-4 hidden"></div>
           
           <div class="flex space-x-4">
             <button 
               type="submit" 
               class="flex-1 bg-green-400/20 border border-green-400/50 text-green-400 py-2 px-4 rounded hover:bg-green-400/30 transition-colors"
             >
-              [SAVE]
+              [SAVE CHANGES]
             </button>
             <button 
               type="button" 
-              id="cancel-edit-${config.id}"
+              id="cancel-edit-profile"
               class="flex-1 bg-red-400/20 border border-red-400/50 text-red-400 py-2 px-4 rounded hover:bg-red-400/30 transition-colors"
             >
               [CANCEL]
@@ -481,10 +441,26 @@ function showEditModal(config: EditModalConfig): void {
   document.body.insertAdjacentHTML('beforeend', modalHtml);
 
   // Event listeners pour la modal
-  const modal = document.getElementById(`edit-${config.id}-modal`);
-  const form = document.getElementById(`edit-${config.id}-form`) as HTMLFormElement;
-  const cancelBtn = document.getElementById(`cancel-edit-${config.id}`);
-  const errorDiv = document.getElementById(`${config.id}-error`);
+  const modal = document.getElementById('edit-profile-modal');
+  const form = document.getElementById('edit-profile-form') as HTMLFormElement;
+  const cancelBtn = document.getElementById('cancel-edit-profile');
+  const errorDiv = document.getElementById('profile-error');
+  const newPasswordInput = document.getElementById('new-password') as HTMLInputElement;
+  const confirmPasswordSection = document.getElementById('confirm-password-section');
+
+  // Afficher/masquer la confirmation du mot de passe
+  newPasswordInput?.addEventListener('input', () => {
+    if (newPasswordInput.value.trim() !== '') {
+      confirmPasswordSection!.style.display = 'block';
+      const confirmPasswordInput = document.getElementById('confirm-password') as HTMLInputElement;
+      confirmPasswordInput.required = true;
+    } else {
+      confirmPasswordSection!.style.display = 'none';
+      const confirmPasswordInput = document.getElementById('confirm-password') as HTMLInputElement;
+      confirmPasswordInput.required = false;
+      confirmPasswordInput.value = '';
+    }
+  });
 
   // Fermer la modal
   const closeModal = () => {
@@ -515,22 +491,59 @@ function showEditModal(config: EditModalConfig): void {
     e.preventDefault();
     
     const formData = new FormData(form);
-    const newValue = formData.get(config.fieldName) as string;
+    const username = formData.get('username') as string;
+    const email = formData.get('email') as string;
+    const password = formData.get('password') as string;
+    const confirmPassword = formData.get('confirmPassword') as string;
+    const currentPassword = formData.get('currentPassword') as string;
 
-    // Validation personnalisée
-    if (config.validation) {
-      const validationError = config.validation(newValue.trim());
-      if (validationError) {
-        showError(errorDiv, validationError);
-        return;
-      }
+    // Validation côté client
+    if (!currentPassword.trim()) {
+      showError(errorDiv, 'Current password is required');
+      return;
+    }
+
+    // Vérifier que les champs ne sont pas vides s'ils sont remplis
+    if (username && username.trim().length < 3) {
+      showError(errorDiv, 'Username must be at least 3 characters long');
+      return;
+    }
+
+    if (username && !/^[a-zA-Z0-9_-]+$/.test(username.trim())) {
+      showError(errorDiv, 'Username can only contain letters, numbers, _ and -');
+      return;
+    }
+
+    if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) {
+      showError(errorDiv, 'Please enter a valid email address');
+      return;
+    }
+
+    if (password && password.length < 6) {
+      showError(errorDiv, 'New password must be at least 6 characters long');
+      return;
+    }
+
+    if (password && password !== confirmPassword) {
+      showError(errorDiv, 'New passwords do not match');
+      return;
+    }
+
+    // Vérifier qu'au moins un champ est modifié
+    if (!username?.trim() && !email?.trim() && !password?.trim()) {
+      showError(errorDiv, 'Please provide at least one field to update');
+      return;
     }
 
     try {
       // Préparer le body de la requête
-      const requestBody = {
-        [config.apiField]: newValue.trim()
+      const requestBody: EditProfileData = {
+        currentPassword: currentPassword.trim()
       };
+
+      if (username?.trim()) requestBody.username = username.trim();
+      if (email?.trim()) requestBody.email = email.trim();
+      if (password?.trim()) requestBody.password = password.trim();
 
       // Envoyer la requête au backend
       const response = await AuthManager.fetchWithAuth('/api/me', {
@@ -542,7 +555,7 @@ function showEditModal(config: EditModalConfig): void {
       });
 
       if (response.ok) {
-        console.log(`✅ ${config.id} updated successfully`);
+        console.log('✅ Profile updated successfully');
         closeModal();
         
         // Recharger la page profil pour afficher les nouvelles données
@@ -552,17 +565,17 @@ function showEditModal(config: EditModalConfig): void {
         }
       } else {
         const errorData = await response.json();
-        showError(errorDiv, errorData.error || `Failed to update ${config.id}`);
+        showError(errorDiv, errorData.error || 'Failed to update profile');
       }
     } catch (error) {
-      console.error(`Error updating ${config.id}:`, error);
+      console.error('Error updating profile:', error);
       showError(errorDiv, 'Network error. Please try again.');
     }
   });
 
-  // Focus sur le champ de saisie
-  const input = document.getElementById(`new-${config.id}`) as HTMLInputElement;
-  input?.focus();
+  // Focus sur le premier champ
+  const usernameInput = document.getElementById('new-username') as HTMLInputElement;
+  usernameInput?.focus();
 }
 
 // Fonction helper pour afficher les erreurs
