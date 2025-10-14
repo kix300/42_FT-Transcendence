@@ -598,7 +598,7 @@ async function handlePhotoUpload(file: File): Promise<void> {
     const formData = new FormData();
     formData.append('profilePhoto', file);
 
-    const response = await AuthManager.fetchWithAuth('/api/me', {
+    const response = await AuthManager.fetchWithAuth('/api/me/avatar', {
       method: 'PATCH',
       body: formData // Pas de Content-Type header, le navigateur le définit automatiquement
     });

@@ -1,5 +1,5 @@
 import db from "../db.js";
-
+import bcrypt from 'bcrypt';
 
 export default async function usersRoutes(fastify, options) {
 
@@ -52,39 +52,42 @@ export default async function usersRoutes(fastify, options) {
 
     //modifier ses infos
     fastify.patch("/api/me", { preHandler: [fastify.authenticate] }, async (request, reply) => {
-        const userId = request.user.id;
-        const {username, email, password} = request.body;
+        console.log("OK BACKEND");
+		const userId = request.user.id;
+        const {currentPassword, username, email, password} = request.body;
+
+		//check password
+		const passwordMatches = await bcrypt.compare(currentPassword, user.password);
+		if (!passwordMatches) {
+		return reply.code(401).send({ error: 'Mot de passe incorrect' });
+		}
+
+		//check user existence in database
+		const user = db.prepare("SELECT * FROM users WHERE id = ?").get(userId);
+		if (!user) {
+		return reply.code(404).send({ error: "Utilisateur introuvable" });
+		}
 
         try {
-        const updates = [];
-        const values = [];
+			const updates = {};
+			if (username && username.trim() !== user.username) updates.username = username.trim();
+			if (email && email.trim() !== user.email) updates.email = email.trim();
+			if (password && password.trim()) {
+			updates.password = await bcrypt.hash(password.trim(), 10);
+			}
 
-        if (username) {
-            updates.push("username = ?");
-            values.push(username);
-        }
+			if (Object.keys(updates).length === 0) {
+				return reply.code(400).send({ error: "Aucune donnée à mettre à jour" });
+			}
 
-        if (email) {
-            updates.push("email = ?");
-            values.push(email);
-        }
+			const fields = Object.keys(updates)
+				.map((key) => `${key} = @${key}`)
+				.join(", ");
 
-        if (password) {
-            const hashedPassword = await bcrypt.hash(password, 10);
-            updates.push("password = ?");
-            values.push(hashedPassword);
-        }
+        	db.prepare(`UPDATE users SET ${updates.join(", ")} WHERE id = ?`)
+            	.run(...values);
 
-        if (updates.length === 0) {
-            return reply.code(400).send({ error: "Aucune donnée à mettre à jour" });
-        }
-
-        values.push(userId);
-
-        db.prepare(`UPDATE users SET ${updates.join(", ")} WHERE id = ?`)
-            .run(...values);
-
-        reply.send({ message: "Profil mis à jour avec succès" });
+        	reply.send({ message: "Profil mis à jour avec succès" });
         } catch (err) {
         console.error(err);
         reply.code(500).send({ error: "Erreur serveur" });
