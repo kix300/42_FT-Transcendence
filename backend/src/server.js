@@ -8,6 +8,7 @@ import 'dotenv/config';
 import { fileURLToPath } from "url";
 import { dirname } from "path";
 import { requireHttps } from './https.js';
+import { startHttpRedirect } from "./https.js";
 
 //import routes
 import registerRoutes from './routes/register.js';
@@ -89,3 +90,4 @@ fastify.setNotFoundHandler((request, reply) => {
 });
 
 start();
+startHttpRedirect(80, 3000);

@@ -1,19 +1,21 @@
 import Fastify from "fastify";
 
+// --- Serveur HTTP pour redirection ---
+export function serverHttpRedirect(httpPort = 80, httpsPort = 3000){
 
-// Rediriger les requetes http vers https
-const httpServer = Fastify();
-httpServer.all("/*", (req, reply) => {
-  const host = req.headers.host?.replace(/:\d+$/, ""); // Retire le port s’il existe
-  reply.redirect(301, `https://${host}${req.url}`);
-});
+	const httpFastify = Fastify();
 
-httpServer.listen({ port: 80, host: "0.0.0.0" })
-  .then(() => console.log("HTTP -> HTTPS redirect server listening on port 80"))
-  .catch(err => {
-    console.error("Error starting HTTP redirect server:", err);
-    process.exit(1);
-  });
+	httpFastify.all("/*", async (request, reply) => {
+	const host = request.headers.host?.replace(/:\d+$/, ""); // retire le port si présent
+	reply.redirect(301, `https://${host}:${httpsPort}${request.url}`);
+	});
+
+	httpFastify.listen({ port: httpPort, host: "0.0.0.0" }, (err) => {
+	if (err) throw err;
+	console.log("➡️ HTTP server running on port ${httpPort}, will redirect to HTTPS");
+	});
+}
+
 
 // middleware
 export function requireHttps(req, reply, done) {
