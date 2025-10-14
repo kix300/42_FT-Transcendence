@@ -17,11 +17,11 @@ import statsRoutes from './routes/stats.js';
 //variables
 //CONFIG HTTPS A FAIRE
 const fastify = Fastify({
-  https: {
-    key: fs.readFileSync(path.join(__dirname, "certs/server.key")),
-    cert: fs.readFileSync(path.join(__dirname, "certs/server.crt")),
-  },
-  logger: true,
+  // https: {
+  //   key: fs.readFileSync(path.join(__dirname, "certs/server.key")),
+  //   cert: fs.readFileSync(path.join(__dirname, "certs/server.crt")),
+  // },
+  // logger: true,
 });
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
