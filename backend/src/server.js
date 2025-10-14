@@ -8,7 +8,6 @@ import 'dotenv/config';
 import { fileURLToPath } from "url";
 import { dirname } from "path";
 import { requireHttps } from './https.js';
-import { serverHttpRedirect } from "./https.js";
 
 //import routes
 import registerRoutes from './routes/register.js';
@@ -16,6 +15,9 @@ import loginRoutes from './routes/login.js';
 import userRoutes from './routes/users.js';
 import statsRoutes from './routes/stats.js';
 // import oauthRoutes from './routes/oauth.js';
+
+//port
+const porthttps = 3000;
 
 // https config
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -68,7 +70,7 @@ fastify.register(statsRoutes);
 
 // Renvoie la route '/' a public/dist/index.html 
 fastify.get("/", async (request, reply) => {
-  return reply.sendFile("index.html");
+	return reply.sendFile("index.html");
 });
 
 // Proteger toutes les routes avec https
@@ -77,7 +79,7 @@ fastify.addHook('preHandler', requireHttps);
 // fonction asynchrone pour demarrer le server
 const start = async () => {
   try {
-    await fastify.listen({ port: 3000, host: "0.0.0.0" });
+    await fastify.listen({ port: porthttps, host: "0.0.0.0" });
   } catch (err) {
     fastify.log.error(err);
     process.exit(1);
@@ -90,4 +92,3 @@ fastify.setNotFoundHandler((request, reply) => {
 });
 
 start();
-serverHttpRedirect(80, 3000);
