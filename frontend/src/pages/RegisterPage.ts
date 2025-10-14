@@ -702,7 +702,6 @@ async function handleRegister(): Promise<void> {
     return;
   }
 
-  // TODO: Replace with actual registration API call
   try {
 
     let response;

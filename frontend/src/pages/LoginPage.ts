@@ -187,36 +187,6 @@ export async function LoginPage(): Promise<void> {
               </form>
             </div>
           </div>
-
-          <!-- System Status -->
-          <div class="mt-6 grid grid-cols-1 md:grid-cols-3 gap-4" id="status-panel" style="opacity: 0;">
-            <div class="bg-gray-900 border border-green-400/30 p-3">
-              <div class="text-green-300 text-sm font-bold mb-1">[SERVER STATUS]</div>
-              <div class="text-green-400 text-xs">
-                <div>Auth Server: <span class="text-green-300">ONLINE</span></div>
-                <div>Database: <span class="text-green-300">CONNECTED</span></div>
-                <div>Response Time: <span class="text-green-300">45ms</span></div>
-              </div>
-            </div>
-
-            <div class="bg-gray-900 border border-green-400/30 p-3">
-              <div class="text-green-300 text-sm font-bold mb-1">[SECURITY]</div>
-              <div class="text-green-400 text-xs">
-                <div>SSL: <span class="text-green-300">ENABLED</span></div>
-                <div>2FA: <span class="text-green-300">AVAILABLE</span></div>
-                <div>Encryption: <span class="text-green-300">AES-256</span></div>
-              </div>
-            </div>
-
-            <div class="bg-gray-900 border border-green-400/30 p-3">
-              <div class="text-green-300 text-sm font-bold mb-1">[USERS ONLINE]</div>
-              <div class="text-green-400 text-xs">
-                <div>Active Sessions: <span class="text-green-300">127</span></div>
-                <div>Queue Position: <span class="text-green-300">-</span></div>
-                <div>Last Login: <span class="text-green-300">Never</span></div>
-              </div>
-            </div>
-          </div>
         </div>
       </main>
 

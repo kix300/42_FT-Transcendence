@@ -304,13 +304,13 @@ function setupProfileListeners(): void {
       photoInput.click(); // Ouvrir le sélecteur de fichier
     });
 
-    // // Gérer l'upload de photo
-    // photoInput.addEventListener("change", async (event) => {
-    //   const file = (event.target as HTMLInputElement).files?.[0];
-    //   if (file) {
-    //     await handlePhotoUpload(file);
-    //   }
-    // });
+    // Gérer l'upload de photo
+    photoInput.addEventListener("change", async (event) => {
+      const file = (event.target as HTMLInputElement).files?.[0];
+      if (file) {
+        await handlePhotoUpload(file);
+      }
+    });
   }
   
   // Edit profile button
@@ -496,7 +496,6 @@ function showEditProfileModal(): void {
     const password = formData.get('password') as string;
     const confirmPassword = formData.get('confirmPassword') as string;
     const currentPassword = formData.get('currentPassword') as string;
-
     // Validation côté client
     if (!currentPassword.trim()) {
       showError(errorDiv, 'Current password is required');
@@ -576,6 +575,93 @@ function showEditProfileModal(): void {
   // Focus sur le premier champ
   const usernameInput = document.getElementById('new-username') as HTMLInputElement;
   usernameInput?.focus();
+}
+
+// fonction pour gérer l'upload de photo
+async function handlePhotoUpload(file: File): Promise<void> {
+  // Validation du fichier
+  if (!file.type.startsWith("image/")) {
+    showMessage("Error: Please select a valid image file", "error");
+    return;
+  }
+
+  // Validate file size (5MB max)
+  if (file.size > 5 * 1024 * 1024) {
+    showMessage("Error: Image must be less than 5MB", "error");
+    return;
+  }
+
+  try {
+    showMessage(`Uploading photo: ${file.name}...`, "info");
+
+    // Créer FormData pour l'upload (comme dans Register)
+    const formData = new FormData();
+    formData.append('profilePhoto', file);
+
+    const response = await AuthManager.fetchWithAuth('/api/me', {
+      method: 'PATCH',
+      body: formData // Pas de Content-Type header, le navigateur le définit automatiquement
+    });
+
+    if (response.ok) {
+      showMessage('✅ Photo updated successfully', "success");
+      
+      // Recharger la page pour voir la nouvelle photo
+      setTimeout(() => {
+        const router = getRouter();
+        if (router) {
+          router.navigate('/profile');
+        }
+      }, 1000);
+    } else {
+      const errorData = await response.json();
+      showMessage(`Upload failed: ${errorData.error || 'Unknown error'}`, "error");
+    }
+  } catch (error) {
+    console.error('Error uploading photo:', error);
+    showMessage('Network error. Please try again.', "error");
+  } finally {
+    // Reset file input
+    const photoInput = document.getElementById("photo-input") as HTMLInputElement;
+    if (photoInput) photoInput.value = '';
+  }
+}
+
+// Fonction pour afficher les messages (comme dans Register)
+function showMessage(message: string, type: "success" | "error" | "info"): void {
+  // Créer un container de messages s'il n'existe pas
+  let messagesContainer = document.getElementById("profile-messages");
+  if (!messagesContainer) {
+    messagesContainer = document.createElement("div");
+    messagesContainer.id = "profile-messages";
+    messagesContainer.className = "fixed top-4 right-4 z-50 space-y-2";
+    document.body.appendChild(messagesContainer);
+  }
+
+  const messageDiv = document.createElement("div");
+  messageDiv.className = `p-3 border-l-4 max-w-sm bg-gray-900 border border-green-400/30 ${
+    type === "success"
+      ? "border-l-green-400 text-green-300"
+      : type === "error"
+        ? "border-l-red-400 text-red-300"
+        : "border-l-blue-400 text-blue-300"
+  }`;
+
+  const prefix = type === "success" ? "[SUCCESS]" : type === "error" ? "[ERROR]" : "[INFO]";
+  messageDiv.innerHTML = `<span class="font-bold">${prefix}</span> ${message}`;
+
+  messagesContainer.appendChild(messageDiv);
+
+  // Auto-remove after 5 seconds
+  setTimeout(() => {
+    if (messageDiv.parentNode) {
+      messageDiv.remove();
+    }
+    // Remove container if empty
+    if (messagesContainer && messagesContainer.children.length === 0) {
+      messagesContainer.remove();
+    }
+  }, 5000);
 }
 
 // Fonction helper pour afficher les erreurs
