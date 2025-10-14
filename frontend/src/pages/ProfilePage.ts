@@ -358,21 +358,22 @@ function setupProfileListeners(): void {
   const editUsernameBtn = document.getElementById("edit-username-btn");
   if (editUsernameBtn) {
     editUsernameBtn.addEventListener("click", () => {
-      showEditModal({
-        id: 'username',
-        title: '[EDIT USERNAME]',
-        label: 'New Username:',
-        placeholder: 'Enter new username',
-        fieldName: 'username',
-        apiField: 'username',
-        minLength: 3,
-        maxLength: 20,
-        validation: (value) => {
-          if (value.length < 3) return 'Username must be at least 3 characters long';
-          if (!/^[a-zA-Z0-9_-]+$/.test(value)) return 'Username can only contain letters, numbers, _ and -';
-          return null;
-        }
-      });
+      // showEditModal({
+      //   id: 'username',
+      //   title: '[EDIT USERNAME]',
+      //   label: 'New Username:',
+      //   placeholder: 'Enter new username',
+      //   fieldName: 'username',
+      //   apiField: 'username',
+      //   minLength: 3,
+      //   maxLength: 20,
+      //   validation: (value) => {
+      //     if (value.length < 3) return 'Username must be at least 3 characters long';
+      //     if (!/^[a-zA-Z0-9_-]+$/.test(value)) return 'Username can only contain letters, numbers, _ and -';
+      //     return null;
+      //   }
+      // });
+      console.log("button edit username");
     });
   }
   
