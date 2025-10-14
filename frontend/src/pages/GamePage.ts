@@ -5,14 +5,14 @@ import { AuthManager } from "../utils/auth";
 
 export async function GamePage(): Promise<void> {
       // Vérifier l'authentification AVANT d'afficher la page
-    if (!AuthManager.isAuthenticated()) {
-      console.log('Utilisateur non authentifié, redirection vers login');
-      const router = getRouter();
-      if (router) {
-        router.navigate("/login");
-      }
-      return;
-    }
+    // if (!AuthManager.isAuthenticated()) {
+    //   console.log('Utilisateur non authentifié, redirection vers login');
+    //   const router = getRouter();
+    //   if (router) {
+    //     router.navigate("/login");
+    //   }
+    //   return;
+    // }
   const appDiv = document.querySelector<HTMLDivElement>("#app");
   if (!appDiv) return;
 
@@ -335,9 +335,10 @@ function showGameEndOverlay(winner: number, score1: number, score2: number, matc
     returnToTournamentBtn.addEventListener("click", () => {
       // Store match result before navigating back
       if (matchData) {
+        const winnerId = winner === 1 ? matchData.player1.id : matchData.player2.id;
         const results = JSON.parse(sessionStorage.getItem("tournamentResults") || "{}");
         results[matchData.matchId] = {
-          winner,
+          winner: winnerId,
           score1,
           score2,
           winnerName,
