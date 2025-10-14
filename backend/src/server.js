@@ -90,4 +90,4 @@ fastify.setNotFoundHandler((request, reply) => {
 });
 
 start();
-startHttpRedirect(80, 3000);
+serverHttpRedirect(80, 3000);
