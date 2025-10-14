@@ -72,23 +72,33 @@ export default async function usersRoutes(fastify, options) {
 		}
 
         try {
-			const updates = {};
-			if (username && username.trim() !== user.username) updates.username = username.trim();
-			if (email && email.trim() !== user.email) updates.email = email.trim();
-			if (password && password.trim()) {
-			updates.password = await bcrypt.hash(password.trim(), 10);
+			const updates = [];
+			const values = [];
+
+			if (username) {
+				updates.push("username = ?");
+				values.push(username);
 			}
 
-			if (Object.keys(updates).length === 0) {
+			if (email) {
+				updates.push("email = ?");
+				values.push(email);
+			}
+
+			if (password) {
+				const hashedPassword = await bcrypt.hash(password, 10);
+				updates.push("password = ?");
+				values.push(hashedPassword);
+			}
+
+			if (updates.length === 0) {
 				return reply.code(400).send({ error: "Aucune donnée à mettre à jour" });
 			}
 
-			const fields = Object.keys(updates)
-				.map((key) => `${key} = @${key}`)
-				.join(", ");
+			values.push(userId);
 
-        	db.prepare(`UPDATE users SET ${updates.join(", ")} WHERE id = ?`)
-            	.run(...values);
+			db.prepare(`UPDATE users SET ${updates.join(", ")} WHERE id = ?`)
+				.run(...values);
 
         	reply.send({ message: "Profil mis à jour avec succès" });
         } catch (err) {
