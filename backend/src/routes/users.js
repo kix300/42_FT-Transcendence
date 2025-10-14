@@ -1,8 +1,10 @@
 import db from "../db.js";
 import bcrypt from 'bcrypt';
+import multipart from '@fastify/multipart';
 
 export default async function usersRoutes(fastify, options) {
 
+	fastify.register(multipart);
     //liste des utilisateurs (pour utilisateur connecte)
     fastify.get("/api/users", { preHandler: [fastify.authenticate] }, async () => db.prepare("SELECT * FROM users").all());
 
@@ -50,22 +52,22 @@ export default async function usersRoutes(fastify, options) {
 		});
     });
 
-    //modifier ses infos
+    //Modifier ses infos
     fastify.patch("/api/me", { preHandler: [fastify.authenticate] }, async (request, reply) => {
         console.log("OK BACKEND");
 		const userId = request.user.id;
         const {currentPassword, username, email, password} = request.body;
 
-		//check password
-		const passwordMatches = await bcrypt.compare(currentPassword, user.password);
-		if (!passwordMatches) {
-		return reply.code(401).send({ error: 'Mot de passe incorrect' });
-		}
-
 		//check user existence in database
 		const user = db.prepare("SELECT * FROM users WHERE id = ?").get(userId);
 		if (!user) {
 		return reply.code(404).send({ error: "Utilisateur introuvable" });
+		}
+
+		//check password
+		const passwordMatches = await bcrypt.compare(currentPassword, user.password);
+		if (!passwordMatches) {
+		return reply.code(401).send({ error: 'Mot de passe incorrect' });
 		}
 
         try {
@@ -90,11 +92,11 @@ export default async function usersRoutes(fastify, options) {
         	reply.send({ message: "Profil mis à jour avec succès" });
         } catch (err) {
         console.error(err);
-        reply.code(500).send({ error: "Erreur serveur" });
+        reply.code(500).send({ error: "Erreur dans la mise a jour des donnees (backend Kim va corriger)" });
         }
     });
 
-	//modifier sa photo
+	//Modifier sa photo
 	fastify.patch("/api/me/avatar", { preHandler: [fastify.authenticate] }, async (request, reply) => {
 		const userId = request.params.id;
 		const uploadsDir = path.join(process.cwd(), "uploads");
@@ -121,7 +123,8 @@ export default async function usersRoutes(fastify, options) {
 		const newFilename = Date.now() + "_" + avatarFile.filename;
 		const filePath = path.join(uploadsDir, newFilename);
 		await pipeline(avatarFile.file, fs.createWriteStream(filePath));
-
+		console.log('Fichier uploadé:',  path.join(uploadsDir, avatarFile.filename));
+		
 		// SQLite
 		fastify.db.prepare("UPDATE users SET photo = ? WHERE id = ?").run(`./uploads/${newFilename}`, userId);
 
