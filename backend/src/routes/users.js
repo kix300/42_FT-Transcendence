@@ -2,6 +2,7 @@ import db from "../db.js";
 import bcrypt from 'bcrypt';
 import multipart from '@fastify/multipart';
 import path from 'path';
+import { pipeline } from "stream/promises";
 
 export default async function usersRoutes(fastify, options) {
 
@@ -110,7 +111,7 @@ export default async function usersRoutes(fastify, options) {
 
 	// modifier la photo de l'utilisateur connecté
 	fastify.patch("/api/me/avatar", { preHandler: [fastify.authenticate] }, async (request, reply) => {
-		const userId = request.params.id;
+		const userId = request.user.id;
 		const uploadsDir = path.join(process.cwd(), "uploads");
 		let avatarFile;
 
@@ -123,7 +124,7 @@ export default async function usersRoutes(fastify, options) {
 		if (!avatarFile) return reply.code(400).send({ error: "No file uploaded" });
 
 		// Récupérer l'utilisateur actuel
-		const user = fastify.db.prepare("SELECT * FROM users WHERE id = ?").get(userId);
+		const user = db.prepare("SELECT * FROM users WHERE id = ?").get(userId);
 		if (!user) return reply.code(404).send({ error: "User not found" });
 
 		// Supprimer l'ancienne photo si ce n'est pas l'avatar par défaut
@@ -138,7 +139,7 @@ export default async function usersRoutes(fastify, options) {
 		console.log('Fichier uploadé:',  path.join(uploadsDir, avatarFile.filename));
 		
 		// SQLite
-		fastify.db.prepare("UPDATE users SET photo = ? WHERE id = ?").run(`./uploads/${newFilename}`, userId);
+		db.prepare("UPDATE users SET photo = ? WHERE id = ?").run(`./uploads/${newFilename}`, userId);
 
 		return reply.send({ message: "Avatar updated successfully", photo: `./uploads/${newFilename}` });
 	});
