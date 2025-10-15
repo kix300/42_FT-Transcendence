@@ -2,6 +2,7 @@ import { getRouter } from "../router";
 import { AuthManager } from "../utils/auth";
 import { createHeader, HeaderConfigs } from "../components/Header";
 import { Header } from "../components/Header";
+import { USERS_API } from "../utils/apiConfig";
 
 // Interface pour les données utilisateur
 interface User {
@@ -258,7 +259,7 @@ async function loadUsers(): Promise<void> {
     if (errorState) errorState.classList.add("hidden");
 
     // Récupérer les utilisateurs depuis l'API
-    const response = await AuthManager.fetchWithAuth('/api/users');
+    const response = await AuthManager.fetchWithAuth(USERS_API.GET_ALL);
     
     if (!response.ok) {
       throw new Error(`Erreur ${response.status}: ${response.statusText}`);
@@ -528,7 +529,7 @@ async function handleUserSubmit(event: Event): Promise<void> {
         delete formData.password; // Ne pas envoyer le mot de passe s'il est vide
       }
       
-      response = await AuthManager.fetchWithAuth(`/api/users/${currentEditingUser.id}`, {
+      response = await AuthManager.fetchWithAuth(USERS_API.UPDATE(currentEditingUser.id), {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -537,7 +538,7 @@ async function handleUserSubmit(event: Event): Promise<void> {
       });
     } else {
       // Création
-      response = await AuthManager.fetchWithAuth('/api/users', {
+      response = await AuthManager.fetchWithAuth(USERS_API.CREATE, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -575,7 +576,7 @@ async function deleteUser(userId: number): Promise<void> {
   }
 
   try {
-    const response = await AuthManager.fetchWithAuth(`/api/users/${userId}`, {
+    const response = await AuthManager.fetchWithAuth(USERS_API.DELETE(userId), {
       method: 'DELETE',
     });
 
