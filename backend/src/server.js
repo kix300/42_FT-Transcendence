@@ -13,7 +13,7 @@ import { requireHttps } from './https.js';
 import registerRoutes from './routes/register.js';
 import loginRoutes from './routes/login.js';
 import userRoutes from './routes/users.js';
-import statsRoutes from './routes/stats.js';
+import matchesRoutes from './routes/matches.js';
 // import oauthRoutes from './routes/oauth.js';
 
 //port
@@ -64,7 +64,7 @@ export default fastify;
 fastify.register(registerRoutes);
 fastify.register(loginRoutes);
 fastify.register(userRoutes);
-fastify.register(statsRoutes);
+fastify.register(matchesRoutes);
 // fastify.register(oauthRoutes);
 
 // Renvoie la route '/' a public/dist/index.html 
