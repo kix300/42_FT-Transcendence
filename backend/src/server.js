@@ -9,7 +9,6 @@ import { fileURLToPath } from "url";
 import { dirname } from "path";
 import { requireHttps } from './https.js';
 
-
 //port
 const porthttps = 3000;
 
@@ -21,15 +20,6 @@ import matchesRoutes from './routes/matches.js';
 import friendsRoutes from './routes/friends.js';
 // import oauthRoutes from './routes/oauth.js';
 
-
-// Enregistrer les routes
-fastify.register(registerRoutes);
-fastify.register(loginRoutes);
-fastify.register(userRoutes);
-fastify.register(matchesRoutes);
-fastify.register(friendsRoutes);
-// fastify.register(oauthRoutes);
-
 // https config
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const fastify = Fastify({
@@ -40,6 +30,14 @@ const fastify = Fastify({
 	},
 	logger: true,
 });
+
+// Enregistrer les routes
+fastify.register(registerRoutes);
+fastify.register(loginRoutes);
+fastify.register(userRoutes);
+fastify.register(matchesRoutes);
+fastify.register(friendsRoutes);
+// fastify.register(oauthRoutes);
 
 // Servir les fichiers statiques du répertoire 'dist' (créé par npm run build)
 fastify.register(fastifyStatic, {
