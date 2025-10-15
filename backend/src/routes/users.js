@@ -6,6 +6,7 @@ import path from 'path';
 export default async function usersRoutes(fastify, options) {
 
 	fastify.register(multipart);
+
     //liste des utilisateurs (pour utilisateur connecte)
     fastify.get("/api/users", { preHandler: [fastify.authenticate] }, async () => db.prepare("SELECT * FROM users").all());
 
@@ -20,7 +21,7 @@ export default async function usersRoutes(fastify, options) {
     }
     });
 
-    //Info de lutilisateur connecte
+    //récupérer les infos de l'utilisateur connecte
     fastify.get("/api/me", { preHandler: [fastify.authenticate] }, async (request, reply) => {
         // le token contient l'id de l'utilisateur connecté
         const userId = request.user.id;
@@ -53,7 +54,7 @@ export default async function usersRoutes(fastify, options) {
 		});
     });
 
-    //Modifier ses infos
+    // modifier les infos de l'utilisateur connecté
     fastify.patch("/api/me", { preHandler: [fastify.authenticate] }, async (request, reply) => {
         console.log("OK BACKEND");
 		const userId = request.user.id;
@@ -107,7 +108,7 @@ export default async function usersRoutes(fastify, options) {
         }
     });
 
-	//Modifier sa photo
+	// modifier la photo de l'utilisateur connecté
 	fastify.patch("/api/me/avatar", { preHandler: [fastify.authenticate] }, async (request, reply) => {
 		const userId = request.params.id;
 		const uploadsDir = path.join(process.cwd(), "uploads");

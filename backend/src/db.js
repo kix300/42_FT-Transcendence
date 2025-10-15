@@ -16,7 +16,15 @@ const db = new Database("/data/database.db");
 
 // crée la table users si elle n'existe pas
 // on refuse les doublons de username et de email
-db.prepare("CREATE TABLE IF NOT EXISTS users (id INTEGER PRIMARY KEY, username TEXT UNIQUE, email TEXT UNIQUE, password TEXT, photo TEXT DEFAULT './uploads/avatar.png', wins INTEGER DEFAULT 0, losses INTEGER DEFAULT 0)").run();
+db.prepare(`CREATE TABLE IF NOT EXISTS users (
+  id INTEGER PRIMARY KEY,
+  username TEXT UNIQUE NOT NULL,
+  email TEXT UNIQUE,
+  password TEXT NOT NULL,
+  photo TEXT DEFAULT './uploads/avatar.png',
+  wins INTEGER DEFAULT 0,
+  losses INTEGER DEFAULT 0
+  )`).run();
 
 // insère une donnée
 try{
@@ -77,6 +85,7 @@ db.prepare(`CREATE TABLE IF NOT EXISTS matches (
 	winner_id INTEGER NOT NULL,
 	player1_score INTEGER,
 	player2_score INTEGER,
+  tournament_winner_id INTEGER,
 	is_tournament BOOLEAN DEFAULT 0, --0 = false, 1 = true
 	date DATETIME TEXT DEFAULT (datetime('now', 'localtime')),
 	FOREIGN KEY (player1_id) REFERENCES users(id),
