@@ -3,8 +3,8 @@ import db from '../db.js';
 export default async function friendsRoutes(fastify, options) {
 
     //liste des amis de l'utilisateur connecte
-    fastify.get("/api/friends/show", { preHandler: [fastify.authenticate] }, async () => {
-        const userId = request.params.id;
+    fastify.get("/api/friends/show", { preHandler: [fastify.authenticate] }, async (request, reply) => {
+        const userId = request.user.id;
 
         try {
             const friends = db.prepare(`
@@ -31,13 +31,12 @@ export default async function friendsRoutes(fastify, options) {
 
     //ajouter un ami
     fastify.post("/api/friends/add", { preHandler: [fastify.authenticate] }, async (request, reply) => {
-        const userId = request.params.id;
-        const { username } = request.body;
-        const friend = db.prepare("SELECT id FROM users WHERE username = ?").get(username);
+        const userId = request.user.id;
+        const { friendId } = request.body;
+        const friend = db.prepare("SELECT * FROM users WHERE id = ?").get(friendId);
         if (!friend) {
             return { success: false, message: "/api/friends/add: Utilisateur introuvable" };
         }
-        const friendId = friend.id;
         try {
             db.prepare("INSERT INTO friends (user_id, friend_id) VALUES (?, ?)").run(userId, friendId);
             return { success: true, message: "Demande d’ami envoyée !" };
@@ -53,7 +52,7 @@ export default async function friendsRoutes(fastify, options) {
 
     //accepter une demande
     fastify.patch("/api/friends/accept", { preHandler: [fastify.authenticate] }, async (request, reply) => {
-        const userId = request.params.id;
+        const userId = request.user.id;
         const friend = db.prepare("SELECT id FROM users WHERE username = ?").get(username);
         if (!friend) {
             return { success: false, message: "/api/friends/accept: Utilisateur introuvable" };
@@ -62,5 +61,7 @@ export default async function friendsRoutes(fastify, options) {
         db.prepare("UPDATE friends SET status = 'accepted' WHERE user_id = ? AND friend_id = ?").run(friendId, userId);
         return { success: true };
     });
+
+    //supprimer un ami
 
 }
