@@ -58,4 +58,3 @@ export default async function friendsRoutes(fastify, options) {
     });
 
 }
-db.prepare(`INSERT INTO friends (user_id, friend_id, status) VALUES (?, ?, ?)`).run(user_id, friend_id, 'pending');
