@@ -5,6 +5,8 @@ import { createHeader, HeaderConfigs } from "../components/Header";
 import { PROFILE_API } from "../utils/apiConfig";
 //@ts-ignore -- mon editeur me donnais une erreur alors que npm run build non
 import profilePageHtml from "./html/ProfilePage.html?raw";
+//@ts-ignore -- mon editeur me donnais une erreur alors que npm run build non
+import profilePageEditModal from "./html/ProfilePageEditModal.html?raw";
 
 // Interface pour l'historique des matchs
 interface Match {
@@ -264,111 +266,8 @@ function setupProfileListeners(): void {
 
 // Modal pour éditer le profil complet
 function showEditProfileModal(): void {
-  const modalHtml = `
-    <div id="edit-profile-modal" class="fixed inset-0 bg-black bg-opacity-25 flex items-center justify-center z-50">
-      <div class="bg-gray-900 border border-green-400/30 p-6 rounded max-w-md w-full mx-4">
-        <h3 class="text-green-300 font-bold mb-4 text-xl">[EDIT PROFILE]</h3>
-
-        <form id="edit-profile-form">
-          <!-- Username -->
-          <div class="mb-4">
-            <label class="block text-green-500 text-sm mb-2" for="new-username">
-              Username (optional):
-            </label>
-            <input
-              type="text"
-              id="new-username"
-              name="username"
-              class="w-full bg-black border border-green-400/30 text-green-400 p-3 rounded focus:border-green-400 focus:outline-none"
-              placeholder="Leave empty to keep current username"
-              minlength="3"
-              maxlength="20"
-            />
-          </div>
-
-          <!-- Email -->
-          <div class="mb-4">
-            <label class="block text-green-500 text-sm mb-2" for="new-email">
-              Email (optional):
-            </label>
-            <input
-              type="email"
-              id="new-email"
-              name="email"
-              class="w-full bg-black border border-green-400/30 text-green-400 p-3 rounded focus:border-green-400 focus:outline-none"
-              placeholder="Leave empty to keep current email"
-              maxlength="100"
-            />
-          </div>
-
-          <!-- New Password -->
-          <div class="mb-4">
-            <label class="block text-green-500 text-sm mb-2" for="new-password">
-              New Password (optional):
-            </label>
-            <input
-              type="password"
-              id="new-password"
-              name="password"
-              class="w-full bg-black border border-green-400/30 text-green-400 p-3 rounded focus:border-green-400 focus:outline-none"
-              placeholder="Leave empty to keep current password"
-              minlength="6"
-            />
-          </div>
-
-          <!-- Confirm New Password -->
-          <div class="mb-4" id="confirm-password-section" style="display: none;">
-            <label class="block text-green-500 text-sm mb-2" for="confirm-password">
-              Confirm New Password:
-            </label>
-            <input
-              type="password"
-              id="confirm-password"
-              name="confirmPassword"
-              class="w-full bg-black border border-green-400/30 text-green-400 p-3 rounded focus:border-green-400 focus:outline-none"
-              placeholder="Confirm your new password"
-            />
-          </div>
-
-          <!-- Current Password (required for validation) -->
-          <div class="mb-4">
-            <label class="block text-green-500 text-sm mb-2" for="current-password">
-              Current Password <span class="text-red-400">*</span>:
-            </label>
-            <input
-              type="password"
-              id="current-password"
-              name="currentPassword"
-              class="w-full bg-black border border-green-400/30 text-green-400 p-3 rounded focus:border-green-400 focus:outline-none"
-              placeholder="Enter your current password to confirm changes"
-              required
-            />
-          </div>
-
-          <div id="profile-error" class="text-red-400 text-sm mb-4 hidden"></div>
-
-          <div class="flex space-x-4">
-            <button
-              type="submit"
-              class="flex-1 bg-green-400/20 border border-green-400/50 text-green-400 py-2 px-4 rounded hover:bg-green-400/30 transition-colors"
-            >
-              [SAVE CHANGES]
-            </button>
-            <button
-              type="button"
-              id="cancel-edit-profile"
-              class="flex-1 bg-red-400/20 border border-red-400/50 text-red-400 py-2 px-4 rounded hover:bg-red-400/30 transition-colors"
-            >
-              [CANCEL]
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
-  `;
-
   // Ajouter la modal au DOM
-  document.body.insertAdjacentHTML("beforeend", modalHtml);
+  document.body.insertAdjacentHTML("beforeend", profilePageEditModal);
 
   // Event listeners pour la modal
   const modal = document.getElementById("edit-profile-modal");
