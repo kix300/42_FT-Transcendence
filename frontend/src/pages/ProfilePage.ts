@@ -27,7 +27,7 @@ interface UserProfile {
     totalMatches: number;
     wins: number;
     losses: number;
-  }
+  };
   matches: Match[];
   level?: number;
   achievements?: string[];
@@ -56,7 +56,7 @@ const ANIMATION_SPEED = {
 export async function ProfilePage(): Promise<void> {
   // Vérifier l'authentification AVANT d'afficher la page
   if (!AuthManager.isAuthenticated()) {
-    console.log('Utilisateur non authentifié, redirection vers login');
+    console.log("Utilisateur non authentifié, redirection vers login");
     const router = getRouter();
     if (router) {
       router.navigate("/login");
@@ -70,20 +70,20 @@ export async function ProfilePage(): Promise<void> {
   // Récupérer les informations utilisateur depuis le backend
   let userProfile: UserProfile | null = null;
   try {
-	console.log('Authentification...');
-    const response = await AuthManager.fetchWithAuth('/api/me');
+    console.log("Authentification...");
+    const response = await AuthManager.fetchWithAuth("/api/me");
     if (response.ok) {
-	  console.log('Début de ProfilePage');
+      console.log("Début de ProfilePage");
       const data = await response.json();
-	  userProfile = {
-		...data.user,
-		stats: data.stats,
-		matches: data.matches
+      userProfile = {
+        ...data.user,
+        stats: data.stats,
+        matches: data.matches,
       };
-	  console.log("✅ Ok, userProfile is set!");
+      console.log("✅ Ok, userProfile is set!");
     }
   } catch (error) {
-    console.error('Erreur lors de la récupération du profil:', error);
+    console.error("Erreur lors de la récupération du profil:", error);
   }
 
   // Classes CSS pour le body
@@ -109,36 +109,37 @@ export async function ProfilePage(): Promise<void> {
             <div class="flex items-center space-x-6 bg-gray-900 border border-green-400/30 p-6 rounded">
               <!-- Avatar -->
               <div class="w-24 h-24 rounded-full bg-green-400/20 border-2 border-green-400/50 flex items-center justify-center overflow-hidden">
-                ${userProfile?.photo ? 
-                  `<img src="${userProfile.photo}" alt="${userProfile.username}" class="w-full h-full object-cover rounded-full" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" />
-                   <span class="text-green-400 text-3xl font-bold hidden">${(userProfile?.username || 'U').charAt(0).toUpperCase()}</span>` :
-                  `<span class="text-green-400 text-3xl font-bold">${(userProfile?.username || 'U').charAt(0).toUpperCase()}</span>`
+                ${
+                  userProfile?.photo
+                    ? `<img src="${userProfile.photo}" alt="${userProfile.username}" class="w-full h-full object-cover rounded-full" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" />
+                   <span class="text-green-400 text-3xl font-bold hidden">${(userProfile?.username || "U").charAt(0).toUpperCase()}</span>`
+                    : `<span class="text-green-400 text-3xl font-bold">${(userProfile?.username || "U").charAt(0).toUpperCase()}</span>`
                 }
               </div>
-              
+
      <!-- User Info -->
               <div class="flex-1">
-                <h1 class="text-2xl font-bold text-green-300 mb-2">${userProfile?.username || 'Unknown User'}</h1>
+                <h1 class="text-2xl font-bold text-green-300 mb-2">${userProfile?.username || "Unknown User"}</h1>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
                   <div>
-                    <span class="text-green-500">User ID:</span> 
-                    <span class="text-green-400">#${userProfile?.id || 'N/A'}</span>
+                    <span class="text-green-500">User ID:</span>
+                    <span class="text-green-400">#${userProfile?.id || "N/A"}</span>
                   </div>
                   <div>
-                    <span class="text-green-500">Email:</span> 
-                    <span class="text-green-400">${userProfile?.email || 'Not provided'}</span>
+                    <span class="text-green-500">Email:</span>
+                    <span class="text-green-400">${userProfile?.email || "Not provided"}</span>
                   </div>
                   <div>
-                    <span class="text-green-500">Level:</span> 
-                    <span class="text-green-400">${userProfile?.level || '1'}</span>
+                    <span class="text-green-500">Level:</span>
+                    <span class="text-green-400">${userProfile?.level || "1"}</span>
                   </div>
                   <div>
-                    <span class="text-green-500">Member since:</span> 
-                    <span class="text-green-400">${userProfile?.created_at ? new Date(userProfile.created_at).toLocaleDateString() : 'Recently'}</span>
+                    <span class="text-green-500">Member since:</span>
+                    <span class="text-green-400">${userProfile?.created_at ? new Date(userProfile.created_at).toLocaleDateString() : "Recently"}</span>
                   </div>
                 </div>
               </div>
-              
+
               <!-- Edit Button -->
               <div class="flex flex-col space-y-2">
                 <button id="edit-profile-btn" class="bg-green-400/10 border border-green-400/30 px-4 py-2 rounded hover:bg-green-400/20 transition-colors">
@@ -160,19 +161,19 @@ export async function ProfilePage(): Promise<void> {
               <div class="space-y-3">
                 <div class="flex justify-between">
                   <span class="text-green-500">Games Played:</span>
-                  <span class="text-green-400 font-mono">${userProfile?.stats.totalMatches || '0'}</span>
+                  <span class="text-green-400 font-mono">${userProfile?.stats.totalMatches || "0"}</span>
                 </div>
                 <div class="flex justify-between">
                   <span class="text-green-500">Games Won:</span>
-                  <span class="text-green-400 font-mono">${userProfile?.stats.wins || '0'}</span>
+                  <span class="text-green-400 font-mono">${userProfile?.stats.wins || "0"}</span>
                 </div>
                 <div class="flex justify-between">
                   <span class="text-green-500">Win Rate:</span>
-                  <span class="text-green-400 font-mono">${userProfile?.stats.totalMatches ? Math.round((userProfile.stats.wins || 0) / userProfile.stats.totalMatches * 100) : 0}%</span>
+                  <span class="text-green-400 font-mono">${userProfile?.stats.totalMatches ? Math.round(((userProfile.stats.wins || 0) / userProfile.stats.totalMatches) * 100) : 0}%</span>
                 </div>
                 <div class="flex justify-between">
                   <span class="text-green-500">Current Level:</span>
-                  <span class="text-green-400 font-mono">Level ${userProfile?.level || '1'}</span>
+                  <span class="text-green-400 font-mono">Level ${userProfile?.level || "1"}</span>
                 </div>
               </div>
             </div>
@@ -183,7 +184,7 @@ export async function ProfilePage(): Promise<void> {
               <div class="space-y-3 text-sm">
                 <div class="flex items-center space-x-2">
                   <span class="text-green-500">●</span>
-                  <span class="text-green-400">Last login: ${userProfile?.last_login ? new Date(userProfile.last_login).toLocaleString() : 'Now'}</span>
+                  <span class="text-green-400">Last login: ${userProfile?.last_login ? new Date(userProfile.last_login).toLocaleString() : "Now"}</span>
                 </div>
                 <div class="flex items-center space-x-2">
                   <span class="text-green-500">●</span>
@@ -197,31 +198,14 @@ export async function ProfilePage(): Promise<void> {
             </div>
           </div>
 
-          <!-- Friends Section -->
-          <div class="bg-gray-900 border border-green-400/30 p-6 rounded mb-8" id="achievements" style="opacity: 0;">
-            <h2 class="text-green-300 font-bold mb-4 text-xl">[ACHIEVEMENTS]</h2>
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div class="bg-black border border-green-400/20 p-4 rounded">
-                <div class="text-green-400 font-bold">First Victory</div>
-                <div class="text-green-500 text-sm">Win your first game</div>
-              </div>
-              <div class="bg-black border border-green-400/20 p-4 rounded opacity-50">
-                <div class="text-green-400 font-bold">Speed Demon</div>
-                <div class="text-green-500 text-sm">Win 10 games in a row</div>
-              </div>
-              <div class="bg-black border border-green-400/20 p-4 rounded opacity-50">
-                <div class="text-green-400 font-bold">Tournament Champion</div>
-                <div class="text-green-500 text-sm">Win a tournament</div>
-              </div>
-            </div>
-          </div>
+
         </div>
       </main>
 
       <!-- Footer -->
       <footer class="border-t border-green-400/30 p-4">
         <div class="max-w-6xl mx-auto text-center text-green-500 text-sm">
-          <span class="text-green-400">[Profile Page]</span> Transcendence v1.0.0 | User: ${userProfile?.username || 'Unknown'}
+          <span class="text-green-400">[Profile Page]</span> Transcendence v1.0.0 | User: ${userProfile?.username || "Unknown"}
         </div>
       </footer>
     </div>
@@ -235,7 +219,7 @@ export async function ProfilePage(): Promise<void> {
 
   // Setup event listeners
   setupProfileListeners();
-  
+
   // Ajouter les event listeners du header
   Header.setupEventListeners();
 }
@@ -260,13 +244,19 @@ async function typeWriter(
 // Animations de la page profil
 async function startProfileAnimations(): Promise<void> {
   // 1. Header command
-  await typeWriter("header-command", "cat user_profile.txt", ANIMATION_SPEED.TYPEWRITER_FAST);
-  await new Promise((resolve) => setTimeout(resolve, ANIMATION_SPEED.DELAY_SHORT));
+  await typeWriter(
+    "header-command",
+    "cat user_profile.txt",
+    ANIMATION_SPEED.TYPEWRITER_FAST,
+  );
+  await new Promise((resolve) =>
+    setTimeout(resolve, ANIMATION_SPEED.DELAY_SHORT),
+  );
 
   // 2. Cacher le curseur et afficher le menu nav
   const headerCursor = document.getElementById("header-cursor");
   const navMenu = document.getElementById("nav-menu");
-  
+
   if (headerCursor) headerCursor.style.display = "none";
   if (navMenu) {
     navMenu.style.opacity = "1";
@@ -276,10 +266,9 @@ async function startProfileAnimations(): Promise<void> {
   // 3. Afficher les sections une par une
   const sections = [
     "profile-header",
-    "game-stats", 
+    "game-stats",
     "recent-activity",
-    "achievements",
-    "settings"
+    "settings",
   ];
 
   for (const sectionId of sections) {
@@ -287,7 +276,9 @@ async function startProfileAnimations(): Promise<void> {
     if (section) {
       section.style.opacity = "1";
       section.style.transition = `opacity ${ANIMATION_SPEED.TRANSITION_FAST}s`;
-      await new Promise((resolve) => setTimeout(resolve, ANIMATION_SPEED.DELAY_SHORT));
+      await new Promise((resolve) =>
+        setTimeout(resolve, ANIMATION_SPEED.DELAY_SHORT),
+      );
     }
   }
 }
@@ -298,7 +289,7 @@ async function startProfileAnimations(): Promise<void> {
 function setupProfileListeners(): void {
   const editPhotoBtn = document.getElementById("change-photo-btn");
   const photoInput = document.getElementById("photo-input") as HTMLInputElement;
-  
+
   if (editPhotoBtn && photoInput) {
     editPhotoBtn.addEventListener("click", () => {
       photoInput.click(); // Ouvrir le sélecteur de fichier
@@ -312,7 +303,7 @@ function setupProfileListeners(): void {
       }
     });
   }
-  
+
   // Edit profile button
   const editProfileBtn = document.getElementById("edit-profile-btn");
   if (editProfileBtn) {
@@ -324,7 +315,7 @@ function setupProfileListeners(): void {
   // Settings buttons
   document.addEventListener("click", (event) => {
     const target = event.target as HTMLElement;
-    
+
     if (target.textContent?.includes("[ENABLE]")) {
       console.log("Enable 2FA clicked");
       // TODO: Implémenter l'activation 2FA
@@ -338,16 +329,16 @@ function showEditProfileModal(): void {
     <div id="edit-profile-modal" class="fixed inset-0 bg-black bg-opacity-25 flex items-center justify-center z-50">
       <div class="bg-gray-900 border border-green-400/30 p-6 rounded max-w-md w-full mx-4">
         <h3 class="text-green-300 font-bold mb-4 text-xl">[EDIT PROFILE]</h3>
-        
+
         <form id="edit-profile-form">
           <!-- Username -->
           <div class="mb-4">
             <label class="block text-green-500 text-sm mb-2" for="new-username">
               Username (optional):
             </label>
-            <input 
-              type="text" 
-              id="new-username" 
+            <input
+              type="text"
+              id="new-username"
               name="username"
               class="w-full bg-black border border-green-400/30 text-green-400 p-3 rounded focus:border-green-400 focus:outline-none"
               placeholder="Leave empty to keep current username"
@@ -361,9 +352,9 @@ function showEditProfileModal(): void {
             <label class="block text-green-500 text-sm mb-2" for="new-email">
               Email (optional):
             </label>
-            <input 
-              type="email" 
-              id="new-email" 
+            <input
+              type="email"
+              id="new-email"
               name="email"
               class="w-full bg-black border border-green-400/30 text-green-400 p-3 rounded focus:border-green-400 focus:outline-none"
               placeholder="Leave empty to keep current email"
@@ -376,9 +367,9 @@ function showEditProfileModal(): void {
             <label class="block text-green-500 text-sm mb-2" for="new-password">
               New Password (optional):
             </label>
-            <input 
-              type="password" 
-              id="new-password" 
+            <input
+              type="password"
+              id="new-password"
               name="password"
               class="w-full bg-black border border-green-400/30 text-green-400 p-3 rounded focus:border-green-400 focus:outline-none"
               placeholder="Leave empty to keep current password"
@@ -391,9 +382,9 @@ function showEditProfileModal(): void {
             <label class="block text-green-500 text-sm mb-2" for="confirm-password">
               Confirm New Password:
             </label>
-            <input 
-              type="password" 
-              id="confirm-password" 
+            <input
+              type="password"
+              id="confirm-password"
               name="confirmPassword"
               class="w-full bg-black border border-green-400/30 text-green-400 p-3 rounded focus:border-green-400 focus:outline-none"
               placeholder="Confirm your new password"
@@ -405,27 +396,27 @@ function showEditProfileModal(): void {
             <label class="block text-green-500 text-sm mb-2" for="current-password">
               Current Password <span class="text-red-400">*</span>:
             </label>
-            <input 
-              type="password" 
-              id="current-password" 
+            <input
+              type="password"
+              id="current-password"
               name="currentPassword"
               class="w-full bg-black border border-green-400/30 text-green-400 p-3 rounded focus:border-green-400 focus:outline-none"
               placeholder="Enter your current password to confirm changes"
               required
             />
           </div>
-          
+
           <div id="profile-error" class="text-red-400 text-sm mb-4 hidden"></div>
-          
+
           <div class="flex space-x-4">
-            <button 
-              type="submit" 
+            <button
+              type="submit"
               class="flex-1 bg-green-400/20 border border-green-400/50 text-green-400 py-2 px-4 rounded hover:bg-green-400/30 transition-colors"
             >
               [SAVE CHANGES]
             </button>
-            <button 
-              type="button" 
+            <button
+              type="button"
               id="cancel-edit-profile"
               class="flex-1 bg-red-400/20 border border-red-400/50 text-red-400 py-2 px-4 rounded hover:bg-red-400/30 transition-colors"
             >
@@ -438,27 +429,35 @@ function showEditProfileModal(): void {
   `;
 
   // Ajouter la modal au DOM
-  document.body.insertAdjacentHTML('beforeend', modalHtml);
+  document.body.insertAdjacentHTML("beforeend", modalHtml);
 
   // Event listeners pour la modal
-  const modal = document.getElementById('edit-profile-modal');
-  const form = document.getElementById('edit-profile-form') as HTMLFormElement;
-  const cancelBtn = document.getElementById('cancel-edit-profile');
-  const errorDiv = document.getElementById('profile-error');
-  const newPasswordInput = document.getElementById('new-password') as HTMLInputElement;
-  const confirmPasswordSection = document.getElementById('confirm-password-section');
+  const modal = document.getElementById("edit-profile-modal");
+  const form = document.getElementById("edit-profile-form") as HTMLFormElement;
+  const cancelBtn = document.getElementById("cancel-edit-profile");
+  const errorDiv = document.getElementById("profile-error");
+  const newPasswordInput = document.getElementById(
+    "new-password",
+  ) as HTMLInputElement;
+  const confirmPasswordSection = document.getElementById(
+    "confirm-password-section",
+  );
 
   // Afficher/masquer la confirmation du mot de passe
-  newPasswordInput?.addEventListener('input', () => {
-    if (newPasswordInput.value.trim() !== '') {
-      confirmPasswordSection!.style.display = 'block';
-      const confirmPasswordInput = document.getElementById('confirm-password') as HTMLInputElement;
+  newPasswordInput?.addEventListener("input", () => {
+    if (newPasswordInput.value.trim() !== "") {
+      confirmPasswordSection!.style.display = "block";
+      const confirmPasswordInput = document.getElementById(
+        "confirm-password",
+      ) as HTMLInputElement;
       confirmPasswordInput.required = true;
     } else {
-      confirmPasswordSection!.style.display = 'none';
-      const confirmPasswordInput = document.getElementById('confirm-password') as HTMLInputElement;
+      confirmPasswordSection!.style.display = "none";
+      const confirmPasswordInput = document.getElementById(
+        "confirm-password",
+      ) as HTMLInputElement;
       confirmPasswordInput.required = false;
-      confirmPasswordInput.value = '';
+      confirmPasswordInput.value = "";
     }
   });
 
@@ -468,10 +467,10 @@ function showEditProfileModal(): void {
   };
 
   // Cancel button
-  cancelBtn?.addEventListener('click', closeModal);
+  cancelBtn?.addEventListener("click", closeModal);
 
   // Fermer en cliquant à l'extérieur
-  modal?.addEventListener('click', (e) => {
+  modal?.addEventListener("click", (e) => {
     if (e.target === modal) {
       closeModal();
     }
@@ -479,65 +478,68 @@ function showEditProfileModal(): void {
 
   // Fermer avec Escape
   const handleEscape = (e: KeyboardEvent) => {
-    if (e.key === 'Escape') {
+    if (e.key === "Escape") {
       closeModal();
-      document.removeEventListener('keydown', handleEscape);
+      document.removeEventListener("keydown", handleEscape);
     }
   };
-  document.addEventListener('keydown', handleEscape);
+  document.addEventListener("keydown", handleEscape);
 
   // Soumission du formulaire
-  form?.addEventListener('submit', async (e) => {
+  form?.addEventListener("submit", async (e) => {
     e.preventDefault();
-    
+
     const formData = new FormData(form);
-    const username = formData.get('username') as string;
-    const email = formData.get('email') as string;
-    const password = formData.get('password') as string;
-    const confirmPassword = formData.get('confirmPassword') as string;
-    const currentPassword = formData.get('currentPassword') as string;
+    const username = formData.get("username") as string;
+    const email = formData.get("email") as string;
+    const password = formData.get("password") as string;
+    const confirmPassword = formData.get("confirmPassword") as string;
+    const currentPassword = formData.get("currentPassword") as string;
     // Validation côté client
     if (!currentPassword.trim()) {
-      showError(errorDiv, 'Current password is required');
+      showError(errorDiv, "Current password is required");
       return;
     }
 
     // Vérifier que les champs ne sont pas vides s'ils sont remplis
     if (username && username.trim().length < 3) {
-      showError(errorDiv, 'Username must be at least 3 characters long');
+      showError(errorDiv, "Username must be at least 3 characters long");
       return;
     }
 
     if (username && !/^[a-zA-Z0-9_-]+$/.test(username.trim())) {
-      showError(errorDiv, 'Username can only contain letters, numbers, _ and -');
+      showError(
+        errorDiv,
+        "Username can only contain letters, numbers, _ and -",
+      );
       return;
     }
 
     if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) {
-      showError(errorDiv, 'Please enter a valid email address');
+      showError(errorDiv, "Please enter a valid email address");
       return;
     }
 
     if (password && password.length < 6) {
-      showError(errorDiv, 'New password must be at least 6 characters long');
+      showError(errorDiv, "New password must be at least 6 characters long");
       return;
     }
 
     if (password && password !== confirmPassword) {
-      showError(errorDiv, 'New passwords do not match');
+      showError(errorDiv, "New passwords do not match");
       return;
     }
 
     // Vérifier qu'au moins un champ est modifié
     if (!username?.trim() && !email?.trim() && !password?.trim()) {
-      showError(errorDiv, 'Please provide at least one field to update');
+      showError(errorDiv, "Please provide at least one field to update");
       return;
     }
 
     try {
       // Préparer le body de la requête
       const requestBody: EditProfileData = {
-        currentPassword: currentPassword.trim()
+        currentPassword: currentPassword.trim(),
       };
 
       if (username?.trim()) requestBody.username = username.trim();
@@ -545,35 +547,37 @@ function showEditProfileModal(): void {
       if (password?.trim()) requestBody.password = password.trim();
 
       // Envoyer la requête au backend
-      const response = await AuthManager.fetchWithAuth('/api/me', {
-        method: 'PATCH',
+      const response = await AuthManager.fetchWithAuth("/api/me", {
+        method: "PATCH",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
-        body: JSON.stringify(requestBody)
+        body: JSON.stringify(requestBody),
       });
 
       if (response.ok) {
-        console.log('✅ Profile updated successfully');
+        console.log("✅ Profile updated successfully");
         closeModal();
-        
+
         // Recharger la page profil pour afficher les nouvelles données
         const router = getRouter();
         if (router) {
-          router.navigate('/profile');
+          router.navigate("/profile");
         }
       } else {
         const errorData = await response.json();
-        showError(errorDiv, errorData.error || 'Failed to update profile');
+        showError(errorDiv, errorData.error || "Failed to update profile");
       }
     } catch (error) {
-      console.error('Error updating profile:', error);
-      showError(errorDiv, 'Network error. Please try again.');
+      console.error("Error updating profile:", error);
+      showError(errorDiv, "Network error. Please try again.");
     }
   });
 
   // Focus sur le premier champ
-  const usernameInput = document.getElementById('new-username') as HTMLInputElement;
+  const usernameInput = document.getElementById(
+    "new-username",
+  ) as HTMLInputElement;
   usernameInput?.focus();
 }
 
@@ -596,39 +600,47 @@ async function handlePhotoUpload(file: File): Promise<void> {
 
     // Créer FormData pour l'upload (comme dans Register)
     const formData = new FormData();
-    formData.append('profilePhoto', file);
+    formData.append("profilePhoto", file);
 
-    const response = await AuthManager.fetchWithAuth('/api/me/avatar', {
-      method: 'PATCH',
-      body: formData // Pas de Content-Type header, le navigateur le définit automatiquement
+    const response = await AuthManager.fetchWithAuth("/api/me/avatar", {
+      method: "PATCH",
+      body: formData, // Pas de Content-Type header, le navigateur le définit automatiquement
     });
 
     if (response.ok) {
-      showMessage('✅ Photo updated successfully', "success");
-      
+      showMessage("✅ Photo updated successfully", "success");
+
       // Recharger la page pour voir la nouvelle photo
       setTimeout(() => {
         const router = getRouter();
         if (router) {
-          router.navigate('/profile');
+          router.navigate("/profile");
         }
       }, 1000);
     } else {
       const errorData = await response.json();
-      showMessage(`Upload failed: ${errorData.error || 'Unknown error'}`, "error");
+      showMessage(
+        `Upload failed: ${errorData.error || "Unknown error"}`,
+        "error",
+      );
     }
   } catch (error) {
-    console.error('Error uploading photo:', error);
-    showMessage('Network error. Please try again.', "error");
+    console.error("Error uploading photo:", error);
+    showMessage("Network error. Please try again.", "error");
   } finally {
     // Reset file input
-    const photoInput = document.getElementById("photo-input") as HTMLInputElement;
-    if (photoInput) photoInput.value = '';
+    const photoInput = document.getElementById(
+      "photo-input",
+    ) as HTMLInputElement;
+    if (photoInput) photoInput.value = "";
   }
 }
 
 // Fonction pour afficher les messages (comme dans Register)
-function showMessage(message: string, type: "success" | "error" | "info"): void {
+function showMessage(
+  message: string,
+  type: "success" | "error" | "info",
+): void {
   // Créer un container de messages s'il n'existe pas
   let messagesContainer = document.getElementById("profile-messages");
   if (!messagesContainer) {
@@ -647,7 +659,8 @@ function showMessage(message: string, type: "success" | "error" | "info"): void 
         : "border-l-blue-400 text-blue-300"
   }`;
 
-  const prefix = type === "success" ? "[SUCCESS]" : type === "error" ? "[ERROR]" : "[INFO]";
+  const prefix =
+    type === "success" ? "[SUCCESS]" : type === "error" ? "[ERROR]" : "[INFO]";
   messageDiv.innerHTML = `<span class="font-bold">${prefix}</span> ${message}`;
 
   messagesContainer.appendChild(messageDiv);
@@ -668,11 +681,11 @@ function showMessage(message: string, type: "success" | "error" | "info"): void 
 function showError(errorDiv: HTMLElement | null, message: string): void {
   if (errorDiv) {
     errorDiv.textContent = message;
-    errorDiv.classList.remove('hidden');
-    
+    errorDiv.classList.remove("hidden");
+
     // Cacher l'erreur après 5 secondes
     setTimeout(() => {
-      errorDiv.classList.add('hidden');
+      errorDiv.classList.add("hidden");
     }, 5000);
   }
 }
