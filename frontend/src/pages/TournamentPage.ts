@@ -57,8 +57,11 @@ const API_ENDPOINTS = {
 export async function submitMatchResultToBackend(matchData: {
   matchId: number;
   player1Id: number;
+  player1Name: string;
   player2Id: number;
+  player2Name: string;
   winnerId: number;
+  winnerName: string;
   score1: number;
   score2: number;
   tournamentId?: string;
@@ -73,12 +76,15 @@ export async function submitMatchResultToBackend(matchData: {
         match_id: matchData.matchId,
         player1: {
           id: matchData.player1Id,
+          name: matchData.player1Name,
         },
         player2: {
           id: matchData.player2Id,
+          name: matchData.player2Name,
         },
         winner: {
           id: matchData.winnerId,
+          name: matchData.winnerName,
         },
         score: {
           player1: matchData.score1,
