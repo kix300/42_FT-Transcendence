@@ -84,6 +84,7 @@ db.prepare(`CREATE TABLE IF NOT EXISTS matches (
 	winner_id INTEGER NOT NULL,
 	player1_score INTEGER,
 	player2_score INTEGER,
+  tournament_winner_id INTEGER,
 	is_tournament BOOLEAN DEFAULT 0, --0 = false, 1 = true
 	date DATETIME TEXT DEFAULT (datetime('now', 'localtime')),
 	FOREIGN KEY (player1_id) REFERENCES users(id),
