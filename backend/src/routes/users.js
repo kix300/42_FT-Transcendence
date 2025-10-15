@@ -3,6 +3,7 @@ import bcrypt from 'bcrypt';
 import multipart from '@fastify/multipart';
 import path from 'path';
 import { pipeline } from "stream/promises";
+import fs from "fs";
 
 export default async function usersRoutes(fastify, options) {
 
