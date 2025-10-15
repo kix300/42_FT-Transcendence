@@ -6,12 +6,18 @@ export default async function friendsRoutes(fastify, options) {
     fastify.get("/api/friends/show", { preHandler: [fastify.authenticate] }, async () => {
         const userId = request.params.id;
 
-        const friends = db.prepare(`
+        try {
+            const friends = db.prepare(`
             SELECT u.id, u.username, u.photo
             FROM friends f
             JOIN users u ON f.friend_id = u.id
             WHERE f.user_id = ?
-            `).run(userId);
+            `).all(userId);
+            reply.send(friends);
+        } catch (err) {
+            console.error("Erreur lors de la récupération des amis :", err);
+            reply.status(500).send({ success: false, message: "Erreur serveur" });
+        }
 
         // db.prepare(`
         //     SELECT u.id, u.username, u.photo, f.status
@@ -20,7 +26,7 @@ export default async function friendsRoutes(fastify, options) {
         //     WHERE f.user_id = ? AND f.status = 'accepted';
         //     `).run(userId);
 
-		reply.send(friends);
+
     });
 
     //ajouter un ami
