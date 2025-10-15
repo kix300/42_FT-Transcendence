@@ -16,9 +16,16 @@ const db = new Database("/data/database.db");
 
 // crée la table users si elle n'existe pas
 // on refuse les doublons de username et de email
-db.prepare("CREATE TABLE IF NOT EXISTS users (id INTEGER PRIMARY KEY, username TEXT UNIQUE, email TEXT UNIQUE, password TEXT, photo TEXT DEFAULT './uploads/avatar.png', wins INTEGER DEFAULT 0, losses INTEGER DEFAULT 0)").run();
+db.prepare(`CREATE TABLE IF NOT EXISTS users (
+    id INTEGER PRIMARY KEY,
+    username TEXT UNIQUE,
+    email TEXT UNIQUE,
+    password TEXT,
+    photo TEXT DEFAULT './uploads/avatar.png',
+    wins INTEGER DEFAULT 0,
+    losses INTEGER DEFAULT 0)`).run();
 
-// insère une donnée
+// insère les 3 admins
 try{
     const hashed1 = await bcrypt.hash(process.env.MDP1, 10);
     const hashed2 = await bcrypt.hash(process.env.MDP2, 10);
@@ -85,4 +92,31 @@ db.prepare(`CREATE TABLE IF NOT EXISTS matches (
 	)`).run();
 
 
+
+
+
+
+
+
+/*****************************************************************/ 
+/*                                                               */ 
+/*                 TABLE MATCHES                                 */ 
+/*                                                               */ 
+/*****************************************************************/ 
+
+
+// crée la table si elle n'existe pas
+db.prepare(`CREATE TABLE IF NOT EXISTS friends (
+	id INTEGER PRIMARY KEY AUTOINCREMENT,
+	user_id INTEGER NOT NULL,
+	friend_id INTEGER NOT NULL,
+  status TEXT DEFAULT 'pending',
+	FOREIGN KEY (user_id) REFERENCES users(id),
+	FOREIGN KEY (friend_id) REFERENCES users(id),
+  UNIQUE(user_id, friend_id) -- interdire les doublons
+	)`).run();
+
 export default db;
+
+
+

@@ -9,15 +9,26 @@ import { fileURLToPath } from "url";
 import { dirname } from "path";
 import { requireHttps } from './https.js';
 
+
+//port
+const porthttps = 3000;
+
 //import routes
 import registerRoutes from './routes/register.js';
 import loginRoutes from './routes/login.js';
 import userRoutes from './routes/users.js';
 import matchesRoutes from './routes/matches.js';
+import friendsRoutes from './routes/friends.js';
 // import oauthRoutes from './routes/oauth.js';
 
-//port
-const porthttps = 3000;
+
+// Enregistrer les routes
+fastify.register(registerRoutes);
+fastify.register(loginRoutes);
+fastify.register(userRoutes);
+fastify.register(matchesRoutes);
+fastify.register(friendsRoutes);
+// fastify.register(oauthRoutes);
 
 // https config
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -58,14 +69,6 @@ fastify.decorate("authenticate", async (request, reply) => {
   }
 });
 
-export default fastify;
-
-// Enregistrer les routes
-fastify.register(registerRoutes);
-fastify.register(loginRoutes);
-fastify.register(userRoutes);
-fastify.register(matchesRoutes);
-// fastify.register(oauthRoutes);
 
 // Renvoie la route '/' a public/dist/index.html 
 fastify.get("/", async (request, reply) => {
@@ -89,5 +92,7 @@ const start = async () => {
 fastify.setNotFoundHandler((request, reply) => {
   reply.sendFile('index.html'); 
 });
+
+export default fastify;
 
 start();
