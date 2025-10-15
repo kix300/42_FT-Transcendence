@@ -2,6 +2,7 @@ import { getRouter } from "../router";
 import { AuthManager } from "../utils/auth";
 import { Header } from "../components/Header";
 import { createHeader, HeaderConfigs } from "../components/Header";
+import { USERS_API, FRIENDS_API } from "../utils/apiConfig";
 
 // Interface pour les utilisateurs recherchés
 interface SearchedUser {
@@ -424,7 +425,7 @@ async function searchUsers(query: string): Promise<void> {
       '<div class="text-green-400/50 text-sm">Searching...</div>';
     searchResultsDiv.classList.remove("hidden");
 
-    const response = await AuthManager.fetchWithAuth(`/api/users`);
+    const response = await AuthManager.fetchWithAuth(USERS_API.GET_ALL);
 
     if (response.ok) {
       const allUsers: SearchedUser[] = await response.json();
@@ -499,7 +500,7 @@ async function searchUsers(query: string): Promise<void> {
 // Add friend
 async function addFriend(userId: number, username: string): Promise<void> {
   try {
-    const response = await AuthManager.fetchWithAuth("/api/friends", {
+    const response = await AuthManager.fetchWithAuth(FRIENDS_API.ADD, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -530,7 +531,7 @@ async function loadFriendsList(): Promise<void> {
   if (!friendsList) return;
 
   try {
-    const response = await AuthManager.fetchWithAuth("/api/friends");
+    const response = await AuthManager.fetchWithAuth(FRIENDS_API.GET_ALL);
 
     if (response.ok) {
       const friends: Friend[] = await response.json();
@@ -627,7 +628,7 @@ async function removeFriend(userId: number, username: string): Promise<void> {
   }
 
   try {
-    const response = await AuthManager.fetchWithAuth(`/api/friends/${userId}`, {
+    const response = await AuthManager.fetchWithAuth(FRIENDS_API.DELETE(userId), {
       method: "DELETE",
     });
 
