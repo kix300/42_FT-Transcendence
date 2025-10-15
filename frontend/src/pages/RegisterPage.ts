@@ -1,4 +1,5 @@
 import { getRouter } from "../router";
+import { AUTH_API } from "../utils/apiConfig";
 
 // Variable globale pour contrôler la vitesse d'écriture des animations
 const ANIMATION_SPEED = {
@@ -715,7 +716,7 @@ async function handleRegister(): Promise<void> {
 	console.log("Une photo a ete dectee", profilePhoto);
 	formData.append("profilePhoto", profilePhoto);
 	}
-	response = await fetch("/api/register", {
+	response = await fetch(AUTH_API.REGISTER, {
 	method: "POST",
 	body: formData,
 	});

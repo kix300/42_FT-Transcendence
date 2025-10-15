@@ -2,6 +2,7 @@ import { getRouter } from "../router";
 import { AuthManager } from "../utils/auth";
 import { Header } from "../components/Header";
 import { createHeader, HeaderConfigs } from "../components/Header";
+import { PROFILE_API } from "../utils/apiConfig";
 
 // Interface pour l'historique des matchs
 interface Match {
@@ -71,7 +72,7 @@ export async function ProfilePage(): Promise<void> {
   let userProfile: UserProfile | null = null;
   try {
     console.log("Authentification...");
-    const response = await AuthManager.fetchWithAuth("/api/me");
+    const response = await AuthManager.fetchWithAuth(PROFILE_API.GET_ME);
     if (response.ok) {
       console.log("Début de ProfilePage");
       const data = await response.json();
@@ -547,7 +548,7 @@ function showEditProfileModal(): void {
       if (password?.trim()) requestBody.password = password.trim();
 
       // Envoyer la requête au backend
-      const response = await AuthManager.fetchWithAuth("/api/me", {
+      const response = await AuthManager.fetchWithAuth(PROFILE_API.UPDATE_ME, {
         method: "PATCH",
         headers: {
           "Content-Type": "application/json",
@@ -602,7 +603,7 @@ async function handlePhotoUpload(file: File): Promise<void> {
     const formData = new FormData();
     formData.append("profilePhoto", file);
 
-    const response = await AuthManager.fetchWithAuth("/api/me/avatar", {
+    const response = await AuthManager.fetchWithAuth(PROFILE_API.UPDATE_AVATAR, {
       method: "PATCH",
       body: formData, // Pas de Content-Type header, le navigateur le définit automatiquement
     });

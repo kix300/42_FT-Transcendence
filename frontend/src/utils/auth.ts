@@ -1,4 +1,5 @@
 import { getRouter } from "../router";
+import { AUTH_API } from "./apiConfig";
 
 export class AuthManager {
   private static readonly TOKEN_KEY = 'auth_token';
@@ -96,7 +97,7 @@ export class AuthManager {
     }
 
     try {
-      const response = await fetch('/api/validate-token', {
+      const response = await fetch(AUTH_API.VALIDATE_TOKEN, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -119,7 +120,7 @@ export class AuthManager {
   // Méthode de login qui stocke le token
   static async login(credentials: { username: string; password: string; remember?: boolean }): Promise<boolean> {
     try {
-      const response = await fetch('/api/login', {
+      const response = await fetch(AUTH_API.LOGIN, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
