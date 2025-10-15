@@ -3,6 +3,8 @@ import { AuthManager } from "../utils/auth";
 import { Header } from "../components/Header";
 import { createHeader, HeaderConfigs } from "../components/Header";
 import { PROFILE_API } from "../utils/apiConfig";
+//@ts-ignore -- mon editeur me donnais une erreur alors que npm run build non
+import profilePageHtml from "./html/ProfilePage.html?raw";
 
 // Interface pour l'historique des matchs
 interface Match {
@@ -54,6 +56,56 @@ const ANIMATION_SPEED = {
   TRANSITION_NORMAL: 0.5,
 };
 
+function buildProfileHtml(
+  headerHtml: string,
+  userProfile: UserProfile | null,
+): string {
+  let html = profilePageHtml;
+
+  const avatar = userProfile?.photo
+    ? `<img src="${userProfile.photo}" alt="${userProfile.username}" class="w-full h-full object-cover rounded-full" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" />
+       <span class="text-green-400 text-3xl font-bold hidden">${(userProfile?.username || "U").charAt(0).toUpperCase()}</span>`
+    : `<span class="text-green-400 text-3xl font-bold">${(userProfile?.username || "U").charAt(0).toUpperCase()}</span>`;
+
+  const winRate = userProfile?.stats.totalMatches
+    ? Math.round(
+        ((userProfile.stats.wins || 0) / userProfile.stats.totalMatches) * 100,
+      )
+    : 0;
+
+  html = html.replace("{{header}}", headerHtml);
+  html = html.replace("{{avatar}}", avatar);
+  html = html.replace("{{username}}", userProfile?.username || "Unknown User");
+  html = html.replace("{{userId}}", userProfile?.id?.toString() || "N/A");
+  html = html.replace("{{email}}", userProfile?.email || "Not provided");
+  html = html.replace("{{level}}", userProfile?.level?.toString() || "1");
+  html = html.replace(
+    "{{memberSince}}",
+    userProfile?.created_at
+      ? new Date(userProfile.created_at).toLocaleDateString()
+      : "Recently",
+  );
+  html = html.replace(
+    "{{totalMatches}}",
+    userProfile?.stats.totalMatches?.toString() || "0",
+  );
+  html = html.replace("{{wins}}", userProfile?.stats.wins?.toString() || "0");
+  html = html.replace("{{winRate}}", winRate.toString());
+  html = html.replace(
+    "{{currentLevel}}",
+    userProfile?.level?.toString() || "1",
+  );
+  html = html.replace(
+    "{{lastLogin}}",
+    userProfile?.last_login
+      ? new Date(userProfile.last_login).toLocaleString()
+      : "Now",
+  );
+  html = html.replace("{{footerUsername}}", userProfile?.username || "Unknown");
+
+  return html;
+}
+
 export async function ProfilePage(): Promise<void> {
   // Vérifier l'authentification AVANT d'afficher la page
   if (!AuthManager.isAuthenticated()) {
@@ -98,122 +150,8 @@ export async function ProfilePage(): Promise<void> {
   const headerHtml = await header.render();
 
   // HTML de la page profil
-  const profilePageHtml = `
-    <div class="min-h-screen flex flex-col bg-black text-green-400 font-mono">
-      ${headerHtml}
-
-      <!-- Main content -->
-      <main class="flex-1 p-6">
-        <div class="max-w-4xl mx-auto">
-          <!-- Profile Header -->
-          <div class="mb-8" id="profile-header" style="opacity: 0;">
-            <div class="flex items-center space-x-6 bg-gray-900 border border-green-400/30 p-6 rounded">
-              <!-- Avatar -->
-              <div class="w-24 h-24 rounded-full bg-green-400/20 border-2 border-green-400/50 flex items-center justify-center overflow-hidden">
-                ${
-                  userProfile?.photo
-                    ? `<img src="${userProfile.photo}" alt="${userProfile.username}" class="w-full h-full object-cover rounded-full" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" />
-                   <span class="text-green-400 text-3xl font-bold hidden">${(userProfile?.username || "U").charAt(0).toUpperCase()}</span>`
-                    : `<span class="text-green-400 text-3xl font-bold">${(userProfile?.username || "U").charAt(0).toUpperCase()}</span>`
-                }
-              </div>
-
-     <!-- User Info -->
-              <div class="flex-1">
-                <h1 class="text-2xl font-bold text-green-300 mb-2">${userProfile?.username || "Unknown User"}</h1>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-                  <div>
-                    <span class="text-green-500">User ID:</span>
-                    <span class="text-green-400">#${userProfile?.id || "N/A"}</span>
-                  </div>
-                  <div>
-                    <span class="text-green-500">Email:</span>
-                    <span class="text-green-400">${userProfile?.email || "Not provided"}</span>
-                  </div>
-                  <div>
-                    <span class="text-green-500">Level:</span>
-                    <span class="text-green-400">${userProfile?.level || "1"}</span>
-                  </div>
-                  <div>
-                    <span class="text-green-500">Member since:</span>
-                    <span class="text-green-400">${userProfile?.created_at ? new Date(userProfile.created_at).toLocaleDateString() : "Recently"}</span>
-                  </div>
-                </div>
-              </div>
-
-              <!-- Edit Button -->
-              <div class="flex flex-col space-y-2">
-                <button id="edit-profile-btn" class="bg-green-400/10 border border-green-400/30 px-4 py-2 rounded hover:bg-green-400/20 transition-colors">
-                  <span class="text-green-400">Edit Profile</span>
-                </button>
-                <button id="change-photo-btn" class="bg-blue-400/10 border border-blue-400/30 px-4 py-2 rounded hover:bg-blue-400/20 transition-colors">
-                  <span class="text-blue-400">Change Photo</span>
-                </button>
-                <input type="file" id="photo-input" accept="image/*" class="hidden" />
-              </div>
-            </div>
-          </div>
-
-          <!-- Stats Section -->
-          <div class="grid md:grid-cols-2 gap-6 mb-8">
-            <!-- Game Stats -->
-            <div class="bg-gray-900 border border-green-400/30 p-6 rounded" id="game-stats" style="opacity: 0;">
-              <h2 class="text-green-300 font-bold mb-4 text-xl">[GAME STATISTICS]</h2>
-              <div class="space-y-3">
-                <div class="flex justify-between">
-                  <span class="text-green-500">Games Played:</span>
-                  <span class="text-green-400 font-mono">${userProfile?.stats.totalMatches || "0"}</span>
-                </div>
-                <div class="flex justify-between">
-                  <span class="text-green-500">Games Won:</span>
-                  <span class="text-green-400 font-mono">${userProfile?.stats.wins || "0"}</span>
-                </div>
-                <div class="flex justify-between">
-                  <span class="text-green-500">Win Rate:</span>
-                  <span class="text-green-400 font-mono">${userProfile?.stats.totalMatches ? Math.round(((userProfile.stats.wins || 0) / userProfile.stats.totalMatches) * 100) : 0}%</span>
-                </div>
-                <div class="flex justify-between">
-                  <span class="text-green-500">Current Level:</span>
-                  <span class="text-green-400 font-mono">Level ${userProfile?.level || "1"}</span>
-                </div>
-              </div>
-            </div>
-
-            <!-- Recent Activity -->
-            <div class="bg-gray-900 border border-green-400/30 p-6 rounded" id="recent-activity" style="opacity: 0;">
-              <h2 class="text-green-300 font-bold mb-4 text-xl">[RECENT ACTIVITY]</h2>
-              <div class="space-y-3 text-sm">
-                <div class="flex items-center space-x-2">
-                  <span class="text-green-500">●</span>
-                  <span class="text-green-400">Last login: ${userProfile?.last_login ? new Date(userProfile.last_login).toLocaleString() : "Now"}</span>
-                </div>
-                <div class="flex items-center space-x-2">
-                  <span class="text-green-500">●</span>
-                  <span class="text-green-400">Profile updated: Recently</span>
-                </div>
-                <div class="flex items-center space-x-2">
-                  <span class="text-green-500">●</span>
-                  <span class="text-green-400">Tournament participation: Coming soon</span>
-                </div>
-              </div>
-            </div>
-          </div>
-
-
-        </div>
-      </main>
-
-      <!-- Footer -->
-      <footer class="border-t border-green-400/30 p-4">
-        <div class="max-w-6xl mx-auto text-center text-green-500 text-sm">
-          <span class="text-green-400">[Profile Page]</span> Transcendence v1.0.0 | User: ${userProfile?.username || "Unknown"}
-        </div>
-      </footer>
-    </div>
-  `;
-
-  // Injecter le HTML
-  appDiv.innerHTML = profilePageHtml;
+  const finalHtml = buildProfileHtml(headerHtml, userProfile);
+  appDiv.innerHTML = finalHtml;
 
   // Démarrer les animations
   startProfileAnimations();
@@ -603,10 +541,13 @@ async function handlePhotoUpload(file: File): Promise<void> {
     const formData = new FormData();
     formData.append("profilePhoto", file);
 
-    const response = await AuthManager.fetchWithAuth(PROFILE_API.UPDATE_AVATAR, {
-      method: "PATCH",
-      body: formData, // Pas de Content-Type header, le navigateur le définit automatiquement
-    });
+    const response = await AuthManager.fetchWithAuth(
+      PROFILE_API.UPDATE_AVATAR,
+      {
+        method: "PATCH",
+        body: formData, // Pas de Content-Type header, le navigateur le définit automatiquement
+      },
+    );
 
     if (response.ok) {
       showMessage("✅ Photo updated successfully", "success");

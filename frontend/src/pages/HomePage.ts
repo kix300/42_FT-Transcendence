@@ -3,6 +3,8 @@ import { AuthManager } from "../utils/auth";
 import { Header } from "../components/Header";
 import { createHeader, HeaderConfigs } from "../components/Header";
 import { USERS_API, FRIENDS_API } from "../utils/apiConfig";
+//@ts-ignore -- mon editeur me donnais une erreur alors que npm run build non
+import homePageHtml from "./html/HomePage.html?raw";
 
 // Interface pour les utilisateurs recherchés
 interface SearchedUser {
@@ -55,109 +57,13 @@ export async function HomePage(): Promise<void> {
   const header = createHeader(HeaderConfigs.profile);
   const headerHtml = await header.render();
 
-  // HTML de la page d'accueil
-  const homePageHtml = `
-    <div class="min-h-screen flex flex-col bg-black text-green-400 font-mono">
-      ${headerHtml}
-
-      <!-- Terminal content -->
-      <main class="flex-1 p-6">
-        <div class="max-w-6xl mx-auto">
-          <!-- ASCII Art Header -->
-          <div class="mb-8">
-            <pre id="ascii-art" class="text-green-400 text-sm md:text-base leading-tight opacity-0">
- ████████ ██████   █████  ███    ██ ███████  ██████ ███████ ███    ██ ██████  ███████ ███    ██  ██████ ███████
-    ██    ██   ██ ██   ██ ████   ██ ██      ██      ██      ████   ██ ██   ██ ██      ████   ██ ██      ██
-    ██    ██████  ███████ ██ ██  ██ ███████ ██      █████   ██ ██  ██ ██   ██ █████   ██ ██  ██ ██      █████
-    ██    ██   ██ ██   ██ ██  ██ ██      ██ ██      ██      ██  ██ ██ ██   ██ ██      ██  ██ ██ ██      ██
-    ██    ██   ██ ██   ██ ██   ████ ███████  ██████ ███████ ██   ████ ██████  ███████ ██   ████  ██████ ███████
-            </pre>
-            <div class="mt-4" id="terminal-prompt" style="opacity: 0;">
-              <span class="text-green-500">user@42school:~$</span>
-              <span id="cat-command" class="text-green-300"></span>
-              <span id="cat-cursor" class="text-green-300 animate-pulse">_</span>
-            </div>
-            <div class="mt-2 text-green-400" id="welcome-messages" style="opacity: 0;">
-              <div id="msg-1">> </div>
-              <div id="msg-2">> </div>
-              <div id="msg-3">> </div>
-              <div id="msg-4">> </div>
-            </div>
-          </div>
-
-          <!-- Command menu -->
-          <div class="bg-gray-900 border border-green-400/30 p-6 mb-8" id="command-menu" style="opacity: 0;">
-            <div class="text-green-300 mb-4" id="available-commands"></div>
-            <div class="grid md:grid-cols-2 gap-4">
-              <button data-route="/game" class="text-left p-3 border border-green-400/30 hover:bg-green-400/10 transition-colors">
-                <div class="text-green-300">./start_game.sh</div>
-                <div class="text-green-500 text-sm">Launch a new Pong match</div>
-              </button>
-              <button data-route="/tournament" class="text-left p-3 border border-green-400/30 hover:bg-green-400/10 transition-colors">
-                <div class="text-green-300">./tournament.sh</div>
-                <div class="text-green-500 text-sm">Join competitive tournaments</div>
-              </button>
-            </div>
-          </div>
-
-          <!-- Friends Section -->
-          <div class="bg-gray-900 border border-green-400/30 p-6 mb-8" id="friends-section" style="opacity: 0;">
-            <h2 class="text-green-300 font-bold mb-4 text-xl">[FRIENDS]</h2>
-
-            <!-- Search Bar -->
-            <div class="mb-6">
-              <div class="flex space-x-2">
-                <input
-                  type="text"
-                  id="friend-search-input"
-                  placeholder="Search users by username..."
-                  class="flex-1 bg-black border border-green-400/30 text-green-400 p-3 rounded focus:border-green-400 focus:outline-none"
-                />
-                <button
-                  id="friend-search-btn"
-                  class="bg-green-400/20 border border-green-400/50 text-green-400 px-6 py-2 rounded hover:bg-green-400/30 transition-colors"
-                >
-                  [SEARCH]
-                </button>
-              </div>
-
-              <!-- Search Results -->
-              <div id="search-results" class="mt-4 space-y-2 hidden">
-                <div class="text-green-500 text-sm mb-2">[SEARCH RESULTS]</div>
-                <div id="search-results-list" class="space-y-2 max-h-60 overflow-y-auto"></div>
-              </div>
-            </div>
-
-            <!-- Friends List -->
-            <div class="mb-4">
-              <h3 class="text-green-500 font-bold mb-3">[YOUR FRIENDS]</h3>
-              <div id="friends-list" class="space-y-2">
-                <div class="text-green-400/50 text-sm">Loading friends...</div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Quick start -->
-          <div class="bg-gray-900 border border-green-400/30 p-6" id="History" style="opacity: 0;">
-            <div class="text-green-300 mb-4" id="History-title"></div>
-            <div class="text-green-400 space-y-2">
-              <div><span class="text-green-500">$</span> Ready to play? Look at your match:</div
-            </div>
-          </div>
-        </div>
-      </main>
-
-      <!-- Footer terminal style -->
-      <footer class="border-t border-green-400/30 p-4">
-        <div class="max-w-6xl mx-auto text-center text-green-500 text-sm">
-          <span class="text-green-400">[System Info]</span> Transcendence v1.0.0 | École 42 | Build ${new Date().getFullYear()}.${String(new Date().getMonth() + 1).padStart(2, "0")}.${String(new Date().getDate()).padStart(2, "0")}
-        </div>
-      </footer>
-    </div>
-  `;
-
   // Injecter le HTML dans le conteneur
-  appDiv.innerHTML = homePageHtml;
+  const buildDate = `${new Date().getFullYear()}.${String(new Date().getMonth() + 1).padStart(2, "0")}.${String(new Date().getDate()).padStart(2, "0")}`;
+  const finalHtml = homePageHtml
+    .replace("{{header}}", headerHtml)
+    .replace("{{buildDate}}", buildDate);
+
+  appDiv.innerHTML = finalHtml;
 
   // Démarrer les animations
   startTypewriterAnimations();
@@ -628,9 +534,12 @@ async function removeFriend(userId: number, username: string): Promise<void> {
   }
 
   try {
-    const response = await AuthManager.fetchWithAuth(FRIENDS_API.DELETE(userId), {
-      method: "DELETE",
-    });
+    const response = await AuthManager.fetchWithAuth(
+      FRIENDS_API.DELETE(userId),
+      {
+        method: "DELETE",
+      },
+    );
 
     if (response.ok) {
       showMessage(`Removed ${username} from friends`, "success");

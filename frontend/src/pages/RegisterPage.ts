@@ -1,15 +1,17 @@
 import { getRouter } from "../router";
 import { AUTH_API } from "../utils/apiConfig";
+//@ts-ignore -- mon editeur me donnais une erreur alors que npm run build non
+import registerPageHtml from "./html/RegisterPage.html?raw";
 
 // Variable globale pour contrôler la vitesse d'écriture des animations
 const ANIMATION_SPEED = {
-  TYPEWRITER_FAST: 0,    // Vitesse rapide pour les commandes
-  TYPEWRITER_NORMAL: 15,  // Vitesse normale pour les textes
-  TYPEWRITER_SLOW: 20,    // Vitesse lente pour les titres
-  DELAY_SHORT: 0,        // Délai court entre les animations
-  DELAY_MEDIUM: 100,      // Délai moyen
-  DELAY_LONG: 150,        // Délai long
-  TRANSITION_FAST: 0,   // Transition rapide
+  TYPEWRITER_FAST: 0, // Vitesse rapide pour les commandes
+  TYPEWRITER_NORMAL: 15, // Vitesse normale pour les textes
+  TYPEWRITER_SLOW: 20, // Vitesse lente pour les titres
+  DELAY_SHORT: 0, // Délai court entre les animations
+  DELAY_MEDIUM: 100, // Délai moyen
+  DELAY_LONG: 150, // Délai long
+  TRANSITION_FAST: 0, // Transition rapide
   TRANSITION_NORMAL: 0.5, // Transition normale
 };
 
@@ -23,294 +25,9 @@ export async function RegisterPage(): Promise<void> {
     body.className = "bg-black min-h-screen font-mono text-green-400";
   }
 
-  // HTML de la page de register
-  const registerPageHtml = `
-    <div class="min-h-screen flex flex-col bg-black text-green-400 font-mono">
-      <!-- Terminal Header -->
-      <header class="p-4 border-b border-green-400/30">
-        <div class="max-w-4xl mx-auto">
-          <div class="flex items-center">
-            <span class="text-green-400 mr-2">[system@42register]$</span>
-            <span id="header-command" class="text-green-300 font-bold"></span>
-            <span id="header-cursor" class="text-green-300 animate-pulse">_</span>
-          </div>
-        </div>
-      </header>
-
-      <!-- Main Terminal Content -->
-      <main class="flex-1 flex items-center justify-center p-6">
-        <div class="max-w-4xl w-full">
-
-          <!-- ASCII Art Logo -->
-          <div class="mb-8 text-center">
-            <pre id="ascii-logo" class="text-green-400 text-xs md:text-sm leading-tight opacity-0">
- ██████  ██████  ███████  █████  ████████ ███████
-██      ██   ██ ██      ██   ██    ██    ██
-██      ██████  █████   ███████    ██    █████
-██      ██   ██ ██      ██   ██    ██    ██
- ██████ ██   ██ ███████ ██   ██    ██    ███████
-
-███    ██ ███████ ██     ██      █████   ██████  ██████  ██████  ██    ██ ███    ██ ████████
-████   ██ ██      ██     ██     ██   ██ ██      ██      ██    ██ ██    ██ ████   ██    ██
-██ ██  ██ █████   ██  █  ██     ███████ ██      ██      ██    ██ ██    ██ ██ ██  ██    ██
-██  ██ ██ ██      ██ ███ ██     ██   ██ ██      ██      ██    ██ ██    ██ ██  ██ ██    ██
-██   ████ ███████  ███ ███      ██   ██  ██████  ██████  ██████   ██████  ██   ████    ██
-            </pre>
-          </div>
-
-          <!-- System Boot Messages -->
-          <div class="mb-8" id="boot-messages" style="opacity: 0;">
-            <div id="boot-1" class="text-green-400 mb-1"></div>
-            <div id="boot-2" class="text-green-400 mb-1"></div>
-            <div id="boot-3" class="text-green-400 mb-1"></div>
-            <div id="boot-4" class="text-green-400 mb-1"></div>
-            <div id="boot-5" class="text-green-400 mb-1"></div>
-          </div>
-
-          <!-- Register Terminal Window -->
-          <div class="bg-gray-900 border border-green-400/50 shadow-lg" id="register-terminal" style="opacity: 0;">
-            <!-- Terminal Title Bar -->
-            <div class="bg-gray-800 border-b border-green-400/30 px-4 py-2 flex items-center justify-between">
-              <div class="flex items-center space-x-2">
-                <div class="w-3 h-3 bg-red-500 rounded-full"></div>
-                <div class="w-3 h-3 bg-yellow-500 rounded-full"></div>
-                <div class="w-3 h-3 bg-green-500 rounded-full"></div>
-              </div>
-              <div class="text-green-400 text-sm">42register-terminal v2.1.0</div>
-            </div>
-
-            <!-- Terminal Content -->
-            <div class="p-6">
-              <!-- Register Prompt -->
-              <div class="mb-6">
-                <div class="text-green-300 mb-2" id="register-prompt"></div>
-                <div class="text-green-400 text-sm mb-4" id="register-info"></div>
-              </div>
-
-              <!-- Register Form -->
-              <form id="register-form" class="space-y-4">
-                <!-- Username Field -->
-                <div class="space-y-2">
-                  <div class="flex items-center">
-                    <span class="text-green-500 mr-2">username@42school:~$</span>
-                    <span class="text-green-300" id="username-label"></span>
-                  </div>
-                  <div class="flex items-center bg-black border border-green-400/30 p-2">
-                    <span class="text-green-500 mr-2">></span>
-                    <input
-                      type="text"
-                      id="username"
-                      name="username"
-                      class="bg-transparent text-green-400 font-mono flex-1 outline-none placeholder-green-400/50"
-                      placeholder="enter username..."
-                      autocomplete="username"
-                      minlength="3"
-                      maxlength="20"
-                      required
-                    />
-                  </div>
-                  <div class="text-xs text-green-500/70 ml-4">// 3-20 characters, alphanumeric only</div>
-                </div>
-
-                <!-- Email Field -->
-                <div class="space-y-2">
-                  <div class="flex items-center">
-                    <span class="text-green-500 mr-2">email@42school:~$</span>
-                    <span class="text-green-300" id="email-label"></span>
-                  </div>
-                  <div class="flex items-center bg-black border border-green-400/30 p-2">
-                    <span class="text-green-500 mr-2">></span>
-                    <input
-                      type="email"
-                      id="email"
-                      name="email"
-                      class="bg-transparent text-green-400 font-mono flex-1 outline-none placeholder-green-400/50"
-                      placeholder="enter email..."
-                      autocomplete="email"
-                      required
-                    />
-                  </div>
-                  <div class="text-xs text-green-500/70 ml-4">// valid email address required</div>
-                </div>
-
-                <!-- Password Field -->
-                <div class="space-y-2">
-                  <div class="flex items-center">
-                    <span class="text-green-500 mr-2">password@42school:~$</span>
-                    <span class="text-green-300" id="password-label"></span>
-                  </div>
-                  <div class="flex items-center bg-black border border-green-400/30 p-2">
-                    <span class="text-green-500 mr-2">></span>
-                    <input
-                      type="password"
-                      id="password"
-                      name="password"
-                      class="bg-transparent text-green-400 font-mono flex-1 outline-none placeholder-green-400/50"
-                      placeholder="enter password..."
-                      autocomplete="new-password"
-                      minlength="8"
-                      required
-                    />
-                  </div>
-                  <div class="text-xs text-green-500/70 ml-4">// min 8 chars, include numbers and special chars</div>
-                </div>
-
-                <!-- Confirm Password Field -->
-                <div class="space-y-2">
-                  <div class="flex items-center">
-                    <span class="text-green-500 mr-2">confirm@42school:~$</span>
-                    <span class="text-green-300" id="confirm-password-label"></span>
-                  </div>
-                  <div class="flex items-center bg-black border border-green-400/30 p-2">
-                    <span class="text-green-500 mr-2">></span>
-                    <input
-                      type="password"
-                      id="confirm-password"
-                      name="confirm-password"
-                      class="bg-transparent text-green-400 font-mono flex-1 outline-none placeholder-green-400/50"
-                      placeholder="confirm password..."
-                      autocomplete="new-password"
-                      required
-                    />
-                  </div>
-                  <div class="text-xs text-green-500/70 ml-4">// must match password above</div>
-                </div>
-
-
-
-                <!-- Profile Photo Upload -->
-                <div class="space-y-2">
-                  <div class="flex items-center">
-                    <span class="text-green-500 mr-2">avatar@42school:~$</span>
-                    <span class="text-green-300" id="photo-label"></span>
-                  </div>
-
-                  <!-- Photo Preview Area -->
-                  <div class="bg-black border border-green-400/30 p-4">
-                    <div class="flex items-center space-x-4">
-                      <!-- Preview Image -->
-                      <div class="flex-shrink-0">
-                        <div id="photo-preview" class="w-16 h-16 border border-green-400/50 bg-gray-800 flex items-center justify-center">
-                          <span class="text-green-500 text-xs">NO IMG</span>
-                        </div>
-                      </div>
-
-                      <!-- Upload Controls -->
-                      <div class="flex-1">
-                        <input
-                          type="file"
-                          id="profile-photo"
-                          name="profile-photo"
-                          accept="image/*"
-                          class="hidden"
-                        />
-                        <div class="space-y-2">
-                          <button
-                            type="button"
-                            id="upload-photo-btn"
-                            class="bg-black border border-green-400/30 text-green-400 px-3 py-1 hover:bg-green-400/10 transition-colors text-sm"
-                          >
-                            ./upload_avatar.sh --select
-                          </button>
-                          <button
-                            type="button"
-                            id="remove-photo-btn"
-                            class="bg-black border border-red-400/30 text-red-400 px-3 py-1 hover:bg-red-400/10 transition-colors text-sm ml-2 hidden"
-                          >
-                            ./remove_avatar.sh
-                          </button>
-                        </div>
-                        <div id="photo-info" class="text-xs text-green-500/70 mt-1">// no file selected</div>
-                      </div>
-                    </div>
-                  </div>
-                  <div class="text-xs text-green-500/70 ml-4">// optional, max 5MB (jpg, png, gif)</div>
-                </div>
-
-                <!-- Register Buttons -->
-                <div class="pt-4 space-y-3">
-                  <button
-                    type="submit"
-                    id="register-btn"
-                    class="w-full bg-black border border-green-400/50 text-green-400 py-3 px-4 hover:bg-green-400/10 transition-colors flex items-center justify-center"
-                  >
-                    <span class="mr-2">></span>
-                    <span>./create_account.sh --register</span>
-                  </button>
-
-                  <div class="flex space-x-3">
-                    <button
-                      type="button"
-                      id="back-to-login-btn"
-                      class="flex-1 bg-black border border-green-400/30 text-green-400 py-2 px-4 hover:bg-green-400/10 transition-colors text-sm"
-                    >
-                      ./login.sh --existing-user
-                    </button>
-                  </div>
-                </div>
-
-                <!-- OAuth Section -->
-                <div class="pt-4 border-t border-green-400/30">
-                  <div class="text-green-300 text-sm mb-3" id="oauth-title"></div>
-                  <button
-                    type="button"
-                    id="oauth-42-btn"
-                    class="w-full bg-black border border-green-400/30 text-green-400 py-2 px-4 hover:bg-green-400/10 transition-colors text-sm flex items-center justify-center"
-                  >
-                    <span class="mr-2">></span>
-                    <span>./oauth_42.sh --register</span>
-                  </button>
-                </div>
-
-                <!-- Error/Success Messages -->
-                <div id="auth-messages" class="mt-4 space-y-1 text-sm"></div>
-              </form>
-            </div>
-          </div>
-
-          <!-- System Status -->
-          <div class="mt-6 grid grid-cols-1 md:grid-cols-3 gap-4" id="status-panel" style="opacity: 0;">
-            <div class="bg-gray-900 border border-green-400/30 p-3">
-              <div class="text-green-300 text-sm font-bold mb-1">[SERVER STATUS]</div>
-              <div class="text-green-400 text-xs">
-                <div>Registration API: <span class="text-green-300">ONLINE</span></div>
-                <div>Database: <span class="text-green-300">CONNECTED</span></div>
-                <div>Response Time: <span class="text-green-300">52ms</span></div>
-              </div>
-            </div>
-
-            <div class="bg-gray-900 border border-green-400/30 p-3">
-              <div class="text-green-300 text-sm font-bold mb-1">[SECURITY]</div>
-              <div class="text-green-400 text-xs">
-                <div>Password Hash: <span class="text-green-300">BCRYPT</span></div>
-                <div>Email Verify: <span class="text-green-300">ENABLED</span></div>
-                <div>Rate Limit: <span class="text-green-300">ACTIVE</span></div>
-              </div>
-            </div>
-
-            <div class="bg-gray-900 border border-green-400/30 p-3">
-              <div class="text-green-300 text-sm font-bold mb-1">[VALIDATION]</div>
-              <div class="text-green-400 text-xs">
-                <div>Username: <span id="username-validation" class="text-yellow-400">PENDING</span></div>
-                <div>Email: <span id="email-validation" class="text-yellow-400">PENDING</span></div>
-                <div>Password: <span id="password-validation" class="text-yellow-400">PENDING</span></div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </main>
-
-      <!-- Footer -->
-      <footer class="border-t border-green-400/30 p-4">
-        <div class="max-w-4xl mx-auto text-center text-green-500 text-xs">
-          <span class="text-green-400">[System Info]</span> Transcendence v1.0.0 | École 42 | Build ${new Date().getFullYear()}.${String(new Date().getMonth() + 1).padStart(2, "0")}.${String(new Date().getDate()).padStart(2, "0")}
-        </div>
-      </footer>
-    </div>
-  `;
-
   // Injecter le HTML
-  appDiv.innerHTML = registerPageHtml;
+  const buildDate = `${new Date().getFullYear()}.${String(new Date().getMonth() + 1).padStart(2, "0")}.${String(new Date().getDate()).padStart(2, "0")}`;
+  appDiv.innerHTML = registerPageHtml.replace("{{buildDate}}", buildDate);
 
   // Démarrer les animations
   startRegisterAnimations();
@@ -346,7 +63,11 @@ async function startRegisterAnimations(): Promise<void> {
   // Animation du header
   const headerCommand = document.getElementById("header-command");
   if (headerCommand) {
-    await typeWriter(headerCommand, "initializing registration system...", ANIMATION_SPEED.TYPEWRITER_SLOW);
+    await typeWriter(
+      headerCommand,
+      "initializing registration system...",
+      ANIMATION_SPEED.TYPEWRITER_SLOW,
+    );
   }
 
   // Fade in du logo ASCII
@@ -380,7 +101,9 @@ async function startRegisterAnimations(): Promise<void> {
             `[${new Date().toLocaleTimeString()}] ${bootMessages[i]}`,
             ANIMATION_SPEED.TYPEWRITER_FAST,
           );
-          await new Promise((resolve) => setTimeout(resolve, ANIMATION_SPEED.DELAY_SHORT));
+          await new Promise((resolve) =>
+            setTimeout(resolve, ANIMATION_SPEED.DELAY_SHORT),
+          );
         }
       }
     }
@@ -415,7 +138,9 @@ async function startRegisterAnimations(): Promise<void> {
       const element = document.getElementById(label.id);
       if (element) {
         await typeWriter(element, label.text, ANIMATION_SPEED.TYPEWRITER_FAST);
-        await new Promise((resolve) => setTimeout(resolve, ANIMATION_SPEED.DELAY_SHORT));
+        await new Promise((resolve) =>
+          setTimeout(resolve, ANIMATION_SPEED.DELAY_SHORT),
+        );
       }
     }
   }, 1500);
@@ -660,7 +385,9 @@ async function handleRegister(): Promise<void> {
   const confirmPasswordInput = document.getElementById(
     "confirm-password",
   ) as HTMLInputElement;
-  const photoInput = document.getElementById("profile-photo") as HTMLInputElement;
+  const photoInput = document.getElementById(
+    "profile-photo",
+  ) as HTMLInputElement;
 
   const username = usernameInput?.value.trim();
   const email = emailInput?.value.trim();
@@ -704,40 +431,36 @@ async function handleRegister(): Promise<void> {
   }
 
   try {
-
     let response;
 
-	// Use FormData for file upload
-	const formData = new FormData();
-	formData.append("username", username);
-	formData.append("email", email);
-	formData.append("password", password);
-	if (profilePhoto) {
-	console.log("Une photo a ete dectee", profilePhoto);
-	formData.append("profilePhoto", profilePhoto);
-	}
-	response = await fetch(AUTH_API.REGISTER, {
-	method: "POST",
-	body: formData,
-	});
+    // Use FormData for file upload
+    const formData = new FormData();
+    formData.append("username", username);
+    formData.append("email", email);
+    formData.append("password", password);
+    if (profilePhoto) {
+      console.log("Une photo a ete dectee", profilePhoto);
+      formData.append("profilePhoto", profilePhoto);
+    }
+    response = await fetch(AUTH_API.REGISTER, {
+      method: "POST",
+      body: formData,
+    });
 
- 	showMessage("Creating account...", "info");
+    showMessage("Creating account...", "info");
 
     const data = await response.json();
 
- 	console.log("Response has been received from backend");
+    console.log("Response has been received from backend");
 
     if (response.ok) {
-      showMessage(
-        "Account created successfully!",
-        "success",
-      );
-    if (data.token) {
-        // Si le backend renvoie directement un token        
+      showMessage("Account created successfully!", "success");
+      if (data.token) {
+        // Si le backend renvoie directement un token
         // Import AuthManager dynamically to avoid circular dependencies
-        const { AuthManager } = await import('../utils/auth');
+        const { AuthManager } = await import("../utils/auth");
         AuthManager.setToken(data.token);
-        
+
         setTimeout(() => {
           showMessage("Welcome! Redirecting to home page...", "success");
           setTimeout(() => router.navigate("/home"), 1000);
