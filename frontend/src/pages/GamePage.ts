@@ -1,144 +1,76 @@
+//@ts-ignore
 import { Engine } from "@babylonjs/core/Engines/engine";
 import { Game } from "../Game";
 import { getRouter } from "../router";
 import { AuthManager } from "../utils/auth";
 import { submitMatchResultToBackend } from "./TournamentPage";
+//@ts-ignore
+import gamePageCompleteHtml from "./html/GamePage.html?raw";
+import { createHeader, HeaderConfigs, Header } from "../components/Header";
+//@ts-ignore
+import gamePageOverlayHtml from "./html/GamePage-overlay.html?raw";
 
 export async function GamePage(): Promise<void> {
-      // Vérifier l'authentification AVANT d'afficher la page
-    if (!AuthManager.isAuthenticated()) {
-      console.log('Utilisateur non authentifié, redirection vers login');
-      const router = getRouter();
-      if (router) {
-        router.navigate("/login");
-      }
-      return;
+  // Vérifier l'authentification AVANT d'afficher la page
+  if (!AuthManager.isAuthenticated()) {
+    console.log("Utilisateur non authentifié, redirection vers login");
+    const router = getRouter();
+    if (router) {
+      router.navigate("/login");
     }
+    return;
+  }
   const appDiv = document.querySelector<HTMLDivElement>("#app");
   if (!appDiv) return;
 
-  // Classes CSS pour le body (similaire à l'original)
-  const bodyClasses: string[] = ["bg-gray-100", "overflow-hidden"];
-  const appDivClasses: string[] = ["w-screen", "h-screen"];
-
-  // Style le body
+  // Apply terminal-like styles
   const body = document.querySelector("body");
   if (body) {
-    body.className = ""; // Reset les classes existantes
-    for (const value of bodyClasses) {
-      body.classList.add(value);
-    }
+    body.className =
+      "bg-black min-h-screen font-mono text-green-400 flex items-center justify-center";
   }
 
-  // Style le #app div et ajoute le canvas
   if (appDiv) {
-    appDiv.className = ""; // Reset les classes existantes
-    for (const value of appDivClasses) {
-      appDiv.classList.add(value);
+    appDiv.className = "container mx-auto p-4 flex flex-col h-screen";
+
+    // Create and render the shared header
+    const header = createHeader(HeaderConfigs.game);
+    const headerHtml = await header.render();
+
+    // Prepare the complete page content with build date replacement
+    const buildDate = `${new Date().getFullYear()}.${String(new Date().getMonth() + 1).padStart(2, "0")}.${String(new Date().getDate()).padStart(2, "0")}`;
+    const pageContentHtml = gamePageCompleteHtml.replace(
+      "{{buildDate}}",
+      buildDate,
+    );
+
+    // Assemble the page
+    appDiv.innerHTML = headerHtml + pageContentHtml;
+
+    // Setup event listeners for the shared header
+    Header.setupEventListeners();
+    // Show header elements with fade-in animation
+    function showHeaderElements(): void {
+      const userProfile = document.getElementById("user-profile");
+      const navMenu = document.getElementById("nav-menu");
+
+      if (userProfile) {
+        userProfile.style.opacity = "1";
+        userProfile.style.transition = "opacity 0.3s";
+      }
+
+      if (navMenu) {
+        navMenu.style.opacity = "1";
+        navMenu.style.transition = "opacity 0.3s";
+      }
     }
-    const canvasHtml = `<canvas id="renderCanvas" class="w-full h-full block focus:outline-none"></canvas>`;
-    appDiv.innerHTML = canvasHtml;
+
+    // Dans la fonction GamePage(), après Header.setupEventListeners();
+    showHeaderElements();
   }
 
-  // Insérer le Header et Footer fixes
-  if (body) {
-    // --- HEADER (avec navigation vers d'autres pages) ---
-    const headerHtml = `
-    <header id="page-header" class="fixed top-0 left-0 right-0 z-10
-                            bg-white/50 backdrop-blur-sm shadow-md
-                            transform -translate-y-full
-                            transition-transform duration-300 ease-in-out">
-      <nav class="container mx-auto px-4 py-3 flex items-center justify-between">
-        <div class="flex-shrink-0">
-          <a href="#" data-route="/" class="flex items-center space-x-2">
-            <div class="w-8 h-8 bg-gradient-to-r from-cyan-400 to-blue-500 rounded-lg flex items-center justify-center">
-              <span class="text-white font-bold text-sm">T</span>
-            </div>
-            <span class="font-bold text-gray-800">Transcendence</span>
-          </a>
-        </div>
-        <ul class="flex space-x-6">
-          <li><a href="#" data-route="/" class="font-medium text-gray-800 px-4 py-2 rounded-lg shadow-md transition-all duration-300 ease-in-out hover:bg-white/80 hover:shadow-xl hover:-translate-y-1">Accueil</a></li>
-          <li><a href="#" data-route="/tournament" class="font-medium text-gray-800 px-4 py-2 rounded-lg shadow-md transition-all duration-300 ease-in-out hover:bg-white/80 hover:shadow-xl hover:-translate-y-1">Tournaments</a></li>
-          <li><a href="#" data-route="/dashboard" class="font-medium text-gray-800 px-4 py-2 rounded-lg shadow-md transition-all duration-300 ease-in-out hover:bg-white/80 hover:shadow-xl hover:-translate-y-1">Dashboard</a></li>
-          <li><a href="#" class="font-medium text-gray-800 px-4 py-2 rounded-lg shadow-md transition-all duration-300 ease-in-out hover:bg-white/80 hover:shadow-xl hover:-translate-y-1">3 Players</a></li>
-          <li><a href="#" class="font-medium text-gray-800 px-4 py-2 rounded-lg shadow-md transition-all duration-300 ease-in-out hover:bg-white/80 hover:shadow-xl hover:-translate-y-1">2 Players</a></li>
-        </ul>
-        <div class="flex items-center space-x-2">
-          <button id="pause-btn" class="bg-yellow-500 hover:bg-yellow-600 text-white px-3 py-1 rounded-md text-sm transition-colors">
-            Pause
-          </button>
-          <button id="restart-btn" class="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded-md text-sm transition-colors">
-            Restart
-          </button>
-        </div>
-      </nav>
-    </header>`;
-
-    // --- FOOTER ---
-    const footerHtml = `
-    <footer id="page-footer" class="fixed bottom-0 left-0 right-0 z-10
-                           bg-gray-800/50 backdrop-blur-sm
-                           transform translate-y-full
-                           transition-transform duration-300 ease-in-out">
-      <div class="container mx-auto px-4 text-center py-4">
-        <div class="flex justify-between items-center text-white">
-          <div class="text-sm">
-            <span>Contrôles: </span>
-            <span class="text-cyan-300">Joueur 1: W/S</span>
-            <span class="mx-2">|</span>
-            <span class="text-green-300">Joueur 2: ↑/↓</span>
-          </div>
-          <p class="text-sm">&copy; ${new Date().getFullYear()} Transcendence. Pong 3D Game.</p>
-        </div>
-      </div>
-    </footer>`;
-
-    body.insertAdjacentHTML("beforeend", headerHtml);
-    body.insertAdjacentHTML("beforeend", footerHtml);
-  }
-
-  // Gestion de la visibilité de l'UI avec le mouvement de la souris
-  const header = document.getElementById("page-header");
-  const footer = document.getElementById("page-footer");
-
-  if (header && footer) {
-    // État initial caché
-    header.classList.add("-translate-y-full");
-    footer.classList.add("translate-y-full");
-
-    const threshold = 80; // pixels depuis le bord
-
-    const mouseMoveHandler = (event: MouseEvent) => {
-      const mouseY = event.clientY;
-      const screenHeight = window.innerHeight;
-
-      // Afficher/Masquer Header
-      if (mouseY < threshold) {
-        header.classList.add("translate-y-0");
-        header.classList.remove("-translate-y-full");
-      } else {
-        header.classList.add("-translate-y-full");
-        header.classList.remove("translate-y-0");
-      }
-
-      // Afficher/Masquer Footer
-      if (mouseY > screenHeight - threshold) {
-        footer.classList.add("translate-y-0");
-        footer.classList.remove("translate-y-full");
-      } else {
-        footer.classList.add("translate-y-full");
-        footer.classList.remove("translate-y-0");
-      }
-    };
-
-    window.addEventListener("mousemove", mouseMoveHandler);
-
-    // Nettoyer l'event listener quand on quitte la page
-    (window as any).gamePageCleanup = () => {
-      window.removeEventListener("mousemove", mouseMoveHandler);
-    };
-  }
+  // Header and footer are now part of the appDiv innerHTML.
+  // The mouse move logic is no longer needed.
 
   // Logique du jeu
   const canvas = document.getElementById("renderCanvas") as HTMLCanvasElement;
@@ -166,18 +98,18 @@ export async function GamePage(): Promise<void> {
     showGameEndOverlay(winner, score1, score2, matchData);
   });
 
-  const headerNav = document.querySelector('header nav ul');
-  if (headerNav) {
-    const buttons = headerNav.querySelectorAll('a');
+  const controlsContainer = document.getElementById("game-controls");
+  if (controlsContainer) {
+    const buttons = controlsContainer.querySelectorAll("a");
     buttons.forEach((button) => {
       const text = button.textContent?.trim();
-      if (text === '2 Players') {
-        button.addEventListener('click', (e) => {
+      if (text === "[2 Players]") {
+        button.addEventListener("click", (e) => {
           e.preventDefault();
           game.switchToTwoPlayerMode();
         });
-      } else if (text === '3 Players') {
-        button.addEventListener('click', (e) => {
+      } else if (text === "[3 Players]") {
+        button.addEventListener("click", (e) => {
           e.preventDefault();
           game.switchToThreePlayerMode();
         });
@@ -208,15 +140,15 @@ export async function GamePage(): Promise<void> {
           game.update();
           game.scene.render();
         });
-        pauseBtn.textContent = "Pause";
+        pauseBtn.textContent = "[Pause]";
         pauseBtn.className =
-          "bg-yellow-500 hover:bg-yellow-600 text-white px-3 py-1 rounded-md text-sm transition-colors";
+          "bg-yellow-400/20 border border-yellow-400/50 text-yellow-300 px-4 py-1 hover:bg-yellow-400/30 transition-colors text-sm";
       } else {
         // Mettre en pause
         engine.stopRenderLoop();
-        pauseBtn.textContent = "Resume";
+        pauseBtn.textContent = "[Resume]";
         pauseBtn.className =
-          "bg-green-500 hover:bg-green-600 text-white px-3 py-1 rounded-md text-sm transition-colors";
+          "bg-green-400/20 border border-green-400/50 text-green-300 px-4 py-1 hover:bg-green-400/30 transition-colors text-sm";
       }
       isPaused = !isPaused;
     });
@@ -256,7 +188,12 @@ export function cleanupGamePage(): void {
 }
 
 // Show game end overlay with final scores
-function showGameEndOverlay(winner: number, score1: number, score2: number, matchData: any): void {
+function showGameEndOverlay(
+  winner: number,
+  score1: number,
+  score2: number,
+  matchData: any,
+): void {
   const body = document.querySelector("body");
   if (!body) return;
 
@@ -265,70 +202,51 @@ function showGameEndOverlay(winner: number, score1: number, score2: number, matc
   const player2Name = matchData?.player2?.name || "Player 2";
   const winnerName = winner === 1 ? player1Name : player2Name;
 
-  // Create overlay HTML
-  const overlayHtml = `
-    <div id="game-end-overlay" class="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm">
-      <div class="bg-gray-900 border-4 border-green-400 p-8 max-w-2xl w-full mx-4 shadow-2xl">
-        <!-- Header -->
-        <div class="text-center mb-6">
-          <h1 class="text-4xl font-bold text-green-300 mb-2">GAME OVER</h1>
-          <div class="h-1 bg-green-400 w-32 mx-auto"></div>
-        </div>
-
-        <!-- Winner announcement -->
-        <div class="text-center mb-8">
-          <div class="text-green-500 text-sm mb-2">WINNER</div>
-          <div class="text-5xl font-bold text-green-300 mb-4">${winnerName}</div>
-          <div class="text-green-400 text-lg">🏆 Victory!</div>
-        </div>
-
-        <!-- Final scores -->
-        <div class="bg-black/50 border border-green-400/30 p-6 mb-8">
-          <div class="text-green-300 text-center text-sm mb-4 font-bold">FINAL SCORE</div>
-          <div class="flex justify-around items-center">
-            <div class="text-center">
-              <div class="text-green-400 text-sm mb-2">${player1Name}</div>
-              <div class="text-6xl font-bold ${winner === 1 ? 'text-green-300' : 'text-green-600'}">${score1}</div>
-            </div>
-            <div class="text-green-500 text-3xl">-</div>
-            <div class="text-center">
-              <div class="text-green-400 text-sm mb-2">${player2Name}</div>
-              <div class="text-6xl font-bold ${winner === 2 ? 'text-green-300' : 'text-green-600'}">${score2}</div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Match info -->
-        ${matchData?.isTournamentMatch ? `
-          <div class="bg-black/50 border border-green-400/30 p-4 mb-6 text-center">
-            <div class="text-green-500 text-xs mb-1">TOURNAMENT MATCH</div>
-            <div class="text-green-400 text-sm">Match #${matchData.matchId}</div>
-          </div>
-        ` : ''}
-
-        <!-- Action buttons -->
-        <div class="flex gap-4 justify-center">
-          ${matchData?.isTournamentMatch ? `
-            <button id="return-to-tournament-btn" class="bg-green-400/20 border border-green-400 px-6 py-3 hover:bg-green-400/30 transition-colors">
-              <span class="text-green-300 font-bold">> BACK TO TOURNAMENT</span>
-            </button>
-          ` : `
-            <button id="play-again-btn" class="bg-green-400/20 border border-green-400 px-6 py-3 hover:bg-green-400/30 transition-colors">
-              <span class="text-green-300 font-bold">> PLAY AGAIN</span>
-            </button>
-          `}
-          <button id="return-home-btn" class="bg-gray-700/50 border border-gray-500 px-6 py-3 hover:bg-gray-700/70 transition-colors">
-            <span class="text-gray-300 font-bold">> HOME</span>
-          </button>
-        </div>
-      </div>
+  // Create overlay HTML from template
+  const matchInfoHtml = matchData?.isTournamentMatch
+    ? `
+    <div class="bg-black/50 border border-green-400/30 p-4 mb-6 text-center">
+      <div class="text-green-500 text-xs mb-1">TOURNAMENT MATCH</div>
+      <div class="text-green-400 text-sm">Match #${matchData.matchId}</div>
     </div>
-  `;
+  `
+    : "";
+
+  const actionButtonHtml = matchData?.isTournamentMatch
+    ? `
+      <button id="return-to-tournament-btn" class="bg-green-400/20 border border-green-400 px-6 py-3 hover:bg-green-400/30 transition-colors">
+        <span class="text-green-300 font-bold">> BACK TO TOURNAMENT</span>
+      </button>
+    `
+    : `
+      <button id="play-again-btn" class="bg-green-400/20 border border-green-400 px-6 py-3 hover:bg-green-400/30 transition-colors">
+        <span class="text-green-300 font-bold">> PLAY AGAIN</span>
+      </button>
+    `;
+
+  const overlayHtml = gamePageOverlayHtml
+    .replace("{{winnerName}}", winnerName)
+    .replace("{{player1Name}}", player1Name)
+    .replace("{{score1}}", score1.toString())
+    .replace(
+      "{{winnerClass1}}",
+      winner === 1 ? "text-green-300" : "text-green-600",
+    )
+    .replace("{{player2Name}}", player2Name)
+    .replace("{{score2}}", score2.toString())
+    .replace(
+      "{{winnerClass2}}",
+      winner === 2 ? "text-green-300" : "text-green-600",
+    )
+    .replace("{{matchInfo}}", matchInfoHtml)
+    .replace("{{actionButton}}", actionButtonHtml);
 
   body.insertAdjacentHTML("beforeend", overlayHtml);
 
   // Setup button handlers
-  const returnToTournamentBtn = document.getElementById("return-to-tournament-btn");
+  const returnToTournamentBtn = document.getElementById(
+    "return-to-tournament-btn",
+  );
   const playAgainBtn = document.getElementById("play-again-btn");
   const returnHomeBtn = document.getElementById("return-home-btn");
 
@@ -336,15 +254,18 @@ function showGameEndOverlay(winner: number, score1: number, score2: number, matc
     returnToTournamentBtn.addEventListener("click", () => {
       // Store match result before navigating back
       if (matchData) {
-        const winnerId = winner === 1 ? matchData.player1.id : matchData.player2.id;
-        const results = JSON.parse(sessionStorage.getItem("tournamentResults") || "{}");
+        const winnerId =
+          winner === 1 ? matchData.player1.id : matchData.player2.id;
+        const results = JSON.parse(
+          sessionStorage.getItem("tournamentResults") || "{}",
+        );
         results[matchData.matchId] = {
           winner: winnerId,
           score1,
           score2,
           winnerName,
           player1Name,
-          player2Name
+          player2Name,
         };
         sessionStorage.setItem("tournamentResults", JSON.stringify(results));
 
