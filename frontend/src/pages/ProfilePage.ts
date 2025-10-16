@@ -1,4 +1,5 @@
 import { getRouter } from "../router";
+import { FriendManager } from "../utils/Friends";
 import { AuthManager } from "../utils/auth";
 import { Header } from "../components/Header";
 import { createHeader, HeaderConfigs } from "../components/Header";
@@ -163,6 +164,9 @@ export async function ProfilePage(): Promise<void> {
 
   // Ajouter les event listeners du header
   Header.setupEventListeners();
+  // Friends search functionality
+  FriendManager.setupFriendsListeners();
+  FriendManager.loadFriendsList();
 }
 
 // Animation typewriter
@@ -209,6 +213,7 @@ async function startProfileAnimations(): Promise<void> {
     "profile-header",
     "game-stats",
     "recent-activity",
+    "friend-section",
     "settings",
   ];
 
@@ -222,6 +227,16 @@ async function startProfileAnimations(): Promise<void> {
       );
     }
   }
+  // 9. Friends section
+  const friendsSection = document.getElementById("friends-section");
+  if (friendsSection) {
+    friendsSection.style.opacity = "1";
+    friendsSection.style.transition = `opacity ${ANIMATION_SPEED.TRANSITION_FAST}s`;
+  }
+
+  await new Promise((resolve) =>
+    setTimeout(resolve, ANIMATION_SPEED.DELAY_SHORT),
+  );
 }
 
 // La navigation est gérée par le routeur
