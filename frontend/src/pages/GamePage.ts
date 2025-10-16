@@ -156,8 +156,13 @@ export async function GamePage(): Promise<void> {
 
   if (restartBtn) {
     restartBtn.addEventListener("click", () => {
-      // Redémarrer le jeu (recharger la page de jeu)
-      window.location.reload();
+      // Restart le jeu via router (SPA style)
+      import("../router").then(({ getRouter }) => {
+        const router = getRouter();
+        if (router) {
+          router.navigate("/game");
+        }
+      });
     });
   }
 
@@ -240,9 +245,34 @@ function showGameEndOverlay(
     )
     .replace("{{matchInfo}}", matchInfoHtml)
     .replace("{{actionButton}}", actionButtonHtml);
-
   body.insertAdjacentHTML("beforeend", overlayHtml);
 
+  // Récupérer l'overlay depuis le DOM
+  const overlay = document.getElementById("game-end-overlay");
+
+  // Fermer la modal
+  const closeModal = () => {
+    if (overlay) {
+      overlay.remove();
+    }
+  };
+  // Fermer en cliquant à l'extérieur
+  if (overlay) {
+    overlay.addEventListener("click", (e: MouseEvent) => {
+      if (e.target === overlay) {
+        closeModal();
+      }
+    });
+  }
+
+  // Fermer avec Escape
+  const handleEscape = (e: KeyboardEvent) => {
+    if (e.key === "Escape") {
+      closeModal();
+      document.removeEventListener("keydown", handleEscape);
+    }
+  };
+  document.addEventListener("keydown", handleEscape);
   // Setup button handlers
   const returnToTournamentBtn = document.getElementById(
     "return-to-tournament-btn",
@@ -286,11 +316,7 @@ function showGameEndOverlay(
       // Clear current match data
       sessionStorage.removeItem("currentMatch");
 
-      // Remove the overlay
-      const overlay = document.getElementById("game-end-overlay");
-      if (overlay) {
-        overlay.remove();
-      }
+      closeModal();
 
       // Navigate back to tournament using the router
       import("../router").then(({ getRouter }) => {
@@ -303,16 +329,29 @@ function showGameEndOverlay(
       });
     });
   }
-
   if (playAgainBtn) {
     playAgainBtn.addEventListener("click", () => {
-      window.location.reload();
+      // Fermer l'overlay
+      // const overlay = document.getElementById("game-end-overlay");
+      // if (overlay) {
+      //   overlay.remove();
+      // }
+      closeModal();
+
+      // Restart le jeu via router (SPA style)
+      import("../router").then(({ getRouter }) => {
+        const router = getRouter();
+        if (router) {
+          router.navigate("/game");
+        }
+      });
     });
   }
 
   if (returnHomeBtn) {
     returnHomeBtn.addEventListener("click", () => {
       sessionStorage.removeItem("currentMatch");
+      closeModal();
 
       // Navigate back to home using the router
       import("../router").then(({ getRouter }) => {
