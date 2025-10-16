@@ -19,6 +19,7 @@ export default async function friendsRoutes(fastify, options) {
             reply.status(500).send({ success: false, message: "Erreur serveur" });
         }
 
+		/* Code si amitie bilaterale */
         // db.prepare(`
         //     SELECT u.id, u.username, u.photo, f.status
         //     FROM friends f
@@ -30,9 +31,16 @@ export default async function friendsRoutes(fastify, options) {
     });
 
     //ajouter un ami
-    fastify.post("/api/friends/add", { preHandler: [fastify.authenticate] }, async (request, reply) => {
+    fastify.post("/api/friends/add", {
+		preHandler: [fastify.authenticate],
+		schema: { body: { type: "object", required: ["friendId"], 
+				properties: { friendId: { type: "integer", minimum: 1 },},
+		},},
+	}, async (request, reply) => {
+		const { friendId } = request.body;
         const userId = request.user.id;
-        const { friendId } = request.body;
+
+
         const friend = db.prepare("SELECT * FROM users WHERE id = ?").get(friendId);
         if (!friend) {
             return { success: false, message: "/api/friends/add: Utilisateur introuvable" };
@@ -50,6 +58,7 @@ export default async function friendsRoutes(fastify, options) {
         }
     });
 
+	/* Code si amitie bilaterale */
     //accepter une demande
     fastify.patch("/api/friends/accept", { preHandler: [fastify.authenticate] }, async (request, reply) => {
         const userId = request.user.id;
@@ -88,7 +97,7 @@ export default async function friendsRoutes(fastify, options) {
         return reply.send({ success: true, message: "Ami supprimé avec succès" });
         } catch (err) {
         console.error(err);
-        return reply.code(500).send({ error: "Erreur serveur lors de la suppression de l'ami" });
+        return reply.code(500).send({ error: "Erreur interne" });
         }
     });
 

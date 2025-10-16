@@ -58,7 +58,6 @@ export default async function usersRoutes(fastify, options) {
 
     // modifier les infos de l'utilisateur connecté
     fastify.patch("/api/me", { preHandler: [fastify.authenticate] }, async (request, reply) => {
-        console.log("OK BACKEND");
 		const userId = request.user.id;
         const {currentPassword, username, email, password} = request.body;
 
