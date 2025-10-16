@@ -628,7 +628,7 @@ async function removeFriend(username: string): Promise<void> {
   }
 
   try {
-    const response = await AuthManager.fetchWithAuth(FRIENDS_API.DELETE, {
+    const response = await AuthManager.fetchWithAuth(`${FRIENDS_API.DELETE}/${username}`, {
       method: "DELETE",
     });
 

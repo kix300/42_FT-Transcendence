@@ -63,5 +63,33 @@ export default async function friendsRoutes(fastify, options) {
     });
 
     //supprimer un ami
+    fastify.delete("/api/friends/delete/:friend", { preHandler: [fastify.authenticate] }, async (request, reply) => {
+    try {
+        const userId = request.user.id;
+        const friend = db.prepare(`SELECT id FROM users WHERE username = ?`).get(request.params.friend);
+        const friendId = friend.id;
+        if (!friendId){
+            return reply.code(404).send({error: "Utilisateur introuvable"});
+        }
+        console.log(`userId: ${userId}, friendId: ${friendId}`);
+        // Vérifie si l'ami existe dans la table friends
+        const friendship = db
+            .prepare("SELECT * FROM friends WHERE (user_id = ? AND friend_id = ?)")
+            .get(userId, friendId);
+
+        if (!friendship) {
+            return reply.code(404).send({ error: "Amitié non trouvée" });
+        }
+
+        // Delete le friend
+        db.prepare("DELETE FROM friends WHERE (user_id = ? AND friend_id = ?)")
+            .run(userId, friendId);
+
+        return reply.send({ success: true, message: "Ami supprimé avec succès" });
+        } catch (err) {
+        console.error(err);
+        return reply.code(500).send({ error: "Erreur serveur lors de la suppression de l'ami" });
+        }
+    });
 
 }
