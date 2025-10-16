@@ -8,6 +8,7 @@ import 'dotenv/config';
 import { fileURLToPath } from "url";
 import { dirname } from "path";
 import { requireHttps } from './https.js';
+import fastifyWebsocket from "@fastify/websocket";
 
 //port
 const porthttps = 3000;
@@ -30,6 +31,8 @@ const fastify = Fastify({
 	},
 	logger: true,
 });
+
+await fastify.register(fastifyWebsocket);
 
 // Enregistrer les routes
 fastify.register(registerRoutes);
