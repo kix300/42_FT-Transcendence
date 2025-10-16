@@ -1,5 +1,6 @@
 import { getRouter } from "../router";
 import { AuthManager } from "../utils/auth";
+import { escapeHtml, sanitizeUrl } from "../utils/sanitize";
 import { createHeader, HeaderConfigs } from "../components/Header";
 import { Header } from "../components/Header";
 import { USERS_API } from "../utils/apiConfig";
@@ -138,15 +139,15 @@ function displayUsers(): void {
                 <div class="w-8 h-8 rounded-full bg-green-400/20 border border-green-400/50 flex items-center justify-center overflow-hidden">
                   ${
                     user?.photo
-                      ? `<img src="${user.photo}" alt="${user.username}" class="w-full h-full object-cover rounded-full" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" />
-                     <span class="text-green-400 text-sm font-bold hidden">${(user?.username || "U").charAt(0).toUpperCase()}</span>`
-                      : `<span class="text-green-400 text-sm font-bold">${(user?.username || "U").charAt(0).toUpperCase()}</span>`
+                      ? `<img src="${sanitizeUrl(user.photo)}" alt="${escapeHtml(user.username)}" class="w-full h-full object-cover rounded-full" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" />
+                     <span class="text-green-400 text-sm font-bold hidden">${escapeHtml((user?.username || "U").charAt(0).toUpperCase())}</span>`
+                      : `<span class="text-green-400 text-sm font-bold">${escapeHtml((user?.username || "U").charAt(0).toUpperCase())}</span>`
                   }
                 </div>
-        <span class="text-green-300 font-medium">${user.username}</span>
+        <span class="text-green-300 font-medium">${escapeHtml(user.username)}</span>
       </div>
 
-      <div class="text-green-400 text-sm font-mono">${user.email}</div>
+      <div class="text-green-400 text-sm font-mono">${escapeHtml(user.email)}</div>
 
       <div>
         <span class="px-2 py-1 text-xs rounded ${getStatusColor(user.status || "offline")}">
@@ -316,7 +317,7 @@ function openUserModal(user?: User): void {
   if (user) {
     // Mode modification
     if (modalTitle)
-      modalTitle.textContent = `Modifier l'utilisateur: ${user.username}`;
+      modalTitle.textContent = `Modifier l'utilisateur: ${escapeHtml(user.username)}`;
     if (submitText) submitText.textContent = "Mettre à jour";
     if (passwordHint) passwordHint.style.display = "block";
 
@@ -426,7 +427,7 @@ async function deleteUser(userId: number): Promise<void> {
 
   if (
     !confirm(
-      `Êtes-vous sûr de vouloir supprimer l'utilisateur "${user.username}" ?`,
+      `Êtes-vous sûr de vouloir supprimer l'utilisateur "${escapeHtml(user.username)}" ?`,
     )
   ) {
     return;

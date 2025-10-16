@@ -4,6 +4,7 @@ import { AuthManager } from "../utils/auth";
 import { Header } from "../components/Header";
 import { createHeader, HeaderConfigs } from "../components/Header";
 import { PROFILE_API } from "../utils/apiConfig";
+import { escapeHtml, sanitizeUrl } from "../utils/sanitize";
 //@ts-ignore -- mon editeur me donnais une erreur alors que npm run build non
 import profilePageHtml from "./html/ProfilePage.html?raw";
 //@ts-ignore -- mon editeur me donnais une erreur alors que npm run build non
@@ -66,9 +67,9 @@ function buildProfileHtml(
   let html = profilePageHtml;
 
   const avatar = userProfile?.photo
-    ? `<img src="${userProfile.photo}" alt="${userProfile.username}" class="w-full h-full object-cover rounded-full" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" />
-       <span class="text-green-400 text-3xl font-bold hidden">${(userProfile?.username || "U").charAt(0).toUpperCase()}</span>`
-    : `<span class="text-green-400 text-3xl font-bold">${(userProfile?.username || "U").charAt(0).toUpperCase()}</span>`;
+    ? `<img src="${sanitizeUrl(userProfile.photo)}" alt="${escapeHtml(userProfile.username)}" class="w-full h-full object-cover rounded-full" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" />
+       <span class="text-green-400 text-3xl font-bold hidden">${escapeHtml((userProfile?.username || "U").charAt(0).toUpperCase())}</span>`
+    : `<span class="text-green-400 text-3xl font-bold">${escapeHtml((userProfile?.username || "U").charAt(0).toUpperCase())}</span>`;
 
   const winRate = userProfile?.stats.totalMatches
     ? Math.round(
@@ -78,9 +79,9 @@ function buildProfileHtml(
 
   html = html.replace("{{header}}", headerHtml);
   html = html.replace("{{avatar}}", avatar);
-  html = html.replace("{{username}}", userProfile?.username || "Unknown User");
+  html = html.replace("{{username}}", escapeHtml(userProfile?.username || "Unknown User"));
   html = html.replace("{{userId}}", userProfile?.id?.toString() || "N/A");
-  html = html.replace("{{email}}", userProfile?.email || "Not provided");
+  html = html.replace("{{email}}", escapeHtml(userProfile?.email || "Not provided"));
   html = html.replace("{{level}}", userProfile?.level?.toString() || "1");
   html = html.replace(
     "{{memberSince}}",
@@ -104,7 +105,7 @@ function buildProfileHtml(
       ? new Date(userProfile.last_login).toLocaleString()
       : "Now",
   );
-  html = html.replace("{{footerUsername}}", userProfile?.username || "Unknown");
+  html = html.replace("{{footerUsername}}", escapeHtml(userProfile?.username || "Unknown"));
 
   return html;
 }
@@ -449,7 +450,7 @@ async function handlePhotoUpload(file: File): Promise<void> {
   }
 
   try {
-    showMessage(`Uploading photo: ${file.name}...`, "info");
+    showMessage(`Uploading photo: ${escapeHtml(file.name)}...`, "info");
 
     // Créer FormData pour l'upload (comme dans Register)
     const formData = new FormData();
@@ -476,7 +477,7 @@ async function handlePhotoUpload(file: File): Promise<void> {
     } else {
       const errorData = await response.json();
       showMessage(
-        `Upload failed: ${errorData.error || "Unknown error"}`,
+        `Upload failed: ${escapeHtml(errorData.error || "Unknown error")}`,
         "error",
       );
     }
@@ -517,7 +518,7 @@ function showMessage(
 
   const prefix =
     type === "success" ? "[SUCCESS]" : type === "error" ? "[ERROR]" : "[INFO]";
-  messageDiv.innerHTML = `<span class="font-bold">${prefix}</span> ${message}`;
+  messageDiv.innerHTML = `<span class="font-bold">${prefix}</span> ${escapeHtml(message)}`;
 
   messagesContainer.appendChild(messageDiv);
 
@@ -536,7 +537,7 @@ function showMessage(
 // Fonction helper pour afficher les erreurs
 function showError(errorDiv: HTMLElement | null, message: string): void {
   if (errorDiv) {
-    errorDiv.textContent = message;
+    errorDiv.textContent = escapeHtml(message);
     errorDiv.classList.remove("hidden");
 
     // Cacher l'erreur après 5 secondes

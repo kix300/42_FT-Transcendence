@@ -3,6 +3,7 @@ import { Engine } from "@babylonjs/core/Engines/engine";
 import { Game } from "../Game";
 import { getRouter } from "../router";
 import { AuthManager } from "../utils/auth";
+import { escapeHtml } from "../utils/sanitize";
 import { submitMatchResultToBackend } from "./TournamentPage";
 //@ts-ignore
 import gamePageCompleteHtml from "./html/GamePage.html?raw";
@@ -203,8 +204,8 @@ function showGameEndOverlay(
   if (!body) return;
 
   // Get player names from match data or use defaults
-  const player1Name = matchData?.player1?.name || "Player 1";
-  const player2Name = matchData?.player2?.name || "Player 2";
+  const player1Name = escapeHtml(matchData?.player1?.name || "Player 1");
+  const player2Name = escapeHtml(matchData?.player2?.name || "Player 2");
   const winnerName = winner === 1 ? player1Name : player2Name;
 
   // Create overlay HTML from template
@@ -212,7 +213,7 @@ function showGameEndOverlay(
     ? `
     <div class="bg-black/50 border border-green-400/30 p-4 mb-6 text-center">
       <div class="text-green-500 text-xs mb-1">TOURNAMENT MATCH</div>
-      <div class="text-green-400 text-sm">Match #${matchData.matchId}</div>
+      <div class="text-green-400 text-sm">Match #${escapeHtml(matchData.matchId)}</div>
     </div>
   `
     : "";
@@ -230,14 +231,14 @@ function showGameEndOverlay(
     `;
 
   const overlayHtml = gamePageOverlayHtml
-    .replace("{{winnerName}}", winnerName)
-    .replace("{{player1Name}}", player1Name)
+    .replace("{{winnerName}}", escapeHtml(winnerName))
+    .replace("{{player1Name}}", escapeHtml(player1Name))
     .replace("{{score1}}", score1.toString())
     .replace(
       "{{winnerClass1}}",
       winner === 1 ? "text-green-300" : "text-green-600",
     )
-    .replace("{{player2Name}}", player2Name)
+    .replace("{{player2Name}}", escapeHtml(player2Name))
     .replace("{{score2}}", score2.toString())
     .replace(
       "{{winnerClass2}}",

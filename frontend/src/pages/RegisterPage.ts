@@ -1,5 +1,6 @@
 import { getRouter } from "../router";
 import { AUTH_API } from "../utils/apiConfig";
+import { escapeHtml, sanitizeUrl } from "../utils/sanitize";
 //@ts-ignore -- mon editeur me donnais une erreur alors que npm run build non
 import registerPageHtml from "./html/RegisterPage.html?raw";
 
@@ -328,13 +329,13 @@ function setupPhotoUpload(): void {
       const reader = new FileReader();
       reader.onload = (e) => {
         const result = e.target?.result as string;
-        photoPreview.innerHTML = `<img src="${result}" alt="Preview" class="w-full h-full object-cover">`;
-        photoInfo.textContent = `// ${file.name} (${(file.size / 1024).toFixed(1)}KB)`;
+        photoPreview.innerHTML = `<img src="${sanitizeUrl(result)}" alt="Preview" class="w-full h-full object-cover">`;
+        photoInfo.textContent = `// ${escapeHtml(file.name)} (${(file.size / 1024).toFixed(1)}KB)`;
         removeBtn.classList.remove("hidden");
       };
       reader.readAsDataURL(file);
 
-      showMessage(`Photo selected: ${file.name}`, "info");
+      showMessage(`Photo selected: ${escapeHtml(file.name)}`, "info");
     }
   });
 
@@ -472,7 +473,7 @@ async function handleRegister(): Promise<void> {
       }
     } else {
       showMessage(
-        `Registration failed: ${data.error || "Unknown error"}`,
+        `Registration failed: ${escapeHtml(data.error || "Unknown error")}`,
         "error",
       );
     }
@@ -501,7 +502,7 @@ function showMessage(
 
   const prefix =
     type === "success" ? "[SUCCESS]" : type === "error" ? "[ERROR]" : "[INFO]";
-  messageDiv.innerHTML = `<span class="font-bold">${prefix}</span> ${message}`;
+  messageDiv.innerHTML = `<span class="font-bold">${prefix}</span> ${escapeHtml(message)}`;
 
   // Clear previous messages
   messagesContainer.innerHTML = "";

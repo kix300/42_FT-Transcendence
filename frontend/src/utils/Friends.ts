@@ -1,6 +1,6 @@
 import { AuthManager } from "../utils/auth";
 import { USERS_API, FRIENDS_API } from "../utils/apiConfig";
-
+import { escapeHtml, sanitizeUrl } from "../utils/sanitize"; // ← AJOUTER CETTE
 // Interface pour les utilisateurs recherchés
 interface SearchedUser {
   id: number;
@@ -95,20 +95,20 @@ export class FriendManager {
             <div class="w-10 h-10 rounded-full bg-green-400/20 border border-green-400/50 flex items-center justify-center overflow-hidden">
             ${
               user.photo
-                ? `<img src="${user.photo}" alt="${user.username}" class="w-full h-full object-cover" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" />
-            <span class="text-green-400 font-bold hidden">${user.username.charAt(0).toUpperCase()}</span>`
-                : `<span class="text-green-400 font-bold">${user.username.charAt(0).toUpperCase()}</span>`
+                ? `<img src="${sanitizeUrl(user.photo)}" alt="${escapeHtml(user.username)}" class="w-full h-full object-cover" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" />
+                          <span class="text-green-400 font-bold hidden">${escapeHtml(user.username.charAt(0).toUpperCase())}</span>`
+                : `<span class="text-green-400 font-bold">${escapeHtml(user.username.charAt(0).toUpperCase())}</span>`
             }
             </div>
             <div>
-            <div class="text-green-400 font-bold">${user.username}</div>
-            <div class="text-green-500 text-xs">ID: #${user.id}</div>
+             <div class="text-green-400 font-bold">${escapeHtml(user.username)}</div>
+             <div class="text-green-500 text-xs">ID: #${user.id}</div>
             </div>
             </div>
             <button
             class="add-friend-btn bg-green-400/20 border border-green-400/50 text-green-400 px-4 py-1 rounded hover:bg-green-400/30 transition-colors text-sm"
             data-user-id="${user.id}"
-            data-username="${user.username}"
+            data-username="${escapeHtml(user.username)}"
             >
             [ADD]
             </button>
@@ -210,13 +210,7 @@ export class FriendManager {
             class="view-profile-btn bg-blue-400/20 border border-blue-400/50 text-blue-400 px-3 py-1 rounded hover:bg-blue-400/30 transition-colors text-sm"
             data-user-id="${friend.id}"
             >
-            [VIEW]
-            </button>
-            <button
-            class="remove-friend-btn bg-red-400/20 border border-red-400/50 text-red-400 px-3 py-1 rounded hover:bg-red-400/30 transition-colors text-sm"
-            data-user-id="${friend.id}"
-            data-username="${friend.username}"
-            >
+
             [REMOVE]
             </button>
             </div>
@@ -328,7 +322,7 @@ export class FriendManager {
         : type === "error"
           ? "[ERROR]"
           : "[INFO]";
-    messageDiv.innerHTML = `<span class="font-bold">${prefix}</span> ${message}`;
+    messageDiv.innerHTML = `<span class="font-bold">${prefix}</span> ${escapeHtml(message)}`;
 
     messagesContainer.appendChild(messageDiv);
 

@@ -1,5 +1,6 @@
 import { getRouter } from "../router";
 import { AuthManager } from "../utils/auth";
+import { escapeHtml } from "../utils/sanitize";
 //@ts-ignore -- mon editeur me donnais une erreur alors que npm run build non
 import loginPageHtml from "./html/LoginPage.html?raw";
 
@@ -302,7 +303,7 @@ function showMessage(
       break;
   }
 
-  messageDiv.innerHTML = `<span class="${colorClass}">${prefix}</span> ${message}`;
+  messageDiv.innerHTML = `<span class="${colorClass}">${prefix}</span> ${escapeHtml(message)}`;
 
   // Clear previous messages of same type
   messagesContainer.innerHTML = "";
