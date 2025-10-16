@@ -8,10 +8,11 @@ COPY	tsconfig*.json ./
 
 
 RUN		apt-get update && apt-get install -y python3 make g++ \
-	&&	npm install
+    &&	npm install
 
 COPY	public/ ./public/
 COPY	src/ ./src/
 COPY	index.html ./index.html
 
-RUN		npm run build
+# RUN		npm run build
+CMD ["npm", "run", "build", "--", "--watch"]
