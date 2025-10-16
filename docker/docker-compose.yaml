@@ -21,14 +21,10 @@ services:
       # Ajout des dossiers important au front. On pourra tej pour la correction
       - ../frontend/src:/app/src
       - ../frontend/public:/app/public
-      - ../frontend/index.html:/app/index.html
-      - ../frontend/package.json:/app/package.json
-      - ../frontend/vite.config.ts:/app/vite.config.ts
     environment:
       # Surveille les changement dans les fichiers typescript
       - CHOKIDAR_USEPOLLING=true
       # Surveille les changement dans les autres fichiers
       - WATCHPACK_POLLING=true
-
 volumes:
   shared_frontend:

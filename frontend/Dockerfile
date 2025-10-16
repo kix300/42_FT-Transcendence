@@ -14,5 +14,5 @@ COPY	public/ ./public/
 COPY	src/ ./src/
 COPY	index.html ./index.html
 
-# RUN		npm run build
+# PROD
 CMD ["npm", "run", "build", "--", "--watch"]
