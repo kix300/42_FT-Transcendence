@@ -2,6 +2,7 @@ import { Engine } from "@babylonjs/core/Engines/engine";
 import { Game } from "../Game";
 import { getRouter } from "../router";
 import { AuthManager } from "../utils/auth";
+import { submitMatchResultToBackend } from "./TournamentPage";
 
 export async function GamePage(): Promise<void> {
       // Vérifier l'authentification AVANT d'afficher la page
@@ -335,9 +336,10 @@ function showGameEndOverlay(winner: number, score1: number, score2: number, matc
     returnToTournamentBtn.addEventListener("click", () => {
       // Store match result before navigating back
       if (matchData) {
+        const winnerId = winner === 1 ? matchData.player1.id : matchData.player2.id;
         const results = JSON.parse(sessionStorage.getItem("tournamentResults") || "{}");
         results[matchData.matchId] = {
-          winner,
+          winner: winnerId,
           score1,
           score2,
           winnerName,
@@ -345,6 +347,19 @@ function showGameEndOverlay(winner: number, score1: number, score2: number, matc
           player2Name
         };
         sessionStorage.setItem("tournamentResults", JSON.stringify(results));
+
+        // Submit match result to backend (fire and forget)
+        submitMatchResultToBackend({
+          matchId: parseInt(matchData.matchId),
+          player1Id: parseInt(matchData.player1.id),
+          player1Name: player1Name,
+          player2Id: parseInt(matchData.player2.id),
+          player2Name: player2Name,
+          winnerId: parseInt(winnerId),
+          winnerName: winnerName,
+          score1: score1,
+          score2: score2,
+        });
       }
 
       // Clear current match data

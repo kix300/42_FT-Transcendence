@@ -112,19 +112,19 @@ export const FRIENDS_API = {
    * @method GET
    * @description Récupère la liste d'amis de l'utilisateur connecté.
    */
-  GET_ALL: `${API_BASE_URL}/friends`,
+  GET_ALL: `${API_BASE_URL}/friends/show`,
 
   /**
    * @method POST
    * @description Ajoute un ami.
    * @body { friendId }
    */
-  ADD: `${API_BASE_URL}/friends`,
+  ADD: `${API_BASE_URL}/friends/add`,
 
   /**
    * @method DELETE
    * @description Supprime un ami par son ID.
    * @param id - L'ID de l'ami à supprimer.
    */
-  DELETE: (id: number) => `${API_BASE_URL}/friends/${id}`,
+  DELETE: `${API_BASE_URL}/friends/delete`,
 };

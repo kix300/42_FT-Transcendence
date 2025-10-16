@@ -495,7 +495,7 @@ async function loadFriendsList(): Promise<void> {
           const userId = target.getAttribute("data-user-id");
           const username = target.getAttribute("data-username");
           if (userId && username) {
-            removeFriend(parseInt(userId), username);
+            removeFriend(username);
           }
         });
       });
@@ -526,7 +526,7 @@ async function loadFriendsList(): Promise<void> {
 }
 
 // Remove friend
-async function removeFriend(userId: number, username: string): Promise<void> {
+async function removeFriend(username: string): Promise<void> {
   if (
     !confirm(`Are you sure you want to remove ${username} from your friends?`)
   ) {
@@ -535,7 +535,7 @@ async function removeFriend(userId: number, username: string): Promise<void> {
 
   try {
     const response = await AuthManager.fetchWithAuth(
-      FRIENDS_API.DELETE(userId),
+      `${FRIENDS_API.DELETE}/${username}`,
       {
         method: "DELETE",
       },
