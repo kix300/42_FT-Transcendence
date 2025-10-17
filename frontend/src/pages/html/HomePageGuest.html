@@ -1,0 +1,95 @@
+<div class="min-h-screen flex flex-col bg-black text-green-400 font-mono">
+    {{header}}
+
+    <!-- Terminal content -->
+    <main class="flex-1 p-6">
+        <div class="max-w-6xl mx-auto">
+            <!-- ASCII Art Header -->
+            <div class="mb-8">
+                <pre
+                    id="ascii-art"
+                    class="text-green-400 text-sm md:text-base leading-tight opacity-0"
+                >
+ ████████ ██████   █████  ███    ██ ███████  ██████ ███████ ███    ██ ██████  ███████ ███    ██  ██████ ███████
+    ██    ██   ██ ██   ██ ████   ██ ██      ██      ██      ████   ██ ██   ██ ██      ████   ██ ██      ██
+    ██    ██████  ███████ ██ ██  ██ ███████ ██      █████   ██ ██  ██ ██   ██ █████   ██ ██  ██ ██      █████
+    ██    ██   ██ ██   ██ ██  ██ ██      ██ ██      ██      ██  ██ ██ ██   ██ ██      ██  ██ ██ ██      ██
+    ██    ██   ██ ██   ██ ██   ████ ███████  ██████ ███████ ██   ████ ██████  ███████ ██   ████  ██████ ███████
+        </pre
+                >
+                <div class="mt-4" id="terminal-prompt" style="opacity: 0">
+                    <span class="text-green-500">guest@42school:~$</span>
+                    <span id="cat-command" class="text-green-300"></span>
+                    <span id="cat-cursor" class="text-green-300 animate-pulse"
+                        >_</span
+                    >
+                </div>
+                <div
+                    class="mt-2 text-green-400"
+                    id="welcome-messages"
+                    style="opacity: 0"
+                >
+                    <div id="msg-1">></div>
+                    <div id="msg-2">></div>
+                    <div id="msg-3">></div>
+                    <div id="msg-4">></div>
+                </div>
+            </div>
+
+            <!-- Command menu -->
+            <div
+                class="bg-gray-900 border border-green-400/30 p-6 mb-8"
+                id="command-menu"
+                style="opacity: 0"
+            >
+                <div class="text-green-300 mb-4" id="available-commands"></div>
+                <div class="grid md:grid-cols-2 gap-4">
+                    <button
+                        data-route="/game"
+                        class="text-left p-3 border border-green-400/30 hover:bg-green-400/10 transition-colors"
+                    >
+                        <div class="text-green-300">./start_game.sh</div>
+                        <div class="text-green-500 text-sm">
+                            Launch a new Pong match
+                        </div>
+                    </button>
+                    <button
+                        data-route="/tournament"
+                        class="text-left p-3 border border-green-400/30 hover:bg-green-400/10 transition-colors"
+                    >
+                        <div class="text-green-300">./tournament.sh</div>
+                        <div class="text-green-500 text-sm">
+                            Join competitive tournaments
+                        </div>
+                    </button>
+                    <button
+                        data-route="/login"
+                        class="text-left p-3 border border-green-400/30 hover:bg-green-400/10 transition-colors"
+                    >
+                        <div class="text-green-300">./login.sh</div>
+                        <div class="text-green-500 text-sm">
+                            Login to your account
+                        </div>
+                    </button>
+                    <button
+                        data-route="/register"
+                        class="text-left p-3 border border-green-400/30 hover:bg-green-400/10 transition-colors"
+                    >
+                        <div class="text-green-300">./register.sh</div>
+                        <div class="text-green-500 text-sm">
+                            Create your account
+                        </div>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer terminal style -->
+    <footer class="border-t border-green-400/30 p-4">
+        <div class="max-w-6xl mx-auto text-center text-green-500 text-sm">
+            <span class="text-green-400">[System Info]</span> Transcendence
+            v1.0.0 | École 42 | Build {{buildDate}}
+        </div>
+    </footer>
+</div>

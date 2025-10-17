@@ -7,8 +7,7 @@ import { GamePage } from "./pages/GamePage";
 import { TournamentPage } from "./pages/TournamentPage";
 import { ProfilePage } from "./pages/ProfilePage";
 import { UsersPage } from "./pages/UsersPage";
-import { AuthManager } from './utils/auth';
-
+import { AuthManager } from "./utils/auth";
 
 // Initialiser l'application
 function initApp(): void {
@@ -26,71 +25,84 @@ function initApp(): void {
     path: "/",
     name: "home",
     component: HomePage,
+    isPublic: true,
   });
 
   router.addRoute({
     path: "/login",
     name: "login",
     component: LoginPage,
+    isPublic: true,
   });
 
   router.addRoute({
     path: "/register",
     name: "register",
     component: RegisterPage,
+    isPublic: true,
   });
 
   router.addRoute({
     path: "/home",
     name: "home",
     component: HomePage,
+    isPublic: true,
   });
 
   router.addRoute({
     path: "/game",
     name: "game",
     component: GamePage,
+    isPublic: true,
   });
 
   router.addRoute({
     path: "/tournament",
     name: "tournament",
     component: TournamentPage,
+    isPublic: true,
   });
 
   router.addRoute({
     path: "/profile",
     name: "profile",
     component: ProfilePage,
+    requiresAuth: true,
   });
 
   router.addRoute({
     path: "/users",
     name: "users",
     component: UsersPage,
+    requiresAuth: true,
   });
 
   // Vérifier l'authentification au démarrage
   const currentPath = window.location.pathname;
-  const protectedPaths = ["/home", "/game", "/tournament", "/profile", "/users"];
+  const isAuthenticated = AuthManager.isAuthenticated();
 
-  if (protectedPaths.includes(currentPath)) {
-    // Si on est sur une page protégée, vérifier l'auth
-    const isAuthenticated = AuthManager.isAuthenticated();
-
-    if (!isAuthenticated) {
-      // Pas d'auth valide, rediriger vers login
-      router.start("/login");
-      return;
-    }
+  // Si pas authentifié et pas sur login/register, activer le mode guest
+  if (
+    !isAuthenticated &&
+    currentPath !== "/login" &&
+    currentPath !== "/register"
+  ) {
+    AuthManager.enableGuestMode();
   }
-
   // // Démarrer avec la route actuelle ou login par défaut
-  const validPaths = ["/", "/login", "/register", "/home", "/game", "/tournament", "/profile", "/users"];
+  const validPaths = [
+    "/",
+    "/login",
+    "/register",
+    "/home",
+    "/game",
+    "/tournament",
+    "/profile",
+    "/users",
+  ];
   const startPath = validPaths.includes(currentPath) ? currentPath : "/";
 
   router.start(startPath);
-  // router.start("/game");
 }
 // Démarrer l'application quand le DOM est prêt
 if (document.readyState === "loading") {
