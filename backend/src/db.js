@@ -60,14 +60,14 @@ const placeholders = admins.map(() => '?').join(', ');
 db.prepare(`UPDATE users SET role = 'admin' WHERE username IN (${placeholders})`).run(...admins);
 db.prepare(`UPDATE users SET role = 'user' WHERE role IS NULL`).run();
 
-/* AJOUT COLONNE IS_ONLINE */
+/* AJOUT COLONNE STATUS */
 
-columnExists = db.prepare("PRAGMA table_info(users)").all().some(col => col.name === "is_online");
+columnExists = db.prepare("PRAGMA table_info(users)").all().some(col => col.name === "status");
 if (!columnExists) {
-	db.prepare(`ALTER TABLE users ADD COLUMN is_online BOOLEAN DEFAULT 0`).run();
-	console.log("✅ Colonne 'is_online' ajoutée !");
+	db.prepare(`ALTER TABLE users ADD COLUMN status INTEGER DEFAULT 0 CHECK(status IN (0,1,2))`).run();
+	console.log("✅ Colonne 'status' ajoutée !");
 } else {
-	console.log("ℹ️ La colonne 'is_online' existe déjà");
+	console.log("ℹ️ La colonne 'status' existe déjà");
 }
 
 

@@ -14,7 +14,7 @@ interface Friend {
   id: number;
   username: string;
   photo: string;
-  status?: string;
+  status?: number;
 }
 
 export class FriendManager {
@@ -189,7 +189,30 @@ export class FriendManager {
         // Display friends
         friendsList.innerHTML = friends
           .map(
-            (friend) => `
+            (friend) => {
+				// Déterminer la couleur et le texte selon le statut
+				let statusColor = "";
+				let statusText = "";
+
+				switch (friend.status) {
+				case 0:
+					statusColor = "bg-gray-500";
+					statusText = "offline";
+					break;
+				case 1:
+					statusColor = "bg-green-500";
+					statusText = "online";
+					break;
+				case 2:
+					statusColor = "bg-blue-500";
+					statusText = "in game";
+					break;
+				default:
+					statusColor = "bg-gray-500";
+					statusText = "offline";
+				}
+
+			return `
             <div class="bg-black border border-green-400/20 p-3 rounded flex items-center justify-between hover:border-green-400/40 transition-colors">
             <div class="flex items-center space-x-3">
             <div class="w-10 h-10 rounded-full bg-green-400/20 border border-green-400/50 flex items-center justify-center overflow-hidden">
@@ -201,8 +224,11 @@ export class FriendManager {
             }
             </div>
             <div>
-            <div class="text-green-400 font-bold">${friend.username}</div>
-            ${friend.status ? `<div class="text-green-500 text-xs">${friend.status}</div>` : ""}
+				<div class="text-green-400 font-bold">${friend.username}</div>
+				<div class="flex items-center space-x-1 text-xs">
+				<span class="w-2 h-2 rounded-full ${statusColor}"></span>
+				<span class="text-green-500 text-xs">${statusText}</span>
+				</div>
             </div>
             </div>
             <div class="flex space-x-2">
@@ -215,8 +241,8 @@ export class FriendManager {
             </button>
             </div>
             </div>
-            `,
-          )
+            `;
+          })
           .join("");
 
         // Add event listeners

@@ -24,9 +24,6 @@ export default async function loginRoutes(fastify, options) {
     	const token = fastify.jwt.sign({ id: user.id, email: user.email});
 		console.log("✅ Token généré :", token);
 
-		// Statut is_online
-		db.prepare("UPDATE users SET is_online = 1 WHERE id = ?").run(user.id);
-
 		return reply.send({ 
 			message: 'Connexion réussie',
 			token,
