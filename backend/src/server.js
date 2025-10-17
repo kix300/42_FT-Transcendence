@@ -34,12 +34,17 @@ const fastify = Fastify({
 	logger: true,
 });
 
+// Mettre tous le monde hors ligne lors d'un redemarrage du serveur
+db.prepare("UPDATE users SET status = 0").run();
+console.log("Toutes les connexions réinitialisées (status = 0)");
+
 // Clé secrète JWT
 fastify.register(fastifyJwt, { secret: process.env.JWT_PWD });
 
 // Décorateur pour vérifier le token facilement dans les routes
 fastify.decorate("authenticate", async (request, reply) => {
   try {
+	//console log a retirer en prod
 	console.log("🪪 Header Authorization reçu:", request.headers.authorization);
     await request.jwtVerify();
   } catch (err) {
@@ -58,7 +63,6 @@ fastify.register(loginRoutes);
 fastify.register(userRoutes);
 fastify.register(matchesRoutes);
 fastify.register(friendsRoutes);
-
 // fastify.register(oauthRoutes);
 
 // Plugin pour fichiers statiques
@@ -96,11 +100,6 @@ const start = async () => {
 fastify.setNotFoundHandler((request, reply) => {
   reply.sendFile('index.html'); 
 });
-
-// Mettre tous le monde hors ligne lors d'un redemarrage du serveur
-db.prepare("UPDATE users SET status = 0").run();
-console.log("Toutes les connexions réinitialisées (status = 0)");
-
 
 export default fastify;
 

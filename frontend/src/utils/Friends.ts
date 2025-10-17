@@ -210,7 +210,7 @@ export class FriendManager {
 					break;
 				default:
 					statusColor = "bg-yellow-500";
-					statusText = "error";
+					statusText = "not working";
 				}
 
 			return `
