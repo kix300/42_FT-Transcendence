@@ -5,7 +5,7 @@ import fs from "fs";
 import path from "path";
 import { pipeline } from "stream/promises";
 
-export default async function registerRoutes(fastify ){
+export default async function registerRoutes(fastify){
 	fastify.register(multipart);
     fastify.post("/api/register", async(request, reply) => {
 		let username, email, password;
