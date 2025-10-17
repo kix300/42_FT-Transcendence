@@ -29,8 +29,8 @@ function initApp(): void {
   // Enregistrer les routes
   router.addRoute({
     path: "/",
-    name: "home",
-    component: HomePage,
+    name: "login",
+    component: LoginPage,
     isPublic: true,
   });
 
