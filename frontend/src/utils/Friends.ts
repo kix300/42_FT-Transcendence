@@ -18,6 +18,7 @@ interface Friend {
 }
 
 export class FriendManager {
+
   // Setup friends search listeners
   static setupFriendsListeners(): void {
     const searchInput = document.getElementById(
@@ -208,8 +209,8 @@ export class FriendManager {
 					statusText = "in game";
 					break;
 				default:
-					statusColor = "bg-gray-500";
-					statusText = "offline";
+					statusColor = "bg-yellow-500";
+					statusText = "error";
 				}
 
 			return `
@@ -232,11 +233,19 @@ export class FriendManager {
             </div>
             </div>
             <div class="flex space-x-2">
+
             <button
             class="view-profile-btn bg-blue-400/20 border border-blue-400/50 text-blue-400 px-3 py-1 rounded hover:bg-blue-400/30 transition-colors text-sm"
             data-user-id="${friend.id}"
             >
+            [VIEW]
+            </button>
 
+            <button
+            class="remove-friend-btn bg-red-400/20 border border-red-400/50 text-red-400 px-3 py-1 rounded hover:bg-red-400/30 transition-colors text-sm"
+            data-user-id="${friend.id}"
+            data-username="${friend.username}"
+            >
             [REMOVE]
             </button>
             </div>
