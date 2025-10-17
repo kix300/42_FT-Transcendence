@@ -2,6 +2,7 @@ import { getRouter } from "../router";
 import { AuthManager } from "../utils/auth";
 import { createHeader, HeaderConfigs } from "../components/Header";
 import { Header } from "../components/Header";
+import { escapeHtml } from "../utils/sanitize";
 
 // ============================================================================
 // TYPES & INTERFACES
@@ -478,8 +479,8 @@ function generateRoundHTML(tournament: TournamentData, round: number): string {
 function generateMatchCardHTML(match: Match): string {
   const { player1, player2, score1, score2, isCompleted, winner } = match;
 
-  const p1Name = player1 ? (player1.isBye ? `<span class="text-green-600">${player1.name}</span>` : player1.name) : "TBD";
-  const p2Name = player2 ? (player2.isBye ? `<span class="text-green-600">${player2.name}</span>` : player2.name) : "TBD";
+  const p1Name = player1 ? (player1.isBye ? `<span class="text-green-600">${escapeHtml(player1.name)}</span>` : escapeHtml(player1.name)) : "TBD";
+  const p2Name = player2 ? (player2.isBye ? `<span class="text-green-600">${escapeHtml(player2.name)}</span>` : escapeHtml(player2.name)) : "TBD";
 
   const winnerNum = isCompleted && winner ? (player1 && winner.id === player1.id ? 1 : 2) : 0;
   const p1Class = winnerNum === 1 ? "text-green-300 font-bold" : "text-green-400";
@@ -515,15 +516,15 @@ function generateActionButton(match: Match): string {
   const { player1, player2, isCompleted, winner } = match;
 
   if (isCompleted && winner) {
-    return `<div class="text-green-300 text-xs mt-2 font-bold">✓ COMPLETED - ${winner.name} wins!</div>`;
+    return `<div class="text-green-300 text-xs mt-2 font-bold">✓ COMPLETED - ${escapeHtml(winner.name)} wins!</div>`;
   }
 
   if (player1?.isBye && player2 && !player2.isBye) {
-    return `<div class="text-green-300 text-xs mt-2">${player2.name} advances</div>`;
+    return `<div class="text-green-300 text-xs mt-2">${escapeHtml(player2.name)} advances</div>`;
   }
 
   if (player2?.isBye && player1 && !player1.isBye) {
-    return `<div class="text-green-300 text-xs mt-2">${player1.name} advances</div>`;
+    return `<div class="text-green-300 text-xs mt-2">${escapeHtml(player1.name)} advances</div>`;
   }
 
   if (player1 && player2 && !player1.isBye && !player2.isBye) {
@@ -532,9 +533,9 @@ function generateActionButton(match: Match): string {
         class="start-match-btn w-full mt-2 bg-green-400/20 border border-green-400 px-3 py-1 hover:bg-green-400/30 transition-colors text-xs"
         data-match-id="${match.id}"
         data-player1-id="${player1.id}"
-        data-player1-name="${player1.name}"
+        data-player1-name="${escapeHtml(player1.name)}"
         data-player2-id="${player2.id}"
-        data-player2-name="${player2.name}"
+        data-player2-name="${escapeHtml(player2.name)}"
       >
         <span class="text-green-300">> START MATCH</span>
       </button>
@@ -558,7 +559,7 @@ function updateTournamentWinner(tournament: TournamentData): void {
   if (finalMatch?.isCompleted && finalMatch.winner) {
     const winnerDisplay = document.getElementById("tournament-winner");
     if (winnerDisplay) {
-      winnerDisplay.textContent = finalMatch.winner.name;
+      winnerDisplay.textContent = escapeHtml(finalMatch.winner.name);
       winnerDisplay.classList.add("animate-pulse");
     }
 
@@ -594,7 +595,7 @@ function showTournamentWinnerOverlay(winner: Player, tournament: TournamentData)
           <h1 class="text-5xl font-bold text-green-300 mb-4 animate-pulse">TOURNAMENT COMPLETE!</h1>
           <div class="h-1 bg-green-400 w-48 mx-auto mb-6"></div>
           <div class="text-green-500 text-sm mb-2">CHAMPION</div>
-          <div class="text-6xl font-bold text-green-300 mb-4">${winner.name}</div>
+          <div class="text-6xl font-bold text-green-300 mb-4">${escapeHtml(winner.name)}</div>
         </div>
 
         <!-- Trophy Icon -->

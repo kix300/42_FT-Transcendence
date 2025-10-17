@@ -3,6 +3,7 @@ import { Engine } from "@babylonjs/core/Engines/engine";
 import { Game } from "../Game";
 import { getRouter } from "../router";
 import { AuthManager } from "../utils/auth";
+import { escapeHtml } from "../utils/sanitize";
 import { submitMatchResultToBackend } from "./TournamentPage";
 //@ts-ignore
 import gamePageCompleteHtml from "./html/GamePage.html?raw";
@@ -156,8 +157,13 @@ export async function GamePage(): Promise<void> {
 
   if (restartBtn) {
     restartBtn.addEventListener("click", () => {
-      // Redémarrer le jeu (recharger la page de jeu)
-      window.location.reload();
+      // Restart le jeu via router (SPA style)
+      import("../router").then(({ getRouter }) => {
+        const router = getRouter();
+        if (router) {
+          router.navigate("/game");
+        }
+      });
     });
   }
 
@@ -198,8 +204,8 @@ function showGameEndOverlay(
   if (!body) return;
 
   // Get player names from match data or use defaults
-  const player1Name = matchData?.player1?.name || "Player 1";
-  const player2Name = matchData?.player2?.name || "Player 2";
+  const player1Name = escapeHtml(matchData?.player1?.name || "Player 1");
+  const player2Name = escapeHtml(matchData?.player2?.name || "Player 2");
   const winnerName = winner === 1 ? player1Name : player2Name;
 
   // Create overlay HTML from template
@@ -207,7 +213,7 @@ function showGameEndOverlay(
     ? `
     <div class="bg-black/50 border border-green-400/30 p-4 mb-6 text-center">
       <div class="text-green-500 text-xs mb-1">TOURNAMENT MATCH</div>
-      <div class="text-green-400 text-sm">Match #${matchData.matchId}</div>
+      <div class="text-green-400 text-sm">Match #${escapeHtml(matchData.matchId)}</div>
     </div>
   `
     : "";
@@ -225,14 +231,14 @@ function showGameEndOverlay(
     `;
 
   const overlayHtml = gamePageOverlayHtml
-    .replace("{{winnerName}}", winnerName)
-    .replace("{{player1Name}}", player1Name)
+    .replace("{{winnerName}}", escapeHtml(winnerName))
+    .replace("{{player1Name}}", escapeHtml(player1Name))
     .replace("{{score1}}", score1.toString())
     .replace(
       "{{winnerClass1}}",
       winner === 1 ? "text-green-300" : "text-green-600",
     )
-    .replace("{{player2Name}}", player2Name)
+    .replace("{{player2Name}}", escapeHtml(player2Name))
     .replace("{{score2}}", score2.toString())
     .replace(
       "{{winnerClass2}}",
@@ -240,9 +246,34 @@ function showGameEndOverlay(
     )
     .replace("{{matchInfo}}", matchInfoHtml)
     .replace("{{actionButton}}", actionButtonHtml);
-
   body.insertAdjacentHTML("beforeend", overlayHtml);
 
+  // Récupérer l'overlay depuis le DOM
+  const overlay = document.getElementById("game-end-overlay");
+
+  // Fermer la modal
+  const closeModal = () => {
+    if (overlay) {
+      overlay.remove();
+    }
+  };
+  // Fermer en cliquant à l'extérieur
+  if (overlay) {
+    overlay.addEventListener("click", (e: MouseEvent) => {
+      if (e.target === overlay) {
+        closeModal();
+      }
+    });
+  }
+
+  // Fermer avec Escape
+  const handleEscape = (e: KeyboardEvent) => {
+    if (e.key === "Escape") {
+      closeModal();
+      document.removeEventListener("keydown", handleEscape);
+    }
+  };
+  document.addEventListener("keydown", handleEscape);
   // Setup button handlers
   const returnToTournamentBtn = document.getElementById(
     "return-to-tournament-btn",
@@ -286,11 +317,7 @@ function showGameEndOverlay(
       // Clear current match data
       sessionStorage.removeItem("currentMatch");
 
-      // Remove the overlay
-      const overlay = document.getElementById("game-end-overlay");
-      if (overlay) {
-        overlay.remove();
-      }
+      closeModal();
 
       // Navigate back to tournament using the router
       import("../router").then(({ getRouter }) => {
@@ -303,16 +330,29 @@ function showGameEndOverlay(
       });
     });
   }
-
   if (playAgainBtn) {
     playAgainBtn.addEventListener("click", () => {
-      window.location.reload();
+      // Fermer l'overlay
+      // const overlay = document.getElementById("game-end-overlay");
+      // if (overlay) {
+      //   overlay.remove();
+      // }
+      closeModal();
+
+      // Restart le jeu via router (SPA style)
+      import("../router").then(({ getRouter }) => {
+        const router = getRouter();
+        if (router) {
+          router.navigate("/game");
+        }
+      });
     });
   }
 
   if (returnHomeBtn) {
     returnHomeBtn.addEventListener("click", () => {
       sessionStorage.removeItem("currentMatch");
+      closeModal();
 
       // Navigate back to home using the router
       import("../router").then(({ getRouter }) => {
