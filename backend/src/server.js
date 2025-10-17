@@ -9,6 +9,7 @@ import { fileURLToPath } from "url";
 import { dirname } from "path";
 import { requireHttps } from './https.js';
 import fastifyWebsocket from "@fastify/websocket";
+import db from './db.js';
 
 //port
 const porthttps = 3000;
