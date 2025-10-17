@@ -119,7 +119,7 @@ export class Header {
           <div class="text-left">
             <div class="text-green-400 text-sm font-medium">${escapeHtml(this.userProfile?.username || "Unknown")}</div>
           </div>
-        </button>
+        </buttonhome>
       </div>
     `;
   }
@@ -217,7 +217,7 @@ export const HeaderConfigs = {
   guest: {
     title: "Mode Guest",
     command: "./guest.sh",
-    showProfile: false,
+    showProfile: false, //<- pk pas faire un profil qui affiche juste guest et quand tu clique ca tenvois sur login
     showNavigation: true,
     isGuest: true,
   },

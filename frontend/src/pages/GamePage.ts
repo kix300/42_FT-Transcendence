@@ -1,7 +1,7 @@
 //@ts-ignore
 import { Engine } from "@babylonjs/core/Engines/engine";
 import { Game } from "../Game";
-import { getRouter } from "../router";
+// import { getRouter } from "../router";
 import { AuthManager } from "../utils/auth";
 import { escapeHtml } from "../utils/sanitize";
 import { submitMatchResultToBackend } from "./TournamentPage";
@@ -13,14 +13,15 @@ import gamePageOverlayHtml from "./html/GamePage-overlay.html?raw";
 
 export async function GamePage(): Promise<void> {
   // Vérifier l'authentification AVANT d'afficher la page
-  if (!AuthManager.isAuthenticated()) {
-    console.log("Utilisateur non authentifié, redirection vers login");
-    const router = getRouter();
-    if (router) {
-      router.navigate("/login");
-    }
-    return;
-  }
+  // if (!AuthManager.isAuthenticated()) {
+  //   console.log("Utilisateur non authentifié, redirection vers login");
+  //   const router = getRouter();
+  //   if (router) {
+  //     router.navigate("/login");
+  //   }
+  //   return;
+  // }
+  const isGuest = AuthManager.isGuest();
   const appDiv = document.querySelector<HTMLDivElement>("#app");
   if (!appDiv) return;
 
@@ -35,7 +36,9 @@ export async function GamePage(): Promise<void> {
     appDiv.className = "container mx-auto p-4 flex flex-col h-screen";
 
     // Create and render the shared header
-    const header = createHeader(HeaderConfigs.game);
+    const header = isGuest
+      ? createHeader(HeaderConfigs.guest)
+      : createHeader(HeaderConfigs.game);
     const headerHtml = await header.render();
 
     // Prepare the complete page content with build date replacement
