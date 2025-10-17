@@ -37,6 +37,7 @@ interface HeaderConfig {
   showProfile?: boolean;
   showNavigation?: boolean;
   activeRoute?: string;
+  isGuest?: boolean;
 }
 
 export class Header {
@@ -75,12 +76,24 @@ export class Header {
   // ${this.renderDebugInfo()}
 
   private renderNavigation(): string {
+    if (this.config.isGuest) {
+      return `
+        <!-- Navigation Menu -->
+        <div class="flex space-x-6" id="nav-menu" style="opacity: 0;">
+          <a id="route-home" href="#" data-route="/home" class="hover:text-green-300 transition-colors ${this.config.activeRoute === "/home" ? "text-green-300 font-bold" : "text-green-400"}">> home</a>
+          <a id="route-game" href="#" data-route="/game" class="hover:text-green-300 transition-colors ${this.config.activeRoute === "/game" ? "text-green-300 font-bold" : "text-green-400"}">> game</a>
+          <a id="route-tournament" href="#" data-route="/tournament" class="hover:text-green-300 transition-colors ${this.config.activeRoute === "/tournament" ? "text-green-300 font-bold" : "text-green-400"}">> tournament</a>
+          <a id="route-login" href="#" data-route="/login" class="hover:text-green-300 transition-colors ${this.config.activeRoute === "/login" ? "text-green-300 font-bold" : "text-green-400"}">> login</a>
+          <a id="route-register" href="#" data-route="/register" class="hover:text-green-300 transition-colors ${this.config.activeRoute === "/register" ? "text-green-300 font-bold" : "text-green-400"}">> register</a>
+        </div>
+      `;
+    }
     return `
       <!-- Navigation Menu -->
       <div class="flex space-x-6" id="nav-menu" style="opacity: 0;">
-        <a href="#" data-route="/home" class="hover:text-green-300 transition-colors ${this.config.activeRoute === "/home" ? "text-green-300 font-bold" : "text-green-400"}">> home</a>
-        <a href="#" data-route="/game" class="hover:text-green-300 transition-colors ${this.config.activeRoute === "/game" ? "text-green-300 font-bold" : "text-green-400"}">> game</a>
-        <a href="#" data-route="/tournament" class="hover:text-green-300 transition-colors ${this.config.activeRoute === "/tournament" ? "text-green-300 font-bold" : "text-green-400"}">> tournament</a>
+        <a id="route-home" href="#" data-route="/home" class="hover:text-green-300 transition-colors ${this.config.activeRoute === "/home" ? "text-green-300 font-bold" : "text-green-400"}">> home</a>
+        <a id="route-game" href="#" data-route="/game" class="hover:text-green-300 transition-colors ${this.config.activeRoute === "/game" ? "text-green-300 font-bold" : "text-green-400"}">> game</a>
+        <a id="route-tournament" href="#" data-route="/tournament" class="hover:text-green-300 transition-colors ${this.config.activeRoute === "/tournament" ? "text-green-300 font-bold" : "text-green-400"}">> tournament</a>
         <button id="logout-btn" class="hover:text-red-400 transition-colors text-left text-green-400">> logout</button>
       </div>
     `;
@@ -106,29 +119,10 @@ export class Header {
           <div class="text-left">
             <div class="text-green-400 text-sm font-medium">${escapeHtml(this.userProfile?.username || "Unknown")}</div>
           </div>
-        </button>
+        </buttonhome>
       </div>
     `;
   }
-
-  //   private renderDebugInfo(): string {
-  //     return `
-  //       <!-- Debug Info (Optional - can be hidden in production) -->
-  //       <div class="flex items-center space-x-4" id="debug-info" style="opacity: 0; display: none;">
-  //         <div class="bg-gray-900 border border-green-400/30 px-3 py-1 rounded">
-  //           <div class="text-green-300 text-xs">Debug Info:</div>
-  //           <div class="text-green-400 text-sm">
-  //             <span class="text-green-300">ID:</span> ${this.userProfile?.id || 'N/A'} |
-  //             <span class="text-green-300">Email:</span> ${this.userProfile?.email || 'N/A'}
-  //           </div>
-  //         </div>
-  //         <div class="bg-gray-900 border border-green-400/30 px-3 py-1 rounded">
-  //           <div class="text-green-300 text-xs">Token:</div>
-  //           <div class="text-green-400 text-sm font-mono">${AuthManager.getToken()?.substring(0, 20) || 'N/A'}...</div>
-  //         </div>
-  //       </div>
-  //     `;
-  //   }
 
   private async loadUserProfile(): Promise<void> {
     try {
@@ -219,5 +213,12 @@ export const HeaderConfigs = {
     command: "./register.sh",
     showProfile: false,
     showNavigation: false,
+  },
+  guest: {
+    title: "Mode Guest",
+    command: "./guest.sh",
+    showProfile: false, //<- pk pas faire un profil qui affiche juste guest et quand tu clique ca tenvois sur login
+    showNavigation: true,
+    isGuest: true,
   },
 };

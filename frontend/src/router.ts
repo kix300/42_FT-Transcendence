@@ -3,7 +3,9 @@ export interface Route {
   path: string;
   name: string;
   component: () => Promise<void> | void;
-  cleanup?: () => void; // Fonction optionnelle de nettoyage
+  cleanup?: () => void;
+  requiresAuth?: boolean;
+  isPublic?: boolean;
 }
 
 export class Router {
@@ -11,7 +13,6 @@ export class Router {
   private currentRoute: string = "/";
   private appContainer: HTMLElement;
   private isPopstateNavigation = false;
-
 
   constructor(appContainer: HTMLElement) {
     this.appContainer = appContainer;
@@ -30,12 +31,21 @@ export class Router {
       console.error(`Route not found: ${path}`);
       return;
     }
+    // Vérifier l'authentification pour les routes protégées
+    if (route.requiresAuth) {
+      const { AuthManager } = await import("./utils/auth");
+      if (!AuthManager.isAuthenticated()) {
+        console.log("Route protégée, redirection vers login");
+        this.navigate("/login");
+        return;
+      }
+    }
 
     try {
       // Nettoyer la page actuelle
       this.cleanup();
 
-     // Mettre à jour l'URL seulement si ce n'est PAS une navigation popstate
+      // Mettre à jour l'URL seulement si ce n'est PAS une navigation popstate
       if (!this.isPopstateNavigation) {
         if (path === this.currentRoute) {
           // Même page : remplacer l'entrée actuelle
@@ -47,13 +57,12 @@ export class Router {
       }
       this.currentRoute = path;
 
-
       // Charger la nouvelle page
       await route.component();
     } catch (error) {
       console.error(`Error loading route ${path}:`, error);
-    } finally{
-      this.isPopstateNavigation = false;     
+    } finally {
+      this.isPopstateNavigation = false;
     }
   }
 
@@ -65,7 +74,10 @@ export class Router {
       try {
         currentRoute.cleanup();
       } catch (error) {
-        console.error(`Error during cleanup for route ${this.currentRoute}:`, error);
+        console.error(
+          `Error during cleanup for route ${this.currentRoute}:`,
+          error,
+        );
       }
     }
 

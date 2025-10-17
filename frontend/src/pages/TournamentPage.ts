@@ -40,12 +40,12 @@ interface TournamentData {
 const STORAGE_KEYS = {
   TOURNAMENT: "currentTournament",
   RESULTS: "tournamentResults",
-  CURRENT_MATCH: "currentMatch"
+  CURRENT_MATCH: "currentMatch",
 } as const;
 
 const API_ENDPOINTS = {
   MATCH_RESULT: "/api/matches",
-  TOURNAMENT_WINNER: "/api/tournament/winner"
+  TOURNAMENT_WINNER: "/api/tournament/winner",
 } as const;
 
 // ============================================================================
@@ -97,7 +97,10 @@ export async function submitMatchResultToBackend(matchData: {
     });
 
     if (!response.ok) {
-      console.warn("Failed to submit match result to backend:", response.statusText);
+      console.warn(
+        "Failed to submit match result to backend:",
+        response.statusText,
+      );
     }
   } catch (error) {
     console.error("Error submitting match result to backend:", error);
@@ -137,7 +140,10 @@ export async function submitTournamentWinnerToBackend(winnerData: {
     });
 
     if (!response.ok) {
-      console.warn("Failed to submit tournament winner to backend:", response.statusText);
+      console.warn(
+        "Failed to submit tournament winner to backend:",
+        response.statusText,
+      );
     }
   } catch (error) {
     console.error("Error submitting tournament winner to backend:", error);
@@ -152,7 +158,11 @@ export async function submitTournamentWinnerToBackend(winnerData: {
  * Calculates match ID from round and position within round.
  * IDs are sequential: Round 0 gets 0-N, Round 1 gets N+1-M, etc.
  */
-function getMatchId(round: number, matchInRound: number, bracketSize: number): number {
+function getMatchId(
+  round: number,
+  matchInRound: number,
+  bracketSize: number,
+): number {
   let startId = 0;
   for (let r = 0; r < round; r++) {
     startId += bracketSize / Math.pow(2, r + 1);
@@ -163,7 +173,11 @@ function getMatchId(round: number, matchInRound: number, bracketSize: number): n
 /**
  * Calculates the parent match ID (next round) for a given match.
  */
-function getParentMatchId(matchId: number, round: number, bracketSize: number): number {
+function getParentMatchId(
+  matchId: number,
+  round: number,
+  bracketSize: number,
+): number {
   // Find which match in current round
   let startIdCurrentRound = 0;
   for (let r = 0; r < round; r++) {
@@ -242,7 +256,7 @@ function createTournamentStructure(players: Player[]): TournamentData {
   const matches = new Map<number, Match>();
 
   // Calculate real player count (excluding BYEs)
-  const realPlayerCount = players.filter(p => !p.isBye).length;
+  const realPlayerCount = players.filter((p) => !p.isBye).length;
 
   // Create all matches for all rounds
   for (let round = 0; round < totalRounds; round++) {
@@ -258,7 +272,7 @@ function createTournamentStructure(players: Player[]): TournamentData {
         winner: null,
         score1: 0,
         score2: 0,
-        isCompleted: false
+        isCompleted: false,
       };
 
       // First round: assign players
@@ -287,7 +301,12 @@ function createTournamentStructure(players: Player[]): TournamentData {
 /**
  * Marks a match as completed with winner and scores.
  */
-function completeMatch(match: Match, winner: Player, score1: number, score2: number): void {
+function completeMatch(
+  match: Match,
+  winner: Player,
+  score1: number,
+  score2: number,
+): void {
   match.winner = winner;
   match.score1 = score1;
   match.score2 = score2;
@@ -301,7 +320,10 @@ function completeMatch(match: Match, winner: Player, score1: number, score2: num
 /**
  * Propagates all completed match winners to their parent matches.
  */
-function propagateAllWinners(matches: Map<number, Match>, totalRounds: number): void {
+function propagateAllWinners(
+  matches: Map<number, Match>,
+  totalRounds: number,
+): void {
   const bracketSize = Math.pow(2, totalRounds);
 
   for (let round = 0; round < totalRounds - 1; round++) {
@@ -321,7 +343,11 @@ function propagateAllWinners(matches: Map<number, Match>, totalRounds: number): 
 /**
  * Propagates a single match winner to parent match, handling BYE auto-advancement.
  */
-function propagateWinner(matches: Map<number, Match>, match: Match, totalRounds: number): void {
+function propagateWinner(
+  matches: Map<number, Match>,
+  match: Match,
+  totalRounds: number,
+): void {
   if (match.round >= totalRounds - 1) return; // Already in finals
 
   const bracketSize = Math.pow(2, totalRounds);
@@ -352,7 +378,13 @@ function propagateWinner(matches: Map<number, Match>, match: Match, totalRounds:
 /**
  * Records match result and propagates winner through bracket.
  */
-function recordMatchResult(tournament: TournamentData, matchId: number, winnerId: number, score1: number, score2: number): void {
+function recordMatchResult(
+  tournament: TournamentData,
+  matchId: number,
+  winnerId: number,
+  score1: number,
+  score2: number,
+): void {
   const match = tournament.matches.get(matchId);
   if (!match?.player1 || !match?.player2) return;
 
@@ -368,7 +400,10 @@ function recordMatchResult(tournament: TournamentData, matchId: number, winnerId
 /**
  * Saves tournament data to session storage.
  */
-function saveTournamentToStorage(tournament: { playerCount: number; players: Player[] }): void {
+function saveTournamentToStorage(tournament: {
+  playerCount: number;
+  players: Player[];
+}): void {
   sessionStorage.setItem(STORAGE_KEYS.TOURNAMENT, JSON.stringify(tournament));
 }
 
@@ -378,13 +413,24 @@ function saveTournamentToStorage(tournament: { playerCount: number; players: Pla
 function rebuildTournamentFromStorage(savedData: any): TournamentData {
   const tournament = createTournamentStructure(savedData.players);
 
-  const matchResults = JSON.parse(sessionStorage.getItem(STORAGE_KEYS.RESULTS) || "{}");
+  const matchResults = JSON.parse(
+    sessionStorage.getItem(STORAGE_KEYS.RESULTS) || "{}",
+  );
 
   for (const matchIdStr in matchResults) {
     const result = matchResults[matchIdStr];
     if (result?.winner !== undefined) {
-      const winnerId = typeof result.winner === "string" ? parseInt(result.winner) : result.winner;
-      recordMatchResult(tournament, parseInt(matchIdStr), winnerId, result.score1, result.score2);
+      const winnerId =
+        typeof result.winner === "string"
+          ? parseInt(result.winner)
+          : result.winner;
+      recordMatchResult(
+        tournament,
+        parseInt(matchIdStr),
+        winnerId,
+        result.score1,
+        result.score2,
+      );
     }
   }
 
@@ -410,7 +456,7 @@ function clearTournamentStorage(): void {
 function generateBracketHTML(tournament: TournamentData): string {
   const { players, totalRounds } = tournament;
   const bracketSize = players.length;
-  const byeCount = players.filter(p => p.isBye).length;
+  const byeCount = players.filter((p) => p.isBye).length;
 
   let html = `
     <div class="bg-gray-900 border border-green-400/30 p-6">
@@ -479,29 +525,40 @@ function generateRoundHTML(tournament: TournamentData, round: number): string {
 function generateMatchCardHTML(match: Match): string {
   const { player1, player2, score1, score2, isCompleted, winner } = match;
 
-  const p1Name = player1 ? (player1.isBye ? `<span class="text-green-600">${escapeHtml(player1.name)}</span>` : escapeHtml(player1.name)) : "TBD";
-  const p2Name = player2 ? (player2.isBye ? `<span class="text-green-600">${escapeHtml(player2.name)}</span>` : escapeHtml(player2.name)) : "TBD";
+  const p1Name = player1
+    ? player1.isBye
+      ? `<span class="text-green-600">${escapeHtml(player1.name)}</span>`
+      : escapeHtml(player1.name)
+    : "TBD";
+  const p2Name = player2
+    ? player2.isBye
+      ? `<span class="text-green-600">${escapeHtml(player2.name)}</span>`
+      : escapeHtml(player2.name)
+    : "TBD";
 
-  const winnerNum = isCompleted && winner ? (player1 && winner.id === player1.id ? 1 : 2) : 0;
-  const p1Class = winnerNum === 1 ? "text-green-300 font-bold" : "text-green-400";
-  const p2Class = winnerNum === 2 ? "text-green-300 font-bold" : "text-green-400";
+  const winnerNum =
+    isCompleted && winner ? (player1 && winner.id === player1.id ? 1 : 2) : 0;
+  const p1Class =
+    winnerNum === 1 ? "text-green-300 font-bold" : "text-green-400";
+  const p2Class =
+    winnerNum === 2 ? "text-green-300 font-bold" : "text-green-400";
 
   const actionButton = generateActionButton(match);
 
   return `
-    <div class="border border-green-400/50 bg-black/50 ${isCompleted ? 'border-green-300' : ''}">
+    <div class="border border-green-400/50 bg-black/50 ${isCompleted ? "border-green-300" : ""}">
       <div class="text-green-500 text-xs px-2 py-1 border-b border-green-400/30">
         Match ${match.id} - ${getRoundName(match.round, 10)}
       </div>
       <div class="p-2 space-y-1">
         <div class="${p1Class} text-sm flex justify-between items-center">
           <span>${p1Name}</span>
-          <span class="text-xs ${winnerNum === 1 ? 'text-green-300 font-bold' : 'text-green-500'}">${score1}</span>
+          <span class="text-xs ${winnerNum === 1 ? "text-green-300 font-bold" : "text-green-500"}">${score1}</span>
         </div>
         <div class="border-t border-green-400/20"></div>
         <div class="${p2Class} text-sm flex justify-between items-center">
           <span>${p2Name}</span>
-          <span class="text-xs ${winnerNum === 2 ? 'text-green-300 font-bold' : 'text-green-500'}">${score2}</span>
+          <span class="text-xs ${winnerNum === 2 ? "text-green-300 font-bold" : "text-green-500"}">${score2}</span>
         </div>
         ${actionButton}
       </div>
@@ -553,7 +610,11 @@ function generateActionButton(match: Match): string {
  * Checks if tournament is complete and displays winner.
  */
 function updateTournamentWinner(tournament: TournamentData): void {
-  const finalMatchId = getMatchId(tournament.totalRounds - 1, 0, tournament.players.length);
+  const finalMatchId = getMatchId(
+    tournament.totalRounds - 1,
+    0,
+    tournament.players.length,
+  );
   const finalMatch = tournament.matches.get(finalMatchId);
 
   if (finalMatch?.isCompleted && finalMatch.winner) {
@@ -580,7 +641,10 @@ function updateTournamentWinner(tournament: TournamentData): void {
 /**
  * Displays full-screen overlay celebrating tournament winner.
  */
-function showTournamentWinnerOverlay(winner: Player, tournament: TournamentData): void {
+function showTournamentWinnerOverlay(
+  winner: Player,
+  tournament: TournamentData,
+): void {
   const body = document.querySelector("body");
   if (!body) return;
 
@@ -637,7 +701,9 @@ function showTournamentWinnerOverlay(winner: Player, tournament: TournamentData)
   body.insertAdjacentHTML("beforeend", overlayHtml);
 
   // Setup button handlers
-  const newTournamentBtn = document.getElementById("new-tournament-overlay-btn");
+  const newTournamentBtn = document.getElementById(
+    "new-tournament-overlay-btn",
+  );
   const returnHomeBtn = document.getElementById("return-home-overlay-btn");
 
   if (newTournamentBtn) {
@@ -680,8 +746,10 @@ function displayTournament(tournament: TournamentData): void {
 function addNewTournamentButton(bracketContainer: HTMLElement): void {
   const button = document.createElement("button");
   button.id = "new-tournament-btn";
-  button.className = "bg-gray-700/50 border border-gray-500 px-6 py-3 hover:bg-gray-700/70 transition-colors mb-4";
-  button.innerHTML = '<span class="text-gray-300 font-bold">> NEW TOURNAMENT</span>';
+  button.className =
+    "bg-gray-700/50 border border-gray-500 px-6 py-3 hover:bg-gray-700/70 transition-colors mb-4";
+  button.innerHTML =
+    '<span class="text-gray-300 font-bold">> NEW TOURNAMENT</span>';
   button.addEventListener("click", () => {
     clearTournamentStorage();
     window.location.reload();
@@ -698,7 +766,7 @@ function animateBracketReveal(): void {
   if (bracket) {
     bracket.style.opacity = "0";
     bracket.style.transition = "opacity 0.5s";
-    setTimeout(() => bracket.style.opacity = "1", 100);
+    setTimeout(() => (bracket.style.opacity = "1"), 100);
   }
 }
 
@@ -711,7 +779,9 @@ function animateBracketReveal(): void {
  */
 function setupCreateTournamentButton(): void {
   const createBtn = document.getElementById("create-tournament-btn");
-  const playerCountInput = document.getElementById("player-count-input") as HTMLInputElement;
+  const playerCountInput = document.getElementById(
+    "player-count-input",
+  ) as HTMLInputElement;
 
   if (!createBtn || !playerCountInput) return;
 
@@ -757,16 +827,19 @@ function setupMatchStartButtons(_tournament: TournamentData): void {
         matchId: button.getAttribute("data-match-id"),
         player1: {
           id: button.getAttribute("data-player1-id"),
-          name: button.getAttribute("data-player1-name")
+          name: button.getAttribute("data-player1-name"),
         },
         player2: {
           id: button.getAttribute("data-player2-id"),
-          name: button.getAttribute("data-player2-name")
+          name: button.getAttribute("data-player2-name"),
         },
-        isTournamentMatch: true
+        isTournamentMatch: true,
       };
 
-      sessionStorage.setItem(STORAGE_KEYS.CURRENT_MATCH, JSON.stringify(matchData));
+      sessionStorage.setItem(
+        STORAGE_KEYS.CURRENT_MATCH,
+        JSON.stringify(matchData),
+      );
       router.navigate("/game");
     }
   };
@@ -787,7 +860,8 @@ function setupNavigationListeners(): void {
   };
 
   window.addEventListener("keydown", handleEscape);
-  (window as any).tournamentPageCleanup = () => window.removeEventListener("keydown", handleEscape);
+  (window as any).tournamentPageCleanup = () =>
+    window.removeEventListener("keydown", handleEscape);
 }
 
 /**
@@ -816,16 +890,17 @@ function showHeaderElements(): void {
  * Main tournament page initialization.
  */
 export async function TournamentPage(): Promise<void> {
+  // if (!AuthManager.isAuthenticated()) {
+  //   console.log('Utilisateur non authentifié, redirection vers login');
+  //   const router = getRouter();
+  //   if (router) {
+  //     router.navigate("/login");
+  //   }
+  //   return;
+  // }
 
-  if (!AuthManager.isAuthenticated()) {
-    console.log('Utilisateur non authentifié, redirection vers login');
-    const router = getRouter();
-    if (router) {
-      router.navigate("/login");
-    }
-    return;
-  }
-  
+  const isGuest = AuthManager.isGuest();
+
   const appDiv = document.querySelector<HTMLDivElement>("#app");
   if (!appDiv) return;
 
@@ -836,7 +911,9 @@ export async function TournamentPage(): Promise<void> {
   }
 
   // Create and inject page HTML
-  const header = createHeader(HeaderConfigs.tournament);
+  const header = isGuest
+    ? createHeader(HeaderConfigs.guest)
+    : createHeader(HeaderConfigs.tournament);
   const headerHtml = await header.render();
 
   appDiv.innerHTML = `
@@ -892,6 +969,12 @@ export async function TournamentPage(): Promise<void> {
     }
   } else {
     setupCreateTournamentButton();
+  }
+  //hide tournament btn
+
+  const routeTournament = document.getElementById("route-tournament");
+  if (routeTournament) {
+    routeTournament.style.display = "none";
   }
 
   setupNavigationListeners();

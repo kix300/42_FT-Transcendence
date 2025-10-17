@@ -5,6 +5,8 @@ import { Header } from "../components/Header";
 import { createHeader, HeaderConfigs } from "../components/Header";
 //@ts-ignore -- mon editeur me donnais une erreur alors que npm run build non
 import homePageHtml from "./html/HomePage.html?raw";
+//@ts-ignore -- mon editeur me donnais une erreur alors que npm run build non
+import homePageGuestHtml from "./html/HomePageGuest.html?raw";
 
 // Variable globale pour contrôler la vitesse d'écriture des animations
 const ANIMATION_SPEED = {
@@ -19,50 +21,74 @@ const ANIMATION_SPEED = {
 };
 
 export async function HomePage(): Promise<void> {
-  // Vérifier l'authentification AVANT d'afficher la page
-  if (!AuthManager.isAuthenticated()) {
-    console.log("Utilisateur non authentifié, redirection vers login");
-    const router = getRouter();
-    if (router) {
-      router.navigate("/login");
-    }
-    return;
-  }
-
   const appDiv = document.querySelector<HTMLDivElement>("#app");
   if (!appDiv) return;
 
-  // Classes CSS pour le body et conteneur principal
-  const body = document.querySelector("body");
-  if (body) {
-    body.className = "bg-black min-h-screen font-mono text-green-400";
+  const isGuest = AuthManager.isGuest();
+  if (isGuest) {
+    await renderGuestHomePage(appDiv);
+  } else {
+    await renderAuthenticatedHomePage(appDiv);
   }
-  // Créer le header
-  const header = createHeader(HeaderConfigs.profile);
-  const headerHtml = await header.render();
+  // Page d'accueil pour les guests
+  async function renderGuestHomePage(appDiv: HTMLDivElement): Promise<void> {
+    const body = document.querySelector("body");
+    if (body) {
+      body.className = "bg-black min-h-screen font-mono text-green-400";
+    }
+    const header = createHeader(HeaderConfigs.guest);
+    const headerHtml = await header.render();
 
-  // Injecter le HTML dans le conteneur
-  const buildDate = `${new Date().getFullYear()}.${String(new Date().getMonth() + 1).padStart(2, "0")}.${String(new Date().getDate()).padStart(2, "0")}`;
-  const finalHtml = homePageHtml
-    .replace("{{header}}", headerHtml)
-    .replace("{{buildDate}}", buildDate);
+    // Injecter le HTML dans le conteneur
+    const buildDate = `${new Date().getFullYear()}.${String(new Date().getMonth() + 1).padStart(2, "0")}.${String(new Date().getDate()).padStart(2, "0")}`;
+    const finalHtml = homePageGuestHtml
+      .replace("{{header}}", headerHtml)
+      .replace("{{buildDate}}", buildDate);
 
-  appDiv.innerHTML = finalHtml;
+    appDiv.innerHTML = finalHtml;
 
-  // Démarrer les animations
-  startTypewriterAnimations();
+    // Démarrer les animations
+    startTypewriterAnimations();
 
-  // Ajouter les event listeners pour la navigation
-  Header.setupEventListeners();
+    setupHomePageNavigation();
+    // Ajouter les event listeners pour la navigation
+    Header.setupEventListeners();
+  }
 
-  // Navigation des boutons redondans
-  setupHomePageNavigation();
+  async function renderAuthenticatedHomePage(
+    appDiv: HTMLDivElement,
+  ): Promise<void> {
+    // Classes CSS pour le body et conteneur principal
+    const body = document.querySelector("body");
+    if (body) {
+      body.className = "bg-black min-h-screen font-mono text-green-400";
+    }
+    // Créer le header
+    const header = createHeader(HeaderConfigs.profile);
+    const headerHtml = await header.render();
 
-  // Friends search functionality
-  FriendManager.setupFriendsListeners();
-  FriendManager.loadFriendsList();
+    // Injecter le HTML dans le conteneur
+    const buildDate = `${new Date().getFullYear()}.${String(new Date().getMonth() + 1).padStart(2, "0")}.${String(new Date().getDate()).padStart(2, "0")}`;
+    const finalHtml = homePageHtml
+      .replace("{{header}}", headerHtml)
+      .replace("{{buildDate}}", buildDate);
+
+    appDiv.innerHTML = finalHtml;
+
+    // Démarrer les animations
+    startTypewriterAnimations();
+
+    // Ajouter les event listeners pour la navigation
+    Header.setupEventListeners();
+
+    // Navigation des boutons redondans
+    setupHomePageNavigation();
+
+    // Friends search functionality
+    FriendManager.setupFriendsListeners();
+    FriendManager.loadFriendsList();
+  }
 }
-
 function setupHomePageNavigation(): void {
   // Boutons de navigation dans le contenu principal
   const navigationButtons = document.querySelectorAll("[data-route]");
@@ -76,13 +102,10 @@ function setupHomePageNavigation(): void {
       const route = button.getAttribute("data-route");
 
       if (route) {
-        console.log(`Navigation vers: ${route}`);
-        import("../router").then(({ getRouter }) => {
-          const router = getRouter();
-          if (router) {
-            router.navigate(route);
-          }
-        });
+        const router = getRouter();
+        if (router) {
+          router.navigate(route);
+        }
       }
     });
   });
@@ -137,12 +160,17 @@ async function startTypewriterAnimations(): Promise<void> {
   const headerCursor = document.getElementById("header-cursor");
   const userProfile = document.getElementById("user-profile");
   const navMenu = document.getElementById("nav-menu");
+  const homeRoute = document.getElementById("route-home");
 
   if (headerCursor) headerCursor.style.display = "none";
 
   if (userProfile) {
     userProfile.style.opacity = "1";
     userProfile.style.transition = `opacity ${ANIMATION_SPEED.TRANSITION_FAST}s`;
+  }
+
+  if (homeRoute) {
+    homeRoute.style.display = "none";
   }
 
   if (navMenu) {
