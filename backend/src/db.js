@@ -72,6 +72,7 @@ if (!columnExists) {
 
 
 // mise a jour pour les utilisateurs deja existants
+db.prepare(`UPDATE users SET status = 'user' WHERE status IS NULL`).run();
 
 // lit les données et les affiche sur la console
 const rows = db.prepare("SELECT * FROM users").all();
