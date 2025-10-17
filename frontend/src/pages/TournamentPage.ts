@@ -890,16 +890,17 @@ function showHeaderElements(): void {
  * Main tournament page initialization.
  */
 export async function TournamentPage(): Promise<void> {
+  // if (!AuthManager.isAuthenticated()) {
+  //   console.log('Utilisateur non authentifié, redirection vers login');
+  //   const router = getRouter();
+  //   if (router) {
+  //     router.navigate("/login");
+  //   }
+  //   return;
+  // }
 
-  if (!AuthManager.isAuthenticated()) {
-    console.log('Utilisateur non authentifié, redirection vers login');
-    const router = getRouter();
-    if (router) {
-      router.navigate("/login");
-    }
-    return;
-  }
-  
+  const isGuest = AuthManager.isGuest();
+
   const appDiv = document.querySelector<HTMLDivElement>("#app");
   if (!appDiv) return;
 
@@ -910,7 +911,9 @@ export async function TournamentPage(): Promise<void> {
   }
 
   // Create and inject page HTML
-  const header = createHeader(HeaderConfigs.tournament);
+  const header = isGuest
+    ? createHeader(HeaderConfigs.guest)
+    : createHeader(HeaderConfigs.tournament);
   const headerHtml = await header.render();
 
   appDiv.innerHTML = `
@@ -966,6 +969,12 @@ export async function TournamentPage(): Promise<void> {
     }
   } else {
     setupCreateTournamentButton();
+  }
+  //hide tournament btn
+
+  const routeTournament = document.getElementById("route-tournament");
+  if (routeTournament) {
+    routeTournament.style.display = "none";
   }
 
   setupNavigationListeners();
