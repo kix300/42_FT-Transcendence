@@ -1,20 +1,30 @@
 import db from '../db.js';
+import { verifyWsAuth } from '../https.js'
 
-/* Structure en mémoire : Map(userId -> connection) */
-const onlineUsers = new Map();
+const onlineUsers = new Map();	// Map(userId -> connection)
+const PING_INTERVAL = 30000;	// 30 secondes
 
 export default async function webSocketRoutes (fastify) {
 
 	fastify.get("/ws", { websocket: true }, (connection, request) => {
 		try {
-			const token = new URL(request.url, `https://${request.headers.host}`).searchParams.get("token");
-			const user = fastify.jwt.verify(token);
-			const userId = user.id;
-			console.log("🟢 Connexion WebSocket d’un utilisateur :", userId);
-			onlineUsers.set(userId, connection);
+			//Check token
+			const user = verifyWsAuth(fastify, connection, request);
+			if (!user) return ;
 
-			// Notifier les amis que ce joueur est en ligne
+			const userId = user.id;
+			console.log("🟢 Connexion WebSocket Secure de l’utilisateur #", userId);
+			db.prepare("UPDATE users SET status = 1 WHERE id = ?").run(user.id);
+			onlineUsers.set(userId, connection);
 			broadcastToFriends(userId, { type: "friend_online", userId });
+
+			// === Gestion du ping ===
+    		connection.isAlive = true;
+
+			// Quand on reçoit un pong, on sait que la connexion est vivante
+			connection.socket.on("pong", () => {
+			connection.isAlive = true;
+			});
 
 			// Gérer les messages reçus
 			connection.socket.on("message", (msg) => {
@@ -22,10 +32,10 @@ export default async function webSocketRoutes (fastify) {
 				connection.socket.send(JSON.stringify({ reply: "Message reçu !" }));
 			});
 
-
 			// Déconnexion
 			connection.socket.on("close", () => {
-				console.log("🔴 Connexion WebSocket fermée pour l'utilisateur :", userId);
+				console.log("🔴 Connexion WebSocket Secure fermée pour l'utilisateur #", userId);
+				db.prepare("UPDATE users SET status = 0 WHERE id = ?").run(userId);
 				onlineUsers.delete(userId);
 				broadcastToFriends(userId, { type: "friend_offline", userId });
 			});
@@ -37,21 +47,37 @@ export default async function webSocketRoutes (fastify) {
 		}
 	});
 
+	// === Vérifie régulièrement que les connexions sont vivantes ===
+	setInterval(() => {
+		for (const [userId, conn] of onlineUsers.entries()) {
+		if (!conn.isAlive) {
+			// Connexion morte : fermer et mettre à jour la BDD
+			handleDisconnect(userId);
+		} else {
+			conn.isAlive = false;
+			conn.socket.ping();
+		}
+		}
+	}, PING_INTERVAL);
+
 	// Envoie un message à tous les amis connectés
 	function broadcastToFriends(userId, message) {
-		// Ici, tu peux récupérer les amis depuis ta BDD
+		try {
 		const friends = getFriends(userId);
 		for (const friendId of friends) {
-		const friendConnection = onlineUsers.get(friendId);
-		if (friendConnection) {
+			const friendConnection = onlineUsers.get(friendId);
+			if (friendConnection) {
 			friendConnection.socket.send(JSON.stringify(message));
+			}
 		}
+		} catch (err) {
+		console.error("Erreur lors de la notification des amis :", err.message);
 		}
 	}
 
 	// Renvoie les IDs d’amis de l’utilisateur
 	function getFriends(userId) {
-		const row = db.prepare(`SELECT friend_id FROM friends WHERE user_id = ?`).all(userId);
-		return row.map(row => row.friend_id);
+		const rows = db.prepare(`SELECT friend_id FROM friends WHERE user_id = ?`).all(userId);
+		return rows.map(r => r.friend_id);
 	}
 }
