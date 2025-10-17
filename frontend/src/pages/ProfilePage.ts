@@ -79,9 +79,15 @@ function buildProfileHtml(
 
   html = html.replace("{{header}}", headerHtml);
   html = html.replace("{{avatar}}", avatar);
-  html = html.replace("{{username}}", escapeHtml(userProfile?.username || "Unknown User"));
+  html = html.replace(
+    "{{username}}",
+    escapeHtml(userProfile?.username || "Unknown User"),
+  );
   html = html.replace("{{userId}}", userProfile?.id?.toString() || "N/A");
-  html = html.replace("{{email}}", escapeHtml(userProfile?.email || "Not provided"));
+  html = html.replace(
+    "{{email}}",
+    escapeHtml(userProfile?.email || "Not provided"),
+  );
   html = html.replace("{{level}}", userProfile?.level?.toString() || "1");
   html = html.replace(
     "{{memberSince}}",
@@ -105,7 +111,10 @@ function buildProfileHtml(
       ? new Date(userProfile.last_login).toLocaleString()
       : "Now",
   );
-  html = html.replace("{{footerUsername}}", escapeHtml(userProfile?.username || "Unknown"));
+  html = html.replace(
+    "{{footerUsername}}",
+    escapeHtml(userProfile?.username || "Unknown"),
+  );
 
   return html;
 }
@@ -202,7 +211,11 @@ async function startProfileAnimations(): Promise<void> {
   // 2. Cacher le curseur et afficher le menu nav
   const headerCursor = document.getElementById("header-cursor");
   const navMenu = document.getElementById("nav-menu");
+  const userProfile = document.getElementById("user-profile");
 
+  if (userProfile) {
+    userProfile.style.display = "none";
+  }
   if (headerCursor) headerCursor.style.display = "none";
   if (navMenu) {
     navMenu.style.opacity = "1";

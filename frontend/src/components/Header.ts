@@ -37,6 +37,7 @@ interface HeaderConfig {
   showProfile?: boolean;
   showNavigation?: boolean;
   activeRoute?: string;
+  isGuest?: boolean;
 }
 
 export class Header {
@@ -75,6 +76,18 @@ export class Header {
   // ${this.renderDebugInfo()}
 
   private renderNavigation(): string {
+    if (this.config.isGuest) {
+      return `
+        <!-- Navigation Menu -->
+        <div class="flex space-x-6" id="nav-menu" style="opacity: 0;">
+          <a id="route-home" href="#" data-route="/home" class="hover:text-green-300 transition-colors ${this.config.activeRoute === "/home" ? "text-green-300 font-bold" : "text-green-400"}">> home</a>
+          <a id="route-game" href="#" data-route="/game" class="hover:text-green-300 transition-colors ${this.config.activeRoute === "/game" ? "text-green-300 font-bold" : "text-green-400"}">> game</a>
+          <a id="route-tournament" href="#" data-route="/tournament" class="hover:text-green-300 transition-colors ${this.config.activeRoute === "/tournament" ? "text-green-300 font-bold" : "text-green-400"}">> tournament</a>
+          <a id="route-login" href="#" data-route="/login" class="hover:text-green-300 transition-colors ${this.config.activeRoute === "/login" ? "text-green-300 font-bold" : "text-green-400"}">> login</a>
+          <a id="route-register" href="#" data-route="/register" class="hover:text-green-300 transition-colors ${this.config.activeRoute === "/register" ? "text-green-300 font-bold" : "text-green-400"}">> register</a>
+        </div>
+      `;
+    }
     return `
       <!-- Navigation Menu -->
       <div class="flex space-x-6" id="nav-menu" style="opacity: 0;">
@@ -200,5 +213,12 @@ export const HeaderConfigs = {
     command: "./register.sh",
     showProfile: false,
     showNavigation: false,
+  },
+  guest: {
+    title: "Mode Guest",
+    command: "./guest.sh",
+    showProfile: false,
+    showNavigation: true,
+    isGuest: true,
   },
 };

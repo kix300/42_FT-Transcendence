@@ -54,6 +54,11 @@ export async function GamePage(): Promise<void> {
     function showHeaderElements(): void {
       const userProfile = document.getElementById("user-profile");
       const navMenu = document.getElementById("nav-menu");
+      const routeGame = document.getElementById("route-game");
+
+      if (routeGame) {
+        routeGame.style.display = "none";
+      }
 
       if (userProfile) {
         userProfile.style.opacity = "1";

@@ -1,3 +1,4 @@
+import { getRouter } from "../router";
 import { AuthManager } from "../utils/auth";
 import { FriendManager } from "../utils/Friends";
 import { Header } from "../components/Header";
@@ -35,7 +36,7 @@ export async function HomePage(): Promise<void> {
     if (body) {
       body.className = "bg-black min-h-screen font-mono text-green-400";
     }
-    const header = createHeader(HeaderConfigs.profile);
+    const header = createHeader(HeaderConfigs.guest);
     const headerHtml = await header.render();
 
     // Injecter le HTML dans le conteneur
@@ -49,6 +50,7 @@ export async function HomePage(): Promise<void> {
     // Démarrer les animations
     startTypewriterAnimations();
 
+    setupHomePageNavigation();
     // Ajouter les event listeners pour la navigation
     Header.setupEventListeners();
   }
@@ -80,12 +82,33 @@ export async function HomePage(): Promise<void> {
     Header.setupEventListeners();
 
     // Navigation des boutons redondans
-    // setupHomePageNavigation();
+    setupHomePageNavigation();
 
     // Friends search functionality
     FriendManager.setupFriendsListeners();
     FriendManager.loadFriendsList();
   }
+}
+function setupHomePageNavigation(): void {
+  // Boutons de navigation dans le contenu principal
+  const navigationButtons = document.querySelectorAll("[data-route]");
+
+  navigationButtons.forEach((button) => {
+    // Skip les boutons du header qui sont déjà gérés par Header.setupEventListeners()
+    if (button.closest("header")) return;
+
+    button.addEventListener("click", (e) => {
+      e.preventDefault();
+      const route = button.getAttribute("data-route");
+
+      if (route) {
+        const router = getRouter();
+        if (router) {
+          router.navigate(route);
+        }
+      }
+    });
+  });
 }
 
 // Animation typewriter
@@ -137,7 +160,7 @@ async function startTypewriterAnimations(): Promise<void> {
   const headerCursor = document.getElementById("header-cursor");
   const userProfile = document.getElementById("user-profile");
   const navMenu = document.getElementById("nav-menu");
-  const homeroute = document.getElementById("route-home");
+  const homeRoute = document.getElementById("route-home");
 
   if (headerCursor) headerCursor.style.display = "none";
 
@@ -146,8 +169,8 @@ async function startTypewriterAnimations(): Promise<void> {
     userProfile.style.transition = `opacity ${ANIMATION_SPEED.TRANSITION_FAST}s`;
   }
 
-  if (homeroute) {
-    homeroute.style.display = "none";
+  if (homeRoute) {
+    homeRoute.style.display = "none";
   }
 
   if (navMenu) {
