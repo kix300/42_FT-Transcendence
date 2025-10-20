@@ -1,40 +1,46 @@
 //@ts-ignore
 import { Engine } from "@babylonjs/core/Engines/engine";
 import { Game } from "../Game";
-// import { getRouter } from "../router";
 import { AuthManager } from "../utils/auth";
 import { escapeHtml } from "../utils/sanitize";
 import { submitMatchResultToBackend } from "./TournamentPage";
 //@ts-ignore
 import gamePageCompleteHtml from "./html/GamePage.html?raw";
 import { createHeader, HeaderConfigs, Header } from "../components/Header";
+import { PlayerSessionManager } from "../utils/playerSession";
 //@ts-ignore
 import gamePageOverlayHtml from "./html/GamePage-overlay.html?raw";
+//@ts-ignore
+import loginModalHtml from "./html/GamePageLoginModal.html?raw";
+import { PROFILE_API } from "../utils/apiConfig";
+
+// Types pour les données des joueurs
+interface PlayerData {
+  id?: number;
+  username: string;
+  avatar?: string;
+  isGuest: boolean;
+  stats?: {
+    totalMatches: number;
+    wins: number;
+    losses: number;
+  };
+}
 
 export async function GamePage(): Promise<void> {
-  // Vérifier l'authentification AVANT d'afficher la page
-  // if (!AuthManager.isAuthenticated()) {
-  //   console.log("Utilisateur non authentifié, redirection vers login");
-  //   const router = getRouter();
-  //   if (router) {
-  //     router.navigate("/login");
-  //   }
-  //   return;
-  // }
   const isGuest = AuthManager.isGuest();
   const appDiv = document.querySelector<HTMLDivElement>("#app");
   if (!appDiv) return;
+  // let userProfile: UserProfile | null = null;
 
   // Apply terminal-like styles
   const body = document.querySelector("body");
   if (body) {
-    body.className =
-      "bg-black min-h-screen font-mono text-green-400 flex items-center justify-center";
+    body.className = "bg-black min-h-screen font-mono text-green-400";
   }
 
   if (appDiv) {
-    appDiv.className = "container mx-auto p-4 flex flex-col h-screen";
-
+    appDiv.className = "w-full flex flex-col h-screen";
     // Create and render the shared header
     const header = isGuest
       ? createHeader(HeaderConfigs.guest)
@@ -53,31 +59,386 @@ export async function GamePage(): Promise<void> {
 
     // Setup event listeners for the shared header
     Header.setupEventListeners();
-    // Show header elements with fade-in animation
-    function showHeaderElements(): void {
-      const userProfile = document.getElementById("user-profile");
-      const navMenu = document.getElementById("nav-menu");
-      const routeGame = document.getElementById("route-game");
 
-      if (routeGame) {
-        routeGame.style.display = "none";
-      }
+    setupPlayerEventListeners();
 
-      if (userProfile) {
-        userProfile.style.opacity = "1";
-        userProfile.style.transition = "opacity 0.3s";
-      }
+    showHeaderElements();
+    // Nettoyer les sessions expirées
+    PlayerSessionManager.cleanExpiredSessions();
 
-      if (navMenu) {
-        navMenu.style.opacity = "1";
-        navMenu.style.transition = "opacity 0.3s";
+    // Si l'utilisateur est déjà connecté, afficher son profil sur Player 1
+    if (AuthManager.isAuthenticated() && !AuthManager.isGuest()) {
+      const profileData = await fetchUserProfile();
+
+      if (profileData) {
+        // Afficher le profil du joueur
+        displayPlayerProfile(1, profileData);
       }
     }
-
-    // Dans la fonction GamePage(), après Header.setupEventListeners();
-    showHeaderElements();
   }
 
+  // Fonction pour afficher le profil d'un joueur
+  function displayPlayerProfile(
+    playerNum: number,
+    playerData: PlayerData,
+  ): void {
+    const buttonsDiv = document.getElementById(`player${playerNum}-buttons`);
+    const infoDiv = document.getElementById(`player${playerNum}-info`);
+    const usernameDiv = document.getElementById(`player${playerNum}-username`);
+    const statusDiv = document.getElementById(`player${playerNum}-status`);
+    const avatarDiv = document.getElementById(`player${playerNum}-avatar`);
+    const guestMessageDiv = document.getElementById(
+      `player${playerNum}-guest-message`,
+    );
+    const winsDiv = document.getElementById(`player${playerNum}-wins`);
+
+    if (buttonsDiv && infoDiv && usernameDiv && statusDiv && avatarDiv) {
+      // Cacher les boutons
+      buttonsDiv.classList.add("hidden");
+
+      // Afficher les infos
+      infoDiv.classList.remove("hidden");
+
+      // Gérer le message guest
+      if (guestMessageDiv) {
+        if (playerData.isGuest) {
+          guestMessageDiv.classList.remove("hidden");
+        } else {
+          guestMessageDiv.classList.add("hidden");
+        }
+      }
+
+      // Mettre à jour le username
+      usernameDiv.textContent = escapeHtml(playerData.username);
+
+      // Mettre à jour le status
+      if (playerData.isGuest) {
+        statusDiv.textContent = "Guest Mode";
+        statusDiv.className = "text-cyan-400 text-xs";
+      } else {
+        statusDiv.textContent = "Connected";
+        statusDiv.className = "text-green-400 text-xs";
+      }
+
+      // Mettre à jour les stats (wins depuis le backend)
+      if (winsDiv && playerData.stats) {
+        winsDiv.textContent = playerData.stats.wins.toString();
+      }
+
+      // Mettre à jour l'avatar
+      if (playerData.avatar && !playerData.isGuest) {
+        avatarDiv.innerHTML = `<img src="${escapeHtml(playerData.avatar)}" alt="Avatar" class="w-full h-full object-cover" />`;
+      } else if (!playerData.isGuest) {
+        // Utiliser l'initiale du username
+        const initial = playerData.username.charAt(0).toUpperCase();
+        avatarDiv.innerHTML = `<span class="text-green-400 text-xl font-bold">${escapeHtml(initial)}</span>`;
+      } else {
+        // Mode guest
+        avatarDiv.innerHTML = `<span class="text-cyan-400 text-xl">👤</span>`;
+      }
+      // Sauvegarder dans la session
+      PlayerSessionManager.savePlayer({
+        slotNumber: playerNum,
+        id: playerData.id,
+        username: playerData.username,
+        avatar: playerData.avatar,
+        isGuest: playerData.isGuest,
+        connectedAt: Date.now(),
+      });
+    }
+  }
+
+  // Fonction pour déconnecter un joueur
+  function disconnectPlayer(playerNum: number): void {
+    const buttonsDiv = document.getElementById(`player${playerNum}-buttons`);
+    const infoDiv = document.getElementById(`player${playerNum}-info`);
+
+    if (buttonsDiv && infoDiv) {
+      // Afficher les boutons
+      buttonsDiv.classList.remove("hidden");
+
+      // Cacher les infos
+      infoDiv.classList.add("hidden");
+      // Supprimer de la session
+      PlayerSessionManager.disconnectPlayer(playerNum);
+    }
+  }
+
+  // Fonction pour récupérer le profil depuis l'API
+  async function fetchUserProfile(): Promise<PlayerData | null> {
+    try {
+      const response = await AuthManager.fetchWithAuth(PROFILE_API.GET_ME);
+
+      if (!response.ok) {
+        console.error("Failed to fetch user profile");
+        return null;
+      }
+
+      const data = await response.json();
+
+      return {
+        id: data.user.id,
+        username: data.user.username,
+        avatar: data.user.photo,
+        isGuest: false,
+        stats: {
+          totalMatches: data.stats.totalMatches,
+          wins: data.stats.wins,
+          losses: data.stats.losses,
+        },
+      };
+    } catch (error) {
+      console.error("Error fetching user profile:", error);
+      return null;
+    }
+  }
+
+  // Fonction pour afficher le modal de connexion
+  function showLoginModal(playerNum: number): void {
+    const body = document.querySelector("body");
+    if (!body) return;
+
+    // Créer le HTML du modal
+    const modalHtml = loginModalHtml.replace(
+      "{{playerNum}}",
+      playerNum.toString(),
+    );
+    body.insertAdjacentHTML("beforeend", modalHtml);
+
+    const modal = document.getElementById("login-modal");
+    const loginForm = document.getElementById("login-form") as HTMLFormElement;
+    const cancelBtn = document.getElementById("cancel-login");
+    const goToRegisterBtn = document.getElementById("go-to-register");
+    const loginError = document.getElementById("login-error");
+
+    // Fermer le modal
+    const closeModal = () => {
+      if (modal) {
+        modal.remove();
+      }
+    };
+
+    // Afficher une erreur
+    const showLoginError = (message: string) => {
+      if (loginError) {
+        loginError.textContent = message;
+        loginError.classList.remove("hidden");
+      }
+    };
+
+    // Cacher l'erreur
+    const hideLoginError = () => {
+      if (loginError) {
+        loginError.classList.add("hidden");
+      }
+    };
+
+    // Gérer la soumission du formulaire
+    if (loginForm) {
+      loginForm.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        hideLoginError();
+
+        const formData = new FormData(loginForm);
+        const username = formData.get("username") as string;
+        const password = formData.get("password") as string;
+
+        if (!username || !password) {
+          showLoginError("Please fill in all required fields.");
+          return;
+        }
+
+        try {
+          // Authentification temporaire SANS modifier le token global
+          // (valable pour Player 1 ET Player 2)
+          const response = await fetch("/api/login", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ username, password }),
+          });
+
+          if (!response.ok) {
+            showLoginError("Invalid username or password.");
+            return;
+          }
+
+          const data = await response.json();
+
+          // Récupérer les infos complètes du profil avec le token temporaire
+          const profileResponse = await fetch("/api/me", {
+            method: "GET",
+            headers: {
+              Authorization: `Bearer ${data.token}`,
+              "Content-Type": "application/json",
+            },
+          });
+
+          if (!profileResponse.ok) {
+            showLoginError("Failed to fetch user profile.");
+            return;
+          }
+
+          const profileFullData = await profileResponse.json();
+
+          // Créer les données du joueur
+          const profileData: PlayerData = {
+            id: profileFullData.user.id,
+            username: profileFullData.user.username,
+            avatar: profileFullData.user.photo,
+            isGuest: false,
+          };
+
+          // Afficher le profil du joueur
+          displayPlayerProfile(playerNum, profileData);
+          closeModal();
+          console.log(
+            `Player ${playerNum} logged in successfully as ${profileData.username}`,
+          );
+        } catch (error) {
+          console.error("Login error:", error);
+          showLoginError("An error occurred during login. Please try again.");
+        }
+      });
+    }
+
+    // Gérer l'annulation
+    if (cancelBtn) {
+      cancelBtn.addEventListener("click", closeModal);
+    }
+
+    // Gérer la navigation vers Register
+    if (goToRegisterBtn) {
+      goToRegisterBtn.addEventListener("click", () => {
+        closeModal();
+        import("../router").then(({ getRouter }) => {
+          const router = getRouter();
+          if (router) {
+            router.navigate("/register");
+          }
+        });
+      });
+    }
+
+    // Fermer en cliquant à l'extérieur
+    if (modal) {
+      modal.addEventListener("click", (e: MouseEvent) => {
+        if (e.target === modal) {
+          closeModal();
+        }
+      });
+    }
+
+    // Fermer avec Escape
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        closeModal();
+        document.removeEventListener("keydown", handleEscape);
+      }
+    };
+    document.addEventListener("keydown", handleEscape);
+
+    // Focus sur le champ username
+    const usernameInput = document.getElementById(
+      "login-username",
+    ) as HTMLInputElement;
+    if (usernameInput) {
+      usernameInput.focus();
+    }
+  }
+
+  // setupEventListeners
+  function setupPlayerEventListeners(): void {
+    // LoginP1
+    const loginP1Btn = document.getElementById("player1-login-btn");
+    if (loginP1Btn) {
+      loginP1Btn.addEventListener("click", async () => {
+        console.log("Login Player 1");
+
+        // Vérifier si l'utilisateur est déjà connecté globalement
+        if (AuthManager.isAuthenticated() && !AuthManager.isGuest()) {
+          const profileData = await fetchUserProfile();
+          if (profileData) {
+            displayPlayerProfile(1, profileData);
+          }
+        } else {
+          // Afficher le modal de connexion
+          showLoginModal(1);
+        }
+      });
+    }
+
+    // LoginP2
+    const loginP2Btn = document.getElementById("player2-login-btn");
+    if (loginP2Btn) {
+      loginP2Btn.addEventListener("click", async () => {
+        console.log("Login Player 2");
+        // Afficher le modal de connexion
+        showLoginModal(2);
+      });
+    }
+
+    // guestP1
+    const guestP1Btn = document.getElementById("player1-guest-btn");
+    if (guestP1Btn) {
+      guestP1Btn.addEventListener("click", () => {
+        console.log("Guest Player 1");
+        displayPlayerProfile(1, {
+          username: "Guest Player 1",
+          isGuest: true,
+        });
+      });
+    }
+
+    // guestP2
+    const guestP2Btn = document.getElementById("player2-guest-btn");
+    if (guestP2Btn) {
+      guestP2Btn.addEventListener("click", () => {
+        console.log("Guest Player 2");
+        displayPlayerProfile(2, {
+          username: "Guest Player 2",
+          isGuest: true,
+        });
+      });
+    }
+
+    // Disconnect buttons
+    const disconnectP1Btn = document.getElementById("player1-disconnect-btn");
+    if (disconnectP1Btn) {
+      disconnectP1Btn.addEventListener("click", () => {
+        disconnectPlayer(1);
+      });
+    }
+
+    const disconnectP2Btn = document.getElementById("player2-disconnect-btn");
+    if (disconnectP2Btn) {
+      disconnectP2Btn.addEventListener("click", () => {
+        disconnectPlayer(2);
+      });
+    }
+  }
+
+  // Show header elements with fade-in animation
+  function showHeaderElements(): void {
+    const userProfile = document.getElementById("user-profile");
+    const navMenu = document.getElementById("nav-menu");
+    const routeGame = document.getElementById("route-game");
+
+    if (routeGame) {
+      routeGame.style.display = "none";
+    }
+
+    if (userProfile) {
+      userProfile.style.opacity = "1";
+      userProfile.style.transition = "opacity 0.3s";
+    }
+
+    if (navMenu) {
+      navMenu.style.opacity = "1";
+      navMenu.style.transition = "opacity 0.3s";
+    }
+  }
   // Header and footer are now part of the appDiv innerHTML.
   // The mouse move logic is no longer needed.
 
@@ -151,13 +512,13 @@ export async function GamePage(): Promise<void> {
         });
         pauseBtn.textContent = "[Pause]";
         pauseBtn.className =
-          "bg-yellow-400/20 border border-yellow-400/50 text-yellow-300 px-4 py-1 hover:bg-yellow-400/30 transition-colors text-sm";
+          "bg-yellow-400/20 border border-yellow-400/50 text-yellow-300 px-4 py-2 hover:bg-yellow-400/30 transition-colors text-sm rounded font-medium min-w-[100px] whitespace-nowrap";
       } else {
         // Mettre en pause
         engine.stopRenderLoop();
         pauseBtn.textContent = "[Resume]";
         pauseBtn.className =
-          "bg-green-400/20 border border-green-400/50 text-green-300 px-4 py-1 hover:bg-green-400/30 transition-colors text-sm";
+          "bg-green-400/20 border border-green-400/50 text-green-300 px-4 py-2 hover:bg-green-400/30 transition-colors text-sm rounded font-medium min-w-[100px] whitespace-nowrap";
       }
       isPaused = !isPaused;
     });

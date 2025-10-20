@@ -1,5 +1,6 @@
 import { escapeHtml, sanitizeUrl } from "../utils/sanitize";
 import { AuthManager } from "../utils/auth";
+import { PROFILE_API } from "../utils/apiConfig";
 
 // Interface pour les données utilisateur
 interface UserProfile {
@@ -126,7 +127,7 @@ export class Header {
 
   private async loadUserProfile(): Promise<void> {
     try {
-      const response = await AuthManager.fetchWithAuth("/api/me");
+      const response = await AuthManager.fetchWithAuth(PROFILE_API.GET_ME);
       if (response.ok) {
         const data = await response.json();
         this.userProfile = {
