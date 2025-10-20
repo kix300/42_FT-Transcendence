@@ -63,9 +63,6 @@ export async function GamePage(): Promise<void> {
     setupPlayerEventListeners();
 
     showHeaderElements();
-    // Nettoyer les sessions expirées
-    PlayerSessionManager.cleanExpiredSessions();
-
     // Si l'utilisateur est déjà connecté, afficher son profil sur Player 1
     if (AuthManager.isAuthenticated() && !AuthManager.isGuest()) {
       const profileData = await fetchUserProfile();
