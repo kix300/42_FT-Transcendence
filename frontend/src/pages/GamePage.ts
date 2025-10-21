@@ -26,6 +26,19 @@ interface PlayerData {
     losses: number;
   };
 }
+// Ajouter l'interface au début du fichier, après les autres interfaces
+interface MatchData {
+  matchId: string;
+  player1: {
+    id: string;
+    name: string;
+  };
+  player2: {
+    id: string;
+    name: string;
+  };
+  isTournamentMatch: boolean;
+}
 
 export async function GamePage(): Promise<void> {
   const isGuest = AuthManager.isGuest();
@@ -63,6 +76,7 @@ export async function GamePage(): Promise<void> {
     setupPlayerEventListeners();
 
     showHeaderElements();
+
     // Si l'utilisateur est déjà connecté, afficher son profil sur Player 1
     if (AuthManager.isAuthenticated() && !AuthManager.isGuest()) {
       const profileData = await fetchUserProfile();
@@ -161,6 +175,8 @@ export async function GamePage(): Promise<void> {
     }
   }
 
+ 
+  
   // Fonction pour récupérer le profil depuis l'API
   async function fetchUserProfile(): Promise<PlayerData | null> {
     try {
@@ -451,10 +467,41 @@ export async function GamePage(): Promise<void> {
 
   // Check if this is a tournament match
   const matchDataStr = sessionStorage.getItem("currentMatch");
-  let matchData = null;
+  let matchData: MatchData | null = null;
   if (matchDataStr) {
     try {
-      matchData = JSON.parse(matchDataStr);
+      matchData = JSON.parse(matchDataStr) as MatchData;
+      // Si c'est un match de tournoi, configurer les joueurs et désactiver le mode 3 joueurs
+      if (matchData?.isTournamentMatch) {
+        // Modifier les titres des panneaux avec les noms des joueurs du tournoi
+        const player1Title = document.querySelector('.w-64:first-child h3');
+        const player2Title = document.querySelector('.w-64:last-child h3');
+
+        if (player1Title) {
+          player1Title.textContent = `> ${matchData.player1.name}`;
+        }
+
+        if (player2Title) {
+          player2Title.textContent = `> ${matchData.player2.name}`;
+        }
+
+        // Désactiver le bouton 3 joueurs et afficher le match ID à la place
+        const controlsContainer = document.getElementById("game-controls");
+        if (controlsContainer) {
+          const buttons = controlsContainer.querySelectorAll("a");
+          buttons.forEach((button) => {
+            const text = button.textContent?.trim();
+            if (text === "[3 Players]") {
+              // Remplacer le bouton 3 joueurs par l'affichage du match ID
+              button.outerHTML = `
+                <div class="bg-green-400/20 border border-green-400/50 text-green-300 px-4 py-2 text-sm rounded font-medium">
+                  <span class="text-green-500">MATCH #${escapeHtml(matchData!.matchId)}</span>
+                </div>
+              `;
+            }
+          });
+        }
+      }
     } catch (e) {
       console.error("Error parsing match data:", e);
     }
@@ -698,11 +745,9 @@ function showGameEndOverlay(
   }
   if (playAgainBtn) {
     playAgainBtn.addEventListener("click", () => {
-      // Fermer l'overlay
-      // const overlay = document.getElementById("game-end-overlay");
-      // if (overlay) {
-      //   overlay.remove();
-      // }
+      if (!matchData?.isTournamentMatch){
+        sendNormalMatchResult(winner, score1, score2);
+      }
       closeModal();
 
       // Restart le jeu via router (SPA style)
@@ -717,6 +762,9 @@ function showGameEndOverlay(
 
   if (returnHomeBtn) {
     returnHomeBtn.addEventListener("click", () => {
+      if (!matchData?.isTournamentMatch){``
+        sendNormalMatchResult(winner, score1, score2);
+      }
       sessionStorage.removeItem("currentMatch");
       closeModal();
 
@@ -730,5 +778,58 @@ function showGameEndOverlay(
         }
       });
     });
+  }
+}
+async function sendNormalMatchResult(
+  winner: number,
+  score1: number,
+  score2: number,
+): Promise<void> {
+  try {
+    // Récupérer les joueurs depuis PlayerSessionManager
+    const player1 = PlayerSessionManager.getPlayer(1);
+    const player2 = PlayerSessionManager.getPlayer(2);
+    
+    if (!player1 || !player2) {
+      console.warn("Cannot save match: players not found");
+      return;
+    }
+
+    if (!player1.id && !player2.id) {
+      console.warn("Cannot save match: both players are guests");
+      return;
+    }
+    
+    const winnerId = winner === 1 ? player1.id : player2.id;
+
+
+    const matchData = {
+      player1_id: player1.id || null,  // null si guest
+      player2_id: player2.id || null,  // null si guest
+      player1_score: score1,
+      player2_score: score2,
+      winner_id: winnerId,
+      is_tournament: false,
+    };
+    
+    // Envoyer au backend
+    const response = await fetch("/api/matches", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        ...(AuthManager.isAuthenticated() && !AuthManager.isGuest()
+          ? { Authorization: `Bearer ${AuthManager.getToken()}` }
+          : {}),
+      },
+      body: JSON.stringify(matchData),
+    });
+    
+    if (!response.ok) {
+      console.warn("Failed to save match result:", response.statusText);
+    } else {
+      console.log("Match result saved successfully");
+    }
+  } catch (error) {
+    console.error("Error saving match result:", error);
   }
 }

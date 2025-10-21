@@ -9,6 +9,8 @@ import { escapeHtml, sanitizeUrl } from "../utils/sanitize";
 import profilePageHtml from "./html/ProfilePage.html?raw";
 //@ts-ignore -- mon editeur me donnais une erreur alors que npm run build non
 import profilePageEditModal from "./html/ProfilePageEditModal.html?raw";
+//@ts-ignore -- mon editeur me donnais une erreur alors que npm run build non
+import profilePageMatchHistory from "./html/ProfilePageMatchHistory.html?raw";
 
 // Interface pour l'historique des matchs
 interface Match {
@@ -18,8 +20,11 @@ interface Match {
   winner_id: number;
   player1_score?: number;
   player2_score?: number;
-  is_tournament: boolean;
+  is_tournament: number; // 0 ou 1 (SQLite boolean)
   date: string;
+  player1_name?: string;
+  player2_name?: string;
+  winner_name?: string;
 }
 
 // Interface pour les données utilisateur étendues
@@ -73,48 +78,49 @@ function buildProfileHtml(
 
   const winRate = userProfile?.stats.totalMatches
     ? Math.round(
-        ((userProfile.stats.wins || 0) / userProfile.stats.totalMatches) * 100,
-      )
+      ((userProfile.stats.wins || 0) / userProfile.stats.totalMatches) * 100,
+    )
     : 0;
 
-  html = html.replace("{{header}}", headerHtml);
-  html = html.replace("{{avatar}}", avatar);
-  html = html.replace(
-    "{{username}}",
-    escapeHtml(userProfile?.username || "Unknown User"),
-  );
-  html = html.replace("{{userId}}", userProfile?.id?.toString() || "N/A");
-  html = html.replace(
-    "{{email}}",
-    escapeHtml(userProfile?.email || "Not provided"),
-  );
-  html = html.replace("{{level}}", userProfile?.level?.toString() || "1");
-  html = html.replace(
-    "{{memberSince}}",
-    userProfile?.created_at
-      ? new Date(userProfile.created_at).toLocaleDateString()
-      : "Recently",
-  );
-  html = html.replace(
-    "{{totalMatches}}",
-    userProfile?.stats.totalMatches?.toString() || "0",
-  );
-  html = html.replace("{{wins}}", userProfile?.stats.wins?.toString() || "0");
-  html = html.replace("{{winRate}}", winRate.toString());
-  html = html.replace(
-    "{{currentLevel}}",
-    userProfile?.level?.toString() || "1",
-  );
-  html = html.replace(
-    "{{lastLogin}}",
-    userProfile?.last_login
-      ? new Date(userProfile.last_login).toLocaleString()
-      : "Now",
-  );
-  html = html.replace(
-    "{{footerUsername}}",
-    escapeHtml(userProfile?.username || "Unknown"),
-  );
+  html = html.replace("{{header}}", headerHtml)
+    .replace("{{matchHistory}}", profilePageMatchHistory)
+    .replace("{{avatar}}", avatar)
+    .replace(
+      "{{username}}",
+      escapeHtml(userProfile?.username || "Unknown User"),
+    )
+    .replace("{{userId}}", userProfile?.id?.toString() || "N/A")
+    .replace(
+      "{{email}}",
+      escapeHtml(userProfile?.email || "Not provided"),
+    )
+    .replace("{{level}}", userProfile?.level?.toString() || "1")
+    .replace(
+      "{{memberSince}}",
+      userProfile?.created_at
+        ? new Date(userProfile.created_at).toLocaleDateString()
+        : "Recently",
+    )
+    .replace(
+      "{{totalMatches}}",
+      userProfile?.stats.totalMatches?.toString() || "0",
+    )
+    .replace("{{wins}}", userProfile?.stats.wins?.toString() || "0")
+    .replace("{{winRate}}", winRate.toString())
+    .replace(
+      "{{currentLevel}}",
+      userProfile?.level?.toString() || "1",
+    )
+    .replace(
+      "{{lastLogin}}",
+      userProfile?.last_login
+        ? new Date(userProfile.last_login).toLocaleString()
+        : "Now",
+    )
+    .replace(
+      "{{footerUsername}}",
+      escapeHtml(userProfile?.username || "Unknown"),
+    );
 
   return html;
 }
@@ -177,6 +183,9 @@ export async function ProfilePage(): Promise<void> {
   // Friends search functionality
   FriendManager.setupFriendsListeners();
   FriendManager.loadFriendsList();
+
+  // Charger l'historique des matchs
+  await fetchAndDisplayMatchHistory();
 }
 
 // Animation typewriter
@@ -227,6 +236,7 @@ async function startProfileAnimations(): Promise<void> {
     "profile-header",
     "game-stats",
     "recent-activity",
+    "match-history-section",
     "friend-section",
     "settings",
   ];
@@ -290,6 +300,135 @@ function setupProfileListeners(): void {
       console.log("Enable 2FA clicked");
       // TODO: Implémenter l'activation 2FA
     }
+  });
+}
+
+// Fonction pour récupérer et afficher l'historique des matchs
+async function fetchAndDisplayMatchHistory(): Promise<void> {
+  try {
+
+    const response = await fetch("/api/matches", {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        ...(AuthManager.isAuthenticated() && !AuthManager.isGuest()
+          ? { Authorization: `Bearer ${AuthManager.getToken()}` }
+          : {}),
+      },
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error("Failed to fetch match history:", response.status, errorText);
+      displayMatchHistory([]);
+      return;
+    }
+
+    const data = await response.json();
+
+    // Afficher les matchs dans le UI
+    displayMatchHistory(data.matches);
+    setupMatchHistoryFilters(data.matches);
+
+  } catch (error) {
+    console.error("❌ Error fetching match history:", error);
+    displayMatchHistory([]);
+  }
+}
+
+// Fonction pour afficher l'historique des matchs dans le UI
+function displayMatchHistory(matches: Match[], filter: string = "all"): void {
+  const historyList = document.getElementById("match-history-list");
+  if (!historyList) return;
+
+  // Filtrer les matchs
+  let filteredMatches = matches;
+  if (filter === "tournament") {
+    filteredMatches = matches.filter(m => m.is_tournament === 1);
+  } else if (filter === "normal") {
+    filteredMatches = matches.filter(m => m.is_tournament === 0);
+  }
+
+  if (filteredMatches.length === 0) {
+    historyList.innerHTML = `
+      <div class="text-green-400/50 text-sm text-center py-8">
+        ${filter === "all" ? "No matches played yet" : `No ${filter} matches found`}
+      </div>
+    `;
+    return;
+  }
+
+  const html = filteredMatches.map(match => {
+    const winnerBadge = match.is_tournament === 1
+      ? '<span class="text-yellow-400 text-xs">🏆 TOURNAMENT</span>'
+      : '<span class="text-cyan-400 text-xs">🎮 MATCH</span>';
+
+    return `
+      <div class="border border-green-400/30 bg-black/50 p-4 rounded hover:border-green-400/50 transition-colors">
+        <div class="flex justify-between items-start mb-2">
+          <div class="flex-1">
+            <div class="flex items-center gap-2 mb-1">
+              <span class="text-green-400 font-bold">${escapeHtml(match.player1_name || "Player 1")}</span>
+              <span class="text-green-400/50 text-sm">${match.player1_score ?? 0}</span>
+              <span class="text-green-400/30">-</span>
+              <span class="text-green-400/50 text-sm">${match.player2_score ?? 0}</span>
+              <span class="text-green-400 font-bold">${escapeHtml(match.player2_name || "Player 2")}</span>
+            </div>
+            <div class="text-xs text-green-400/70">
+              Winner: <span class="text-green-300">${escapeHtml(match.winner_name || "Unknown")}</span>
+            </div>
+          </div>
+          <div class="text-right">
+            ${winnerBadge}
+            <div class="text-xs text-green-400/50 mt-1">
+              ${new Date(match.date).toLocaleDateString('en-US', {
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    })}
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
+  }).join('');
+
+  historyList.innerHTML = html;
+}
+
+// Setup des filtres pour l'historique
+function setupMatchHistoryFilters(matches: Match[]): void {
+  const filterAll = document.getElementById("filter-all");
+  const filterTournament = document.getElementById("filter-tournament");
+  const filterNormal = document.getElementById("filter-normal");
+
+  const updateActiveFilter = (activeBtn: HTMLElement | null) => {
+    [filterAll, filterTournament, filterNormal].forEach(btn => {
+      if (btn) {
+        btn.classList.remove("bg-green-400/20", "border-green-400/50");
+        btn.classList.add("bg-gray-800", "border-green-400/30", "text-green-400/70");
+      }
+    });
+    if (activeBtn) {
+      activeBtn.classList.remove("bg-gray-800", "border-green-400/30", "text-green-400/70");
+      activeBtn.classList.add("bg-green-400/20", "border-green-400/50");
+    }
+  };
+
+  filterAll?.addEventListener("click", () => {
+    displayMatchHistory(matches, "all");
+    updateActiveFilter(filterAll);
+  });
+
+  filterTournament?.addEventListener("click", () => {
+    displayMatchHistory(matches, "tournament");
+    updateActiveFilter(filterTournament);
+  });
+
+  filterNormal?.addEventListener("click", () => {
+    displayMatchHistory(matches, "normal");
+    updateActiveFilter(filterNormal);
   });
 }
 
@@ -521,13 +660,12 @@ function showMessage(
   }
 
   const messageDiv = document.createElement("div");
-  messageDiv.className = `p-3 border-l-4 max-w-sm bg-gray-900 border border-green-400/30 ${
-    type === "success"
+  messageDiv.className = `p-3 border-l-4 max-w-sm bg-gray-900 border border-green-400/30 ${type === "success"
       ? "border-l-green-400 text-green-300"
       : type === "error"
         ? "border-l-red-400 text-red-300"
         : "border-l-blue-400 text-blue-300"
-  }`;
+    }`;
 
   const prefix =
     type === "success" ? "[SUCCESS]" : type === "error" ? "[ERROR]" : "[INFO]";
