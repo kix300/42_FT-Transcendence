@@ -178,9 +178,10 @@ export class Game {
     if (this.gameEnded) return;
 
     this.gameEnded = true;
-    const winner = this.score.getWinner(7);
+    // const winner = this.score.getWinner(7);
     const score1 = this.score.getPlayer1Score();
     const score2 = this.score.getPlayer2Score();
+    const winner = score1 > score2 ? 1 : 2;
 
     // Stop the ball
     this.ball.dispose();
