@@ -12,6 +12,7 @@ interface Player {
   id: number;
   name: string;
   isBye: boolean;
+  alias?: string; // Player's chosen alias for the tournament
 }
 
 interface Match {
@@ -40,7 +41,8 @@ interface TournamentData {
 const STORAGE_KEYS = {
   TOURNAMENT: "currentTournament",
   RESULTS: "tournamentResults",
-  CURRENT_MATCH: "currentMatch"
+  CURRENT_MATCH: "currentMatch",
+  ALIASES: "playerAliases"
 } as const;
 
 const API_ENDPOINTS = {
@@ -266,7 +268,8 @@ function createTournamentStructure(players: Player[]): TournamentData {
         match.player1 = players[matchInRound * 2];
         match.player2 = players[matchInRound * 2 + 1];
 
-        // Auto-complete BYE matches
+        // Auto-complete BYE matches (but don't complete yet - wait for alias input)
+        // We'll mark them differently to show they need alias input
         if (match.player1.isBye && !match.player2.isBye) {
           completeMatch(match, match.player2, 0, 1);
         } else if (match.player2.isBye && !match.player1.isBye) {
@@ -398,6 +401,27 @@ function clearTournamentStorage(): void {
   sessionStorage.removeItem(STORAGE_KEYS.TOURNAMENT);
   sessionStorage.removeItem(STORAGE_KEYS.RESULTS);
   sessionStorage.removeItem(STORAGE_KEYS.CURRENT_MATCH);
+  sessionStorage.removeItem(STORAGE_KEYS.ALIASES);
+}
+
+/**
+ * Saves player aliases to session storage.
+ */
+function saveAliasesToStorage(playerId: number, alias: string): void {
+  const aliases = JSON.parse(sessionStorage.getItem(STORAGE_KEYS.ALIASES) || "{}");
+  aliases[playerId] = alias;
+  sessionStorage.setItem(STORAGE_KEYS.ALIASES, JSON.stringify(aliases));
+}
+
+/**
+ * Gets player's alias from storage or returns default name.
+ */
+function getPlayerAlias(player: Player | null): string {
+  if (!player) return "TBD";
+  if (player.isBye) return "BYE";
+
+  const aliases = JSON.parse(sessionStorage.getItem(STORAGE_KEYS.ALIASES) || "{}");
+  return aliases[player.id] || player.name;
 }
 
 // ============================================================================
@@ -479,8 +503,12 @@ function generateRoundHTML(tournament: TournamentData, round: number): string {
 function generateMatchCardHTML(match: Match): string {
   const { player1, player2, score1, score2, isCompleted, winner } = match;
 
-  const p1Name = player1 ? (player1.isBye ? `<span class="text-green-600">${escapeHtml(player1.name)}</span>` : escapeHtml(player1.name)) : "TBD";
-  const p2Name = player2 ? (player2.isBye ? `<span class="text-green-600">${escapeHtml(player2.name)}</span>` : escapeHtml(player2.name)) : "TBD";
+  // Use aliases for display
+  const p1DisplayName = player1 ? getPlayerAlias(player1) : "TBD";
+  const p2DisplayName = player2 ? getPlayerAlias(player2) : "TBD";
+
+  const p1Name = player1 ? (player1.isBye ? `<span class="text-green-600">${escapeHtml(p1DisplayName)}</span>` : escapeHtml(p1DisplayName)) : "TBD";
+  const p2Name = player2 ? (player2.isBye ? `<span class="text-green-600">${escapeHtml(p2DisplayName)}</span>` : escapeHtml(p2DisplayName)) : "TBD";
 
   const winnerNum = isCompleted && winner ? (player1 && winner.id === player1.id ? 1 : 2) : 0;
   const p1Class = winnerNum === 1 ? "text-green-300 font-bold" : "text-green-400";
@@ -516,26 +544,63 @@ function generateActionButton(match: Match): string {
   const { player1, player2, isCompleted, winner } = match;
 
   if (isCompleted && winner) {
-    return `<div class="text-green-300 text-xs mt-2 font-bold">✓ COMPLETED - ${escapeHtml(winner.name)} wins!</div>`;
+    const winnerDisplayName = getPlayerAlias(winner);
+    return `<div class="text-green-300 text-xs mt-2 font-bold">✓ COMPLETED - ${escapeHtml(winnerDisplayName)} wins!</div>`;
   }
 
+  // BYE matches in Round 1 - show button to enter alias
+  if (match.round === 0 && ((player1?.isBye && player2 && !player2.isBye) || (player2?.isBye && player1 && !player1.isBye))) {
+    const activePlayer = player1?.isBye ? player2 : player1;
+    const activePlayerDisplayName = activePlayer ? getPlayerAlias(activePlayer) : "";
+
+    // Check if alias has already been set
+    const aliases = JSON.parse(sessionStorage.getItem(STORAGE_KEYS.ALIASES) || "{}");
+    const hasAlias = activePlayer && aliases[activePlayer.id];
+
+    if (!hasAlias && activePlayer) {
+      return `
+        <button
+          class="start-match-btn w-full mt-2 bg-green-400/20 border border-green-400 px-3 py-1 hover:bg-green-400/30 transition-colors text-xs"
+          data-match-id="${match.id}"
+          data-match-round="${match.round}"
+          data-player1-id="${player1?.id || -1}"
+          data-player1-name="${escapeHtml(player1?.name || '')}"
+          data-player2-id="${player2?.id || -1}"
+          data-player2-name="${escapeHtml(player2?.name || '')}"
+        >
+          <span class="text-green-300">> ENTER ALIAS</span>
+        </button>
+      `;
+    } else {
+      return `<div class="text-green-300 text-xs mt-2">${escapeHtml(activePlayerDisplayName)} advances</div>`;
+    }
+  }
+
+  // BYE matches in other rounds - just show advancement
   if (player1?.isBye && player2 && !player2.isBye) {
-    return `<div class="text-green-300 text-xs mt-2">${escapeHtml(player2.name)} advances</div>`;
+    const player2DisplayName = getPlayerAlias(player2);
+    return `<div class="text-green-300 text-xs mt-2">${escapeHtml(player2DisplayName)} advances</div>`;
   }
 
   if (player2?.isBye && player1 && !player1.isBye) {
-    return `<div class="text-green-300 text-xs mt-2">${escapeHtml(player1.name)} advances</div>`;
+    const player1DisplayName = getPlayerAlias(player1);
+    return `<div class="text-green-300 text-xs mt-2">${escapeHtml(player1DisplayName)} advances</div>`;
   }
 
   if (player1 && player2 && !player1.isBye && !player2.isBye) {
+    const player1DisplayName = getPlayerAlias(player1);
+    const player2DisplayName = getPlayerAlias(player2);
     return `
       <button
         class="start-match-btn w-full mt-2 bg-green-400/20 border border-green-400 px-3 py-1 hover:bg-green-400/30 transition-colors text-xs"
         data-match-id="${match.id}"
+        data-match-round="${match.round}"
         data-player1-id="${player1.id}"
         data-player1-name="${escapeHtml(player1.name)}"
+        data-player1-alias="${escapeHtml(player1DisplayName)}"
         data-player2-id="${player2.id}"
         data-player2-name="${escapeHtml(player2.name)}"
+        data-player2-alias="${escapeHtml(player2DisplayName)}"
       >
         <span class="text-green-300">> START MATCH</span>
       </button>
@@ -557,16 +622,17 @@ function updateTournamentWinner(tournament: TournamentData): void {
   const finalMatch = tournament.matches.get(finalMatchId);
 
   if (finalMatch?.isCompleted && finalMatch.winner) {
+    const winnerDisplayName = getPlayerAlias(finalMatch.winner);
     const winnerDisplay = document.getElementById("tournament-winner");
     if (winnerDisplay) {
-      winnerDisplay.textContent = escapeHtml(finalMatch.winner.name);
+      winnerDisplay.textContent = escapeHtml(winnerDisplayName);
       winnerDisplay.classList.add("animate-pulse");
     }
 
     // Submit tournament winner to backend (fire and forget)
     submitTournamentWinnerToBackend({
       winnerId: finalMatch.winner.id,
-      winnerName: finalMatch.winner.name,
+      winnerName: winnerDisplayName,
       playerCount: tournament.playerCount,
       totalRounds: tournament.totalRounds,
       totalMatches: tournament.matches.size,
@@ -587,6 +653,8 @@ function showTournamentWinnerOverlay(winner: Player, tournament: TournamentData)
   // Don't show if overlay already exists
   if (document.getElementById("tournament-winner-overlay")) return;
 
+  const winnerDisplayName = getPlayerAlias(winner);
+
   const overlayHtml = `
     <div id="tournament-winner-overlay" class="fixed inset-0 z-50 flex items-center justify-center bg-black/90 backdrop-blur-sm">
       <div class="bg-gray-900 border-4 border-green-400 p-8 max-w-2xl w-full mx-4 shadow-2xl">
@@ -595,7 +663,7 @@ function showTournamentWinnerOverlay(winner: Player, tournament: TournamentData)
           <h1 class="text-5xl font-bold text-green-300 mb-4 animate-pulse">TOURNAMENT COMPLETE!</h1>
           <div class="h-1 bg-green-400 w-48 mx-auto mb-6"></div>
           <div class="text-green-500 text-sm mb-2">CHAMPION</div>
-          <div class="text-6xl font-bold text-green-300 mb-4">${escapeHtml(winner.name)}</div>
+          <div class="text-6xl font-bold text-green-300 mb-4">${escapeHtml(winnerDisplayName)}</div>
         </div>
 
         <!-- Trophy Icon -->
@@ -653,6 +721,176 @@ function showTournamentWinnerOverlay(winner: Player, tournament: TournamentData)
       if (overlay) overlay.remove();
     });
   }
+}
+
+/**
+ * Shows alias input overlay for Round 1 matches.
+ * Returns a promise that resolves with aliases when "Start Match" is clicked.
+ */
+function showAliasInputOverlay(match: Match): Promise<{ player1Alias: string; player2Alias: string } | null> {
+  return new Promise((resolve) => {
+    const body = document.querySelector("body");
+    if (!body) {
+      resolve(null);
+      return;
+    }
+
+    // Don't show if overlay already exists
+    if (document.getElementById("alias-input-overlay")) {
+      resolve(null);
+      return;
+    }
+
+    const player1Name = match.player1 ? escapeHtml(match.player1.name) : "Player 1";
+    const player2Name = match.player2 ? escapeHtml(match.player2.name) : "Player 2";
+
+    // Handle BYE matches - only one player needs to enter alias
+    const isByeMatch = match.player1?.isBye || match.player2?.isBye;
+    const activePlayer = match.player1?.isBye ? match.player2 : match.player1;
+    const activePlayerName = activePlayer ? escapeHtml(activePlayer.name) : "Player";
+
+    const overlayHtml = isByeMatch
+      ? `
+      <div id="alias-input-overlay" class="fixed inset-0 z-50 flex items-center justify-center bg-black/90 backdrop-blur-sm">
+        <div class="bg-gray-900 border-4 border-green-400 p-8 max-w-2xl w-full mx-4 shadow-2xl">
+          <!-- Header -->
+          <div class="text-center mb-6">
+            <h1 class="text-3xl font-bold text-green-300 mb-2">ENTER YOUR ALIAS</h1>
+            <div class="h-1 bg-green-400 w-32 mx-auto"></div>
+          </div>
+
+          <!-- Match Info -->
+          <div class="bg-black/50 border border-green-400/30 p-4 mb-6 text-center">
+            <div class="text-green-500 text-xs mb-1">ROUND 1 - BYE MATCH</div>
+            <div class="text-green-400 text-sm">Match #${match.id}</div>
+            <div class="text-green-600 text-xs mt-2">You automatically advance to the next round</div>
+          </div>
+
+          <!-- Alias Input -->
+          <div class="mb-6">
+            <div class="mb-4">
+              <label class="text-green-400 text-sm block mb-2">${activePlayerName} - Enter Your Alias:</label>
+              <input
+                type="text"
+                id="player-alias-input"
+                maxlength="20"
+                placeholder="Your tournament alias..."
+                class="bg-black border border-green-400/50 text-green-300 px-4 py-3 w-full focus:outline-none focus:border-green-400 text-lg"
+              />
+              <div class="text-green-500 text-xs mt-1">Max 20 characters</div>
+            </div>
+          </div>
+
+          <!-- Action Button -->
+          <div class="text-center">
+            <button id="start-match-with-alias-btn" class="bg-green-400/20 border border-green-400 px-8 py-3 hover:bg-green-400/30 transition-colors w-full">
+              <span class="text-green-300 font-bold">> CONTINUE</span>
+            </button>
+          </div>
+        </div>
+      </div>
+      `
+      : `
+      <div id="alias-input-overlay" class="fixed inset-0 z-50 flex items-center justify-center bg-black/90 backdrop-blur-sm">
+        <div class="bg-gray-900 border-4 border-green-400 p-8 max-w-2xl w-full mx-4 shadow-2xl">
+          <!-- Header -->
+          <div class="text-center mb-6">
+            <h1 class="text-3xl font-bold text-green-300 mb-2">ENTER YOUR ALIASES</h1>
+            <div class="h-1 bg-green-400 w-32 mx-auto"></div>
+          </div>
+
+          <!-- Match Info -->
+          <div class="bg-black/50 border border-green-400/30 p-4 mb-6 text-center">
+            <div class="text-green-500 text-xs mb-1">ROUND 1</div>
+            <div class="text-green-400 text-sm">Match #${match.id}</div>
+          </div>
+
+          <!-- Alias Inputs -->
+          <div class="mb-6">
+            <div class="mb-4">
+              <label class="text-green-400 text-sm block mb-2">${player1Name} - Enter Your Alias:</label>
+              <input
+                type="text"
+                id="player1-alias-input"
+                maxlength="20"
+                placeholder="Player 1 alias..."
+                class="bg-black border border-green-400/50 text-green-300 px-4 py-3 w-full focus:outline-none focus:border-green-400 text-lg"
+              />
+              <div class="text-green-500 text-xs mt-1">Max 20 characters</div>
+            </div>
+            <div class="h-1 bg-green-400/20 w-full my-4"></div>
+            <div>
+              <label class="text-green-400 text-sm block mb-2">${player2Name} - Enter Your Alias:</label>
+              <input
+                type="text"
+                id="player2-alias-input"
+                maxlength="20"
+                placeholder="Player 2 alias..."
+                class="bg-black border border-green-400/50 text-green-300 px-4 py-3 w-full focus:outline-none focus:border-green-400 text-lg"
+              />
+              <div class="text-green-500 text-xs mt-1">Max 20 characters</div>
+            </div>
+          </div>
+
+          <!-- Action Button -->
+          <div class="text-center">
+            <button id="start-match-with-alias-btn" class="bg-green-400/20 border border-green-400 px-8 py-3 hover:bg-green-400/30 transition-colors w-full">
+              <span class="text-green-300 font-bold">> START MATCH</span>
+            </button>
+          </div>
+        </div>
+      </div>
+      `;
+
+    body.insertAdjacentHTML("beforeend", overlayHtml);
+
+    const startBtn = document.getElementById("start-match-with-alias-btn");
+    const player1Input = document.getElementById("player1-alias-input") as HTMLInputElement;
+    const player2Input = document.getElementById("player2-alias-input") as HTMLInputElement;
+    const playerInput = document.getElementById("player-alias-input") as HTMLInputElement;
+
+    if (startBtn) {
+      startBtn.addEventListener("click", () => {
+        let player1Alias = "";
+        let player2Alias = "";
+
+        if (isByeMatch) {
+          const alias = playerInput?.value.trim() || activePlayerName;
+          if (match.player1?.isBye) {
+            player2Alias = alias;
+          } else {
+            player1Alias = alias;
+          }
+        } else {
+          player1Alias = player1Input?.value.trim() || player1Name;
+          player2Alias = player2Input?.value.trim() || player2Name;
+        }
+
+        // Remove overlay
+        const overlay = document.getElementById("alias-input-overlay");
+        if (overlay) overlay.remove();
+
+        // Resolve with aliases
+        resolve({ player1Alias, player2Alias });
+      });
+    }
+
+    // Handle Enter key to submit
+    const handleEnter = (e: KeyboardEvent) => {
+      if (e.key === "Enter") {
+        startBtn?.click();
+      }
+    };
+
+    if (isByeMatch && playerInput) {
+      playerInput.addEventListener("keydown", handleEnter);
+      playerInput.focus();
+    } else {
+      player1Input?.addEventListener("keydown", handleEnter);
+      player2Input?.addEventListener("keydown", handleEnter);
+      player1Input?.focus();
+    }
+  });
 }
 
 /**
@@ -736,7 +974,7 @@ function setupCreateTournamentButton(): void {
 /**
  * Sets up match start button handlers using event delegation.
  */
-function setupMatchStartButtons(_tournament: TournamentData): void {
+function setupMatchStartButtons(tournament: TournamentData): void {
   const router = getRouter();
   const bracketContainer = document.getElementById("tournament-bracket");
 
@@ -748,26 +986,70 @@ function setupMatchStartButtons(_tournament: TournamentData): void {
     bracketContainer.removeEventListener("click", oldListener);
   }
 
-  const clickListener = (event: Event) => {
+  const clickListener = async (event: Event) => {
     const target = event.target as HTMLElement;
     const button = target.closest(".start-match-btn") as HTMLButtonElement;
 
     if (button) {
-      const matchData = {
-        matchId: button.getAttribute("data-match-id"),
-        player1: {
-          id: button.getAttribute("data-player1-id"),
-          name: button.getAttribute("data-player1-name")
-        },
-        player2: {
-          id: button.getAttribute("data-player2-id"),
-          name: button.getAttribute("data-player2-name")
-        },
-        isTournamentMatch: true
-      };
+      const matchId = button.getAttribute("data-match-id");
+      const matchRound = button.getAttribute("data-match-round");
+      const isRound1 = matchRound === "0";
 
-      sessionStorage.setItem(STORAGE_KEYS.CURRENT_MATCH, JSON.stringify(matchData));
-      router.navigate("/game");
+      // Get match from tournament
+      const match = tournament.matches.get(parseInt(matchId || "0"));
+      if (!match) return;
+
+      // Check if this is a BYE match
+      const isByeMatch = match.player1?.isBye || match.player2?.isBye;
+
+      // For Round 1 matches, show alias input overlay first
+      if (isRound1) {
+        const aliasData = await showAliasInputOverlay(match);
+
+        if (aliasData) {
+          // Save aliases to storage
+          if (match.player1 && !match.player1.isBye) {
+            saveAliasesToStorage(match.player1.id, aliasData.player1Alias);
+          }
+          if (match.player2 && !match.player2.isBye) {
+            saveAliasesToStorage(match.player2.id, aliasData.player2Alias);
+          }
+
+          // Refresh the bracket to show updated aliases
+          displayTournament(tournament);
+
+          // If it's a BYE match, don't navigate to game - just return
+          if (isByeMatch) {
+            return;
+          }
+        } else {
+          // User cancelled - don't proceed
+          return;
+        }
+      }
+
+      // Only navigate to game if it's not a BYE match
+      if (!isByeMatch) {
+        // Get current aliases (either just set or from previous rounds)
+        const player1Alias = button.getAttribute("data-player1-alias") || button.getAttribute("data-player1-name");
+        const player2Alias = button.getAttribute("data-player2-alias") || button.getAttribute("data-player2-name");
+
+        const matchData = {
+          matchId: button.getAttribute("data-match-id"),
+          player1: {
+            id: button.getAttribute("data-player1-id"),
+            name: player1Alias
+          },
+          player2: {
+            id: button.getAttribute("data-player2-id"),
+            name: player2Alias
+          },
+          isTournamentMatch: true
+        };
+
+        sessionStorage.setItem(STORAGE_KEYS.CURRENT_MATCH, JSON.stringify(matchData));
+        router.navigate("/game");
+      }
     }
   };
 
