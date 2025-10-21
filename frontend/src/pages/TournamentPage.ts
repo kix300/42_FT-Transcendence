@@ -773,11 +773,13 @@ function showAliasInputOverlay(match: Match): Promise<{ player1Alias: string; pl
               <input
                 type="text"
                 id="player-alias-input"
+                minlength="3"
                 maxlength="20"
                 placeholder="Your tournament alias..."
+                required
                 class="bg-black border border-green-400/50 text-green-300 px-4 py-3 w-full focus:outline-none focus:border-green-400 text-lg"
               />
-              <div class="text-green-500 text-xs mt-1">Max 20 characters</div>
+              <div class="text-green-500 text-xs mt-1">3-20 characters required</div>
             </div>
           </div>
 
@@ -812,11 +814,13 @@ function showAliasInputOverlay(match: Match): Promise<{ player1Alias: string; pl
               <input
                 type="text"
                 id="player1-alias-input"
+                minlength="3"
                 maxlength="20"
                 placeholder="Player 1 alias..."
+                required
                 class="bg-black border border-green-400/50 text-green-300 px-4 py-3 w-full focus:outline-none focus:border-green-400 text-lg"
               />
-              <div class="text-green-500 text-xs mt-1">Max 20 characters</div>
+              <div class="text-green-500 text-xs mt-1">3-20 characters required</div>
             </div>
             <div class="h-1 bg-green-400/20 w-full my-4"></div>
             <div>
@@ -824,11 +828,13 @@ function showAliasInputOverlay(match: Match): Promise<{ player1Alias: string; pl
               <input
                 type="text"
                 id="player2-alias-input"
+                minlength="3"
                 maxlength="20"
                 placeholder="Player 2 alias..."
+                required
                 class="bg-black border border-green-400/50 text-green-300 px-4 py-3 w-full focus:outline-none focus:border-green-400 text-lg"
               />
-              <div class="text-green-500 text-xs mt-1">Max 20 characters</div>
+              <div class="text-green-500 text-xs mt-1">3-20 characters required</div>
             </div>
           </div>
 
@@ -855,15 +861,36 @@ function showAliasInputOverlay(match: Match): Promise<{ player1Alias: string; pl
         let player2Alias = "";
 
         if (isByeMatch) {
-          const alias = playerInput?.value.trim() || activePlayerName;
+          const alias = playerInput?.value.trim() || "";
+
+          // Validate alias (minimum 3 characters)
+          if (alias.length < 3) {
+            alert("Alias must be at least 3 characters long!");
+            playerInput?.focus();
+            return;
+          }
+
           if (match.player1?.isBye) {
             player2Alias = alias;
           } else {
             player1Alias = alias;
           }
         } else {
-          player1Alias = player1Input?.value.trim() || player1Name;
-          player2Alias = player2Input?.value.trim() || player2Name;
+          player1Alias = player1Input?.value.trim() || "";
+          player2Alias = player2Input?.value.trim() || "";
+
+          // Validate both aliases (minimum 3 characters)
+          if (player1Alias.length < 3) {
+            alert("Player 1 alias must be at least 3 characters long!");
+            player1Input?.focus();
+            return;
+          }
+
+          if (player2Alias.length < 3) {
+            alert("Player 2 alias must be at least 3 characters long!");
+            player2Input?.focus();
+            return;
+          }
         }
 
         // Remove overlay
