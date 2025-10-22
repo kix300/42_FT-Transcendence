@@ -77,13 +77,66 @@ export async function GamePage(): Promise<void> {
 
     showHeaderElements();
 
-    // Si l'utilisateur est déjà connecté, afficher son profil sur Player 1
-    if (AuthManager.isAuthenticated() && !AuthManager.isGuest()) {
-      const profileData = await fetchUserProfile();
+    // Vérifier si c'est un match de tournoi
+    const matchDataStr = sessionStorage.getItem("currentMatch");
+    let isTournamentMatch = false;
+    let tournamentPlayer1Id: string | null = null;
+    let tournamentPlayer2Id: string | null = null;
 
-      if (profileData) {
-        // Afficher le profil du joueur
-        displayPlayerProfile(1, profileData);
+    if (matchDataStr) {
+      try {
+        const matchData = JSON.parse(matchDataStr) as MatchData;
+        isTournamentMatch = matchData?.isTournamentMatch || false;
+        if (isTournamentMatch) {
+          tournamentPlayer1Id = matchData.player1.id;
+          tournamentPlayer2Id = matchData.player2.id;
+        }
+      } catch (error) {
+        console.error("Error parsing match data:", error);
+      }
+    }
+
+    // Gérer la connexion des joueurs selon le type de match
+    if (isTournamentMatch) {
+      // Pour les matchs de tournoi, vérifier si les joueurs sont déjà enregistrés
+      if (tournamentPlayer1Id) {
+        const savedPlayer1 = PlayerSessionManager.getPlayer(
+          parseInt(tournamentPlayer1Id),
+        );
+        if (savedPlayer1) {
+          // Reconnecter automatiquement le joueur 1
+          displayPlayerProfile(1, {
+            id: savedPlayer1.id,
+            username: savedPlayer1.username,
+            avatar: savedPlayer1.avatar,
+            isGuest: savedPlayer1.isGuest,
+          });
+        }
+      }
+
+      if (tournamentPlayer2Id) {
+        const savedPlayer2 = PlayerSessionManager.getPlayer(
+          parseInt(tournamentPlayer2Id),
+        );
+        if (savedPlayer2) {
+          // Reconnecter automatiquement le joueur 2
+          displayPlayerProfile(2, {
+            id: savedPlayer2.id,
+            username: savedPlayer2.username,
+            avatar: savedPlayer2.avatar,
+            isGuest: savedPlayer2.isGuest,
+          });
+        }
+      }
+    } else {
+      // Pour les matchs normaux, comportement par défaut
+      if (AuthManager.isAuthenticated() && !AuthManager.isGuest()) {
+        const profileData = await fetchUserProfile();
+
+        if (profileData) {
+          // Afficher le profil du joueur
+          displayPlayerProfile(1, profileData);
+        }
       }
     }
   }
@@ -147,9 +200,27 @@ export async function GamePage(): Promise<void> {
         // Mode guest
         avatarDiv.innerHTML = `<span class="text-cyan-400 text-xl">👤</span>`;
       }
-      // Sauvegarder dans la session
+      // Sauvegarder dans la session avec le bon slotNumber
+      // Pour les matchs de tournoi, utiliser l'ID du joueur du tournoi comme slotNumber
+      const matchDataStr = sessionStorage.getItem("currentMatch");
+      let slotNumber = playerNum;
+
+      if (matchDataStr) {
+        try {
+          const matchData = JSON.parse(matchDataStr) as MatchData;
+          if (matchData?.isTournamentMatch) {
+            // Utiliser l'ID du joueur du tournoi comme slotNumber
+            const tournamentPlayerId =
+              playerNum === 1 ? matchData.player1.id : matchData.player2.id;
+            slotNumber = parseInt(tournamentPlayerId);
+          }
+        } catch (error) {
+          console.error("Error parsing match data for session:", error);
+        }
+      }
+
       PlayerSessionManager.savePlayer({
-        slotNumber: playerNum,
+        slotNumber: slotNumber,
         id: playerData.id,
         username: playerData.username,
         avatar: playerData.avatar,
@@ -170,8 +241,26 @@ export async function GamePage(): Promise<void> {
 
       // Cacher les infos
       infoDiv.classList.add("hidden");
-      // Supprimer de la session
-      PlayerSessionManager.disconnectPlayer(playerNum);
+
+      // Supprimer de la session avec le bon slotNumber
+      const matchDataStr = sessionStorage.getItem("currentMatch");
+      let slotNumber = playerNum;
+
+      if (matchDataStr) {
+        try {
+          const matchData = JSON.parse(matchDataStr) as MatchData;
+          if (matchData?.isTournamentMatch) {
+            // Utiliser l'ID du joueur du tournoi comme slotNumber
+            const tournamentPlayerId =
+              playerNum === 1 ? matchData.player1.id : matchData.player2.id;
+            slotNumber = parseInt(tournamentPlayerId);
+          }
+        } catch (error) {
+          console.error("Error parsing match data for disconnect:", error);
+        }
+      }
+
+      PlayerSessionManager.disconnectPlayer(slotNumber);
     }
   }
 
@@ -361,21 +450,38 @@ export async function GamePage(): Promise<void> {
 
   // setupEventListeners
   function setupPlayerEventListeners(): void {
+    // Vérifier si c'est un match de tournoi
+    const matchDataStr = sessionStorage.getItem("currentMatch");
+    let isTournamentMatch = false;
+    if (matchDataStr) {
+      try {
+        const matchData = JSON.parse(matchDataStr) as MatchData;
+        isTournamentMatch = matchData?.isTournamentMatch || false;
+      } catch (error) {
+        console.error("Error parsing match data:", error);
+      }
+    }
+
     // LoginP1
     const loginP1Btn = document.getElementById("player1-login-btn");
     if (loginP1Btn) {
       loginP1Btn.addEventListener("click", async () => {
         console.log("Login Player 1");
 
-        // Vérifier si l'utilisateur est déjà connecté globalement
-        if (AuthManager.isAuthenticated() && !AuthManager.isGuest()) {
-          const profileData = await fetchUserProfile();
-          if (profileData) {
-            displayPlayerProfile(1, profileData);
-          }
-        } else {
-          // Afficher le modal de connexion
+        // Pour les matchs de tournoi, toujours afficher le modal
+        if (isTournamentMatch) {
           showLoginModal(1);
+        } else {
+          // Pour les matchs normaux, vérifier si l'utilisateur est déjà connecté globalement
+          if (AuthManager.isAuthenticated() && !AuthManager.isGuest()) {
+            const profileData = await fetchUserProfile();
+            if (profileData) {
+              displayPlayerProfile(1, profileData);
+            }
+          } else {
+            // Afficher le modal de connexion
+            showLoginModal(1);
+          }
         }
       });
     }
@@ -385,7 +491,7 @@ export async function GamePage(): Promise<void> {
     if (loginP2Btn) {
       loginP2Btn.addEventListener("click", async () => {
         console.log("Login Player 2");
-        // Afficher le modal de connexion
+        // Afficher le modal de connexion (toujours, peu importe le type de match)
         showLoginModal(2);
       });
     }
@@ -723,6 +829,9 @@ function showGameEndOverlay(
           score1: score1,
           score2: score2,
         });
+
+        // Enregistrer aussi dans l'historique des matchs
+        sendTournamentMatchResult(matchData, winner, score1, score2);
       }
 
       // Clear current match data
@@ -829,5 +938,66 @@ async function sendNormalMatchResult(
     }
   } catch (error) {
     console.error("Error saving match result:", error);
+  }
+}
+
+/**
+ * Envoie le résultat d'un match de tournoi au backend
+ */
+async function sendTournamentMatchResult(
+  matchData: MatchData,
+  winner: number,
+  score1: number,
+  score2: number,
+): Promise<void> {
+  try {
+    // Récupérer les ID des joueurs depuis le tournoi
+    const tournamentPlayer1Id = parseInt(matchData.player1.id);
+    const tournamentPlayer2Id = parseInt(matchData.player2.id);
+
+    // Récupérer les joueurs depuis PlayerSessionManager (pour avoir les vrais user IDs si connectés)
+    const player1 = PlayerSessionManager.getPlayer(tournamentPlayer1Id);
+    const player2 = PlayerSessionManager.getPlayer(tournamentPlayer2Id);
+
+    // Si aucun joueur n'est authentifié, ne pas sauvegarder
+    if ((!player1 || !player1.id) && (!player2 || !player2.id)) {
+      console.warn("Cannot save tournament match: all players are guests");
+      return;
+    }
+
+    // Déterminer le winner ID (utiliser l'ID utilisateur si connecté, sinon null)
+    const winnerId = winner === 1 ? player1?.id || null : player2?.id || null;
+
+    const tournamentMatchData = {
+      player1_id: player1?.id || null, // null si guest
+      player2_id: player2?.id || null, // null si guest
+      player1_score: score1,
+      player2_score: score2,
+      winner_id: winnerId,
+      is_tournament: true,
+    };
+
+    // Envoyer au backend
+    const response = await fetch("/api/matches", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        ...(AuthManager.isAuthenticated() && !AuthManager.isGuest()
+          ? { Authorization: `Bearer ${AuthManager.getToken()}` }
+          : {}),
+      },
+      body: JSON.stringify(tournamentMatchData),
+    });
+
+    if (!response.ok) {
+      console.warn(
+        "Failed to save tournament match result:",
+        response.statusText,
+      );
+    } else {
+      console.log("Tournament match result saved successfully");
+    }
+  } catch (error) {
+    console.error("Error saving tournament match result:", error);
   }
 }
