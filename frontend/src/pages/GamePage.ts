@@ -175,8 +175,6 @@ export async function GamePage(): Promise<void> {
     }
   }
 
- 
-  
   // Fonction pour récupérer le profil depuis l'API
   async function fetchUserProfile(): Promise<PlayerData | null> {
     try {
@@ -474,8 +472,8 @@ export async function GamePage(): Promise<void> {
       // Si c'est un match de tournoi, configurer les joueurs et désactiver le mode 3 joueurs
       if (matchData?.isTournamentMatch) {
         // Modifier les titres des panneaux avec les noms des joueurs du tournoi
-        const player1Title = document.querySelector('.w-64:first-child h3');
-        const player2Title = document.querySelector('.w-64:last-child h3');
+        const player1Title = document.querySelector(".w-64:first-child h3");
+        const player2Title = document.querySelector(".w-64:last-child h3");
 
         if (player1Title) {
           player1Title.textContent = `> ${matchData.player1.name}`;
@@ -745,7 +743,7 @@ function showGameEndOverlay(
   }
   if (playAgainBtn) {
     playAgainBtn.addEventListener("click", () => {
-      if (!matchData?.isTournamentMatch){
+      if (!matchData?.isTournamentMatch) {
         sendNormalMatchResult(winner, score1, score2);
       }
       closeModal();
@@ -762,7 +760,8 @@ function showGameEndOverlay(
 
   if (returnHomeBtn) {
     returnHomeBtn.addEventListener("click", () => {
-      if (!matchData?.isTournamentMatch){``
+      if (!matchData?.isTournamentMatch) {
+        ``;
         sendNormalMatchResult(winner, score1, score2);
       }
       sessionStorage.removeItem("currentMatch");
@@ -789,7 +788,7 @@ async function sendNormalMatchResult(
     // Récupérer les joueurs depuis PlayerSessionManager
     const player1 = PlayerSessionManager.getPlayer(1);
     const player2 = PlayerSessionManager.getPlayer(2);
-    
+
     if (!player1 || !player2) {
       console.warn("Cannot save match: players not found");
       return;
@@ -799,19 +798,18 @@ async function sendNormalMatchResult(
       console.warn("Cannot save match: both players are guests");
       return;
     }
-    
+
     const winnerId = winner === 1 ? player1.id : player2.id;
 
-
     const matchData = {
-      player1_id: player1.id || null,  // null si guest
-      player2_id: player2.id || null,  // null si guest
+      player1_id: player1.id || null, // null si guest
+      player2_id: player2.id || null, // null si guest
       player1_score: score1,
       player2_score: score2,
       winner_id: winnerId,
       is_tournament: false,
     };
-    
+
     // Envoyer au backend
     const response = await fetch("/api/matches", {
       method: "POST",
@@ -823,7 +821,7 @@ async function sendNormalMatchResult(
       },
       body: JSON.stringify(matchData),
     });
-    
+
     if (!response.ok) {
       console.warn("Failed to save match result:", response.statusText);
     } else {

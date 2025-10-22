@@ -1229,14 +1229,14 @@ function showHeaderElements(): void {
  * Main tournament page initialization.
  */
 export async function TournamentPage(): Promise<void> {
-  if (!AuthManager.isAuthenticated()) {
-    console.log("Utilisateur non authentifié, redirection vers login");
-    const router = getRouter();
-    if (router) {
-      router.navigate("/login");
-    }
-    return;
-  }
+  // if (!AuthManager.isAuthenticated()) {
+  //   console.log("Utilisateur non authentifié, redirection vers login");
+  //   const router = getRouter();
+  //   if (router) {
+  //     router.navigate("/login");
+  //   }
+  //   return;
+  // }
 
   const isGuest = AuthManager.isGuest();
 
