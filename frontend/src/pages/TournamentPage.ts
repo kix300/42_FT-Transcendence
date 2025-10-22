@@ -3,6 +3,7 @@ import { AuthManager } from "../utils/auth";
 import { createHeader, HeaderConfigs } from "../components/Header";
 import { Header } from "../components/Header";
 import { escapeHtml } from "../utils/sanitize";
+import { PlayerSessionManager } from "../utils/playerSession";
 
 // ============================================================================
 // TYPES & INTERFACES
@@ -448,6 +449,8 @@ function clearTournamentStorage(): void {
   sessionStorage.removeItem(STORAGE_KEYS.RESULTS);
   sessionStorage.removeItem(STORAGE_KEYS.CURRENT_MATCH);
   sessionStorage.removeItem(STORAGE_KEYS.ALIASES);
+  // Réinitialiser les sessions des joueurs
+  PlayerSessionManager.disconnectAll();
 }
 
 /**
@@ -1043,7 +1046,10 @@ function addNewTournamentButton(bracketContainer: HTMLElement): void {
     '<span class="text-gray-300 font-bold">> NEW TOURNAMENT</span>';
   button.addEventListener("click", () => {
     clearTournamentStorage();
-    window.location.reload();
+    const router = getRouter();
+    if (router) {
+      router.navigate("/tournament");
+    }
   });
 
   bracketContainer.parentElement?.insertBefore(button, bracketContainer);
@@ -1089,6 +1095,8 @@ function setupCreateTournamentButton(): void {
 
     saveTournamentToStorage({ playerCount, players });
     sessionStorage.removeItem(STORAGE_KEYS.RESULTS);
+    // Réinitialiser les sessions des joueurs pour le nouveau tournoi
+    PlayerSessionManager.disconnectAll();
 
     displayTournament(tournament);
   });
