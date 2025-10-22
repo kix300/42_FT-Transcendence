@@ -635,8 +635,9 @@ export async function GamePage(): Promise<void> {
     });
   }
 
-  // Démarrer le jeu
+  // Démarrer le jeu mais le mettre en pause immédiatement
   game.start();
+  engine.stopRenderLoop();
 
   // Gestion du redimensionnement
   const resizeHandler = () => {
@@ -648,16 +649,21 @@ export async function GamePage(): Promise<void> {
   const pauseBtn = document.getElementById("pause-btn");
   const restartBtn = document.getElementById("restart-btn");
 
-  let isPaused = false;
+  // Tous les matchs démarrent en pause avec bouton START
+  let isPaused = true;
+
+  // Changer le bouton en START au début
+  if (pauseBtn) {
+    pauseBtn.textContent = "[START]";
+    pauseBtn.className =
+      "bg-green-400/20 border-2 border-green-400 text-green-300 px-4 py-2 hover:bg-green-400/30 transition-colors text-sm rounded font-bold min-w-[100px] whitespace-nowrap";
+  }
 
   if (pauseBtn) {
     pauseBtn.addEventListener("click", () => {
       if (isPaused) {
-        // Reprendre le jeu
-        engine.runRenderLoop(() => {
-          game.update();
-          game.scene.render();
-        });
+        // Démarrer/Reprendre le jeu
+        game.start();
         pauseBtn.textContent = "[Pause]";
         pauseBtn.className =
           "bg-yellow-400/20 border border-yellow-400/50 text-yellow-300 px-4 py-2 hover:bg-yellow-400/30 transition-colors text-sm rounded font-medium min-w-[100px] whitespace-nowrap";
