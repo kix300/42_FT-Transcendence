@@ -3,7 +3,7 @@ import { createRouter } from "./router";
 import { LoginPage } from "./pages/LoginPage";
 import { RegisterPage } from "./pages/RegisterPage";
 import { HomePage } from "./pages/HomePage";
-import { GamePage } from "./pages/GamePage";
+import { GamePage, cleanupGamePage } from "./pages/GamePage";
 import { TournamentPage } from "./pages/TournamentPage";
 import { ProfilePage } from "./pages/ProfilePage";
 import { UsersPage } from "./pages/UsersPage";
@@ -53,6 +53,7 @@ function initApp(): void {
     path: "/game",
     name: "game",
     component: GamePage,
+    cleanup: cleanupGamePage,
     isPublic: true,
   });
 
