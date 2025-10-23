@@ -295,24 +295,10 @@ async function handleLogin(): Promise<void> {
 // Nouvelle fonction pour setup 2FA
 async function setup2FA(username: string, password: string): Promise<void> {
   try {
-    // 1. Login pour obtenir le token
-    const loginResponse = await fetch(AUTH_API.LOGIN, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ username, password }),
-    });
-
-    if (!loginResponse.ok) {
-      showMessage("Error: Could not login to setup 2FA", "error");
-      return;
-    }
-
-    const loginData = await loginResponse.json();
-    const token = loginData.token;
-
-    // 3. Afficher le modal avec le QR code
+    // ici je veux afficher le modala quand il y  un 2FA
+    // si ya alors on envoi mdp passowrd, on verrify le 2FA mdp usrname pour avoir le token
     const modal = new TwoFAModal();
-    modal.showlogin(token);
+    modal.showlogin(username, password);
   } catch (error) {
     showMessage("Error setting up 2FA", "error");
     console.error("2FA setup error:", error);

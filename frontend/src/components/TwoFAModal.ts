@@ -81,9 +81,7 @@ export class TwoFAModal {
     });
   }
   // Afficher le modal avec le QR code register
-  public showlogin(token: string): void {
-    this.token = token;
-
+  public showlogin(username: string, password: string): void {
     const modal = document.getElementById("qr-modal");
     const qrImg = document.getElementById("qr-code-img") as HTMLImageElement;
     const secretDiv = document.getElementById("2fa-secret");
@@ -104,11 +102,6 @@ export class TwoFAModal {
     if (codeInput) codeInput.value = "";
     this.clearMessage();
 
-    // Afficher le QR code et le secret
-    // qrImg.src = qrCodeDataURL;
-    // secretDiv.textContent = secret;
-
-    // Afficher le modal
     modal.classList.remove("hidden");
 
     // Supprimer les anciens event listeners
@@ -126,6 +119,7 @@ export class TwoFAModal {
     // Permettre la validation avec Enter
     codeInput?.addEventListener("keypress", (e) => {
       if (e.key === "Enter") {
+        //ici on veux verifier si cést bon ou non notre token en fonction d'autre chose que le token
         this.verify();
       }
     });
