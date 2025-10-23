@@ -1044,19 +1044,26 @@ function showAliasInputOverlay(
       });
     }
 
-    // Handle Enter key to submit
-    const handleEnter = (e: KeyboardEvent) => {
+    // Handle Enter key to submit and ESC key to cancel
+    const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === "Enter") {
         startBtn?.click();
+      } else if (e.key === "Escape") {
+        e.stopPropagation(); // Prevent global ESC handler from firing
+        // Remove overlay
+        const overlay = document.getElementById("alias-input-overlay");
+        if (overlay) overlay.remove();
+        // Resolve with null to indicate cancellation
+        resolve(null);
       }
     };
 
     if (isByeMatch && playerInput) {
-      playerInput.addEventListener("keydown", handleEnter);
+      playerInput.addEventListener("keydown", handleKeyDown);
       playerInput.focus();
     } else {
-      player1Input?.addEventListener("keydown", handleEnter);
-      player2Input?.addEventListener("keydown", handleEnter);
+      player1Input?.addEventListener("keydown", handleKeyDown);
+      player2Input?.addEventListener("keydown", handleKeyDown);
       player1Input?.focus();
     }
   });
