@@ -283,13 +283,8 @@ function createTournamentStructure(players: Player[]): TournamentData {
         match.player1 = players[matchInRound * 2];
         match.player2 = players[matchInRound * 2 + 1];
 
-        // Auto-complete BYE matches (but don't complete yet - wait for alias input)
-        // We'll mark them differently to show they need alias input
-        if (match.player1.isBye && !match.player2.isBye) {
-          completeMatch(match, match.player2, 0, 1);
-        } else if (match.player2.isBye && !match.player1.isBye) {
-          completeMatch(match, match.player1, 1, 0);
-        }
+        // Don't auto-complete BYE matches - wait for alias input first
+        // They will be completed after the player enters their alias
       }
 
       matches.set(match.id, match);
@@ -416,6 +411,28 @@ function saveTournamentToStorage(tournament: {
  */
 function rebuildTournamentFromStorage(savedData: any): TournamentData {
   const tournament = createTournamentStructure(savedData.players);
+
+  // Get stored aliases to check BYE matches
+  const aliases = JSON.parse(
+    sessionStorage.getItem(STORAGE_KEYS.ALIASES) || "{}",
+  );
+
+  // Complete BYE matches in Round 1 if the active player has an alias
+  for (const [, match] of tournament.matches.entries()) {
+    if (match.round === 0 && !match.isCompleted) {
+      const isByeMatch = match.player1?.isBye || match.player2?.isBye;
+      if (isByeMatch) {
+        const activePlayer = match.player1?.isBye ? match.player2 : match.player1;
+        // If the active player has an alias, complete the BYE match
+        if (activePlayer && aliases[activePlayer.id]) {
+          const score1 = match.player1?.isBye ? 0 : 1;
+          const score2 = match.player2?.isBye ? 0 : 1;
+          completeMatch(match, activePlayer, score1, score2);
+          propagateWinner(tournament.matches, match, tournament.totalRounds);
+        }
+      }
+    }
+  }
 
   const matchResults = JSON.parse(
     sessionStorage.getItem(STORAGE_KEYS.RESULTS) || "{}",
@@ -612,6 +629,11 @@ function generateActionButton(match: Match): string {
     return `<div class="text-green-300 text-xs mt-2 font-bold">✓ COMPLETED - ${escapeHtml(winnerDisplayName)} wins!</div>`;
   }
 
+  // Get stored aliases
+  const aliases = JSON.parse(
+    sessionStorage.getItem(STORAGE_KEYS.ALIASES) || "{}",
+  );
+
   // BYE matches in Round 1 - show button to enter alias
   if (
     match.round === 0 &&
@@ -624,9 +646,6 @@ function generateActionButton(match: Match): string {
       : "";
 
     // Check if alias has already been set
-    const aliases = JSON.parse(
-      sessionStorage.getItem(STORAGE_KEYS.ALIASES) || "{}",
-    );
     const hasAlias = activePlayer && aliases[activePlayer.id];
 
     if (!hasAlias && activePlayer) {
@@ -659,9 +678,37 @@ function generateActionButton(match: Match): string {
     return `<div class="text-green-300 text-xs mt-2">${escapeHtml(player1DisplayName)} advances</div>`;
   }
 
+  // Regular matches - check if this is Round 1 and if aliases need to be entered
   if (player1 && player2 && !player1.isBye && !player2.isBye) {
     const player1DisplayName = getPlayerAlias(player1);
     const player2DisplayName = getPlayerAlias(player2);
+
+    // For Round 1 matches, check if both players have aliases set
+    if (match.round === 0) {
+      const player1HasAlias = aliases[player1.id];
+      const player2HasAlias = aliases[player2.id];
+
+      // If either player doesn't have an alias, show "ENTER ALIASES" button
+      if (!player1HasAlias || !player2HasAlias) {
+        return `
+          <button
+            class="start-match-btn w-full mt-2 bg-green-400/20 border border-green-400 px-3 py-1 hover:bg-green-400/30 transition-colors text-xs"
+            data-match-id="${match.id}"
+            data-match-round="${match.round}"
+            data-player1-id="${player1.id}"
+            data-player1-name="${escapeHtml(player1.name)}"
+            data-player1-alias="${escapeHtml(player1DisplayName)}"
+            data-player2-id="${player2.id}"
+            data-player2-name="${escapeHtml(player2.name)}"
+            data-player2-alias="${escapeHtml(player2DisplayName)}"
+          >
+            <span class="text-green-300">> ENTER ALIASES</span>
+          </button>
+        `;
+      }
+    }
+
+    // If all aliases are set or it's not Round 1, show "START MATCH" button
     return `
       <button
         class="start-match-btn w-full mt-2 bg-green-400/20 border border-green-400 px-3 py-1 hover:bg-green-400/30 transition-colors text-xs"
@@ -1133,51 +1180,82 @@ function setupMatchStartButtons(tournament: TournamentData): void {
       // Check if this is a BYE match
       const isByeMatch = match.player1?.isBye || match.player2?.isBye;
 
-      // For Round 1 matches, show alias input overlay first
+      // For Round 1 matches, check if aliases need to be entered
       if (isRound1) {
-        const aliasData = await showAliasInputOverlay(match);
+        // Get stored aliases
+        const aliases = JSON.parse(
+          sessionStorage.getItem(STORAGE_KEYS.ALIASES) || "{}",
+        );
 
-        if (aliasData) {
-          // Save aliases to storage
-          if (match.player1 && !match.player1.isBye) {
-            saveAliasesToStorage(match.player1.id, aliasData.player1Alias);
-          }
-          if (match.player2 && !match.player2.isBye) {
-            saveAliasesToStorage(match.player2.id, aliasData.player2Alias);
-          }
+        // Check if aliases are already set
+        let needsAliases = false;
+        if (isByeMatch) {
+          // For BYE matches, check if the active player has an alias
+          const activePlayer = match.player1?.isBye ? match.player2 : match.player1;
+          needsAliases = activePlayer ? !aliases[activePlayer.id] : false;
+        } else {
+          // For regular matches, check if both players have aliases
+          const player1HasAlias = match.player1 ? aliases[match.player1.id] : false;
+          const player2HasAlias = match.player2 ? aliases[match.player2.id] : false;
+          needsAliases = !player1HasAlias || !player2HasAlias;
+        }
 
-          // Refresh the bracket to show updated aliases
-          displayTournament(tournament);
+        // Only show alias input overlay if aliases are needed
+        if (needsAliases) {
+          const aliasData = await showAliasInputOverlay(match);
 
-          // If it's a BYE match, don't navigate to game - just return
-          if (isByeMatch) {
+          if (aliasData) {
+            // Save aliases to storage
+            if (match.player1 && !match.player1.isBye && aliasData.player1Alias) {
+              saveAliasesToStorage(match.player1.id, aliasData.player1Alias);
+            }
+            if (match.player2 && !match.player2.isBye && aliasData.player2Alias) {
+              saveAliasesToStorage(match.player2.id, aliasData.player2Alias);
+            }
+
+            // If it's a BYE match, complete it now and propagate the winner
+            if (isByeMatch) {
+              const activePlayer = match.player1?.isBye ? match.player2 : match.player1;
+              if (activePlayer) {
+                const score1 = match.player1?.isBye ? 0 : 1;
+                const score2 = match.player2?.isBye ? 0 : 1;
+                completeMatch(match, activePlayer, score1, score2);
+                propagateWinner(tournament.matches, match, tournament.totalRounds);
+              }
+            }
+
+            // Refresh the bracket to show updated aliases
+            displayTournament(tournament);
+
+            // If it's a BYE match, don't navigate to game - just return
+            if (isByeMatch) {
+              return;
+            }
+          } else {
+            // User cancelled - don't proceed
             return;
           }
-        } else {
-          // User cancelled - don't proceed
-          return;
         }
       }
 
       // Only navigate to game if it's not a BYE match
       if (!isByeMatch) {
-        // Get current aliases (either just set or from previous rounds)
-        const player1Alias =
-          button.getAttribute("data-player1-alias") ||
-          button.getAttribute("data-player1-name");
-        const player2Alias =
-          button.getAttribute("data-player2-alias") ||
-          button.getAttribute("data-player2-name");
+        // Get player names using the match object and getPlayerAlias
+        // This ensures we always get the latest aliases from storage
+        const player1Name = match.player1 ? getPlayerAlias(match.player1) : "Player 1";
+        const player2Name = match.player2 ? getPlayerAlias(match.player2) : "Player 2";
+        const player1Id = match.player1?.id.toString() || "1";
+        const player2Id = match.player2?.id.toString() || "2";
 
         const matchData = {
-          matchId: button.getAttribute("data-match-id"),
+          matchId: matchId,
           player1: {
-            id: button.getAttribute("data-player1-id"),
-            name: player1Alias,
+            id: player1Id,
+            name: player1Name,
           },
           player2: {
-            id: button.getAttribute("data-player2-id"),
-            name: player2Alias,
+            id: player2Id,
+            name: player2Name,
           },
           isTournamentMatch: true,
         };
