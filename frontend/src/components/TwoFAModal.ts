@@ -45,6 +45,8 @@ export class TwoFAModal {
       "2fa-verify-code",
     ) as HTMLInputElement;
 
+    if (skipBtn) skipBtn.style.display = "none";
+
     if (!modal || !qrImg || !secretDiv) {
       console.error("Modal elements not found");
       return;
@@ -63,15 +65,15 @@ export class TwoFAModal {
 
     // Supprimer les anciens event listeners
     const newVerifyBtn = verifyBtn?.cloneNode(true) as HTMLElement;
-    const newSkipBtn = skipBtn?.cloneNode(true) as HTMLElement;
+    // const newSkipBtn = skipBtn?.cloneNode(true) as HTMLElement;
     verifyBtn?.parentNode?.replaceChild(newVerifyBtn, verifyBtn);
-    skipBtn?.parentNode?.replaceChild(newSkipBtn, skipBtn);
+    // skipBtn?.parentNode?.replaceChild(newSkipBtn, skipBtn);
 
     // Bouton de vérification
     newVerifyBtn?.addEventListener("click", () => this.verify());
 
     // Bouton skip
-    newSkipBtn?.addEventListener("click", () => this.skip());
+    // newSkipBtn?.addEventListener("click", () => this.skip());
 
     // Permettre la validation avec Enter
     codeInput?.addEventListener("keypress", (e) => {
@@ -85,9 +87,13 @@ export class TwoFAModal {
     this.token = token;
     const modal = document.getElementById("qr-modal");
     const qrImg = document.getElementById("qr-code-img") as HTMLImageElement;
+    const qrImg2 = document.getElementById("qr-code-img2");
     const secretDiv = document.getElementById("2fa-secret");
     const verifyBtn = document.getElementById("verify-2fa-btn");
     const skipBtn = document.getElementById("skip-2fa-btn");
+    const step1 = document.getElementById("step1");
+    const step2 = document.getElementById("step2");
+    const manual = document.getElementById("manual");
     const codeInput = document.getElementById(
       "2fa-verify-code",
     ) as HTMLInputElement;
@@ -96,6 +102,11 @@ export class TwoFAModal {
       console.error("Modal elements not found");
       return;
     }
+
+    if (manual) manual.style.display = "none";
+    if (step2) step2.style.display = "none";
+    if (step1) step1.style.display = "none";
+    if (qrImg2) qrImg2.style.display = "none";
     qrImg.style.display = "none";
     secretDiv.style.display = "none";
 

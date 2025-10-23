@@ -21,21 +21,27 @@
         <!-- Modal Content -->
         <div class="p-6">
             <div class="text-green-300 mb-4 text-sm">
-                <div class="mb-2">
+                <div id="step1" class="mb-2">
                     [STEP 1] Scan this QR code with Google Authenticator
                 </div>
-                <div class="mb-4">
+                <div id="step2" class="mb-4">
                     [STEP 2] Enter the 6-digit code to confirm
                 </div>
             </div>
 
             <!-- QR Code Image -->
-            <div class="bg-white p-4 mb-4 flex justify-center">
+            <div
+                id="qr-code-img2"
+                class="bg-white p-4 mb-4 flex justify-center"
+            >
                 <img id="qr-code-img" src="" alt="QR Code" class="max-w-full" />
             </div>
 
             <!-- Secret Key (manual entry) -->
-            <div class="bg-black border border-green-400/30 p-3 mb-4">
+            <div
+                id="manual"
+                class="bg-black border border-green-400/30 p-3 mb-4"
+            >
                 <div class="text-green-400 text-xs mb-1">
                     // Manual entry key:
                 </div>
@@ -72,7 +78,7 @@
                     id="skip-2fa-btn"
                     class="w-full bg-black border border-yellow-400/30 text-yellow-400 py-2 px-4 hover:bg-yellow-400/10 transition-colors text-sm"
                 >
-                    ./skip_2fa.sh --continue-without
+                    ./skip_2fa.sh --logout
                 </button>
             </div>
 
