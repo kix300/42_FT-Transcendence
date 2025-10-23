@@ -266,39 +266,54 @@ async function handleLogin(): Promise<void> {
 
   showMessage("Authenticating...", "info");
 
-  //si twofa enable alors on affiche le modal met le et recupere le twofa
-  const statusResponse = await fetch(`${TWOFA_API.CHECK}`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ username }),
-  });
+  const success = await AuthManager.login({ username, password, remember });
 
-  const status = await statusResponse.json();
+  if (success) {
+    // Rediriger vers la page d'accueil après login réussi
+    //si twofa enable alors on affiche le modal met le et recupere le twofa
+    const statusResponse = await fetch(`${TWOFA_API.CHECK}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ username }),
+    });
 
-  if (!status.userExists) {
-    throw new Error("Identifiants incorrects");
-  }
-  // si fetch saute il faaut gerer
-  if (status.userExists) {
-    setup2FA(username, password);
-  } else {
-    const success = await AuthManager.login({ username, password, remember });
+    const status = await statusResponse.json();
 
-    if (success) {
-      // Rediriger vers la page d'accueil après login réussi
-      setTimeout(() => router.navigate("/home"), 1500);
-    } else {
-      alert("Login failed");
+    if (!status.userExists) {
+      throw new Error("Identifiants incorrects");
     }
+    // si fetch saute il faaut gerer
+    if (status.twoFactorEnabled) {
+      setup2FA_login(username, password);
+    } else {
+      setTimeout(() => router.navigate("/home"), 1500);
+    }
+  } else {
+    alert("Login failed");
   }
 }
-// Nouvelle fonction pour setup 2FA
-async function setup2FA(username: string, password: string): Promise<void> {
+async function setup2FA_login(
+  username: string,
+  password: string,
+): Promise<void> {
   try {
-    // ici je veux afficher le modala quand il y  un 2FA
-    // si ya alors on envoi mdp passowrd, on verrify le 2FA mdp usrname pour avoir le token
+    // 1. Login pour obtenir le token
+    const loginResponse = await fetch(AUTH_API.LOGIN, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ username, password }),
+    });
+
+    if (!loginResponse.ok) {
+      showMessage("Error: Could not login to setup 2FA", "error");
+      return;
+    }
+
+    const loginData = await loginResponse.json();
+    const token = loginData.token;
+
     const modal = new TwoFAModal();
-    modal.showlogin(username, password);
+    modal.showlogin(token);
   } catch (error) {
     showMessage("Error setting up 2FA", "error");
     console.error("2FA setup error:", error);

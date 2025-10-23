@@ -22,26 +22,6 @@ export default async function loginRoutes(fastify, options) {
       if (!passwordMatches) {
         return reply.code(401).send({ error: "Mot de passe incorrect" });
       }
-      // verification 2FA
-      if (user.two_fa_enabled) {
-        // Si la 2FA est activée mais pas de token fourni
-        if (!twoFaToken) {
-          return reply.code(403).send({
-            error: "2FA requis",
-            requires2FA: true, // Signal au frontend
-          });
-        }
-
-        // Vérifie le code TOTP
-        const isValid = authenticator.verify({
-          token: twoFaToken,
-          secret: user.two_fa_secret,
-        });
-
-        if (!isValid) {
-          return reply.code(401).send({ error: "Code 2FA invalide" });
-        }
-      }
 
       // Génère un token JWT
       const token = fastify.jwt.sign({ id: user.id, email: user.email });

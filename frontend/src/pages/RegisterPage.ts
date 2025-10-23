@@ -469,7 +469,7 @@ async function handleRegister(): Promise<void> {
       // Si l'utilisateur a coché 2FA
       if (enable2fa) {
         showMessage("Setting up 2FA...", "info");
-        await setup2FA(username, password);
+        await setup2FA_register(username, password);
       } else {
         setTimeout(() => {
           showMessage("Welcome! Redirecting to home page...", "success");
@@ -493,7 +493,10 @@ async function handleRegister(): Promise<void> {
   }
 }
 // Nouvelle fonction pour setup 2FA
-async function setup2FA(username: string, password: string): Promise<void> {
+async function setup2FA_register(
+  username: string,
+  password: string,
+): Promise<void> {
   try {
     // 1. Login pour obtenir le token
     const loginResponse = await fetch(AUTH_API.LOGIN, {

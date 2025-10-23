@@ -81,7 +81,8 @@ export class TwoFAModal {
     });
   }
   // Afficher le modal avec le QR code register
-  public showlogin(username: string, password: string): void {
+  public showlogin(token: string): void {
+    this.token = token;
     const modal = document.getElementById("qr-modal");
     const qrImg = document.getElementById("qr-code-img") as HTMLImageElement;
     const secretDiv = document.getElementById("2fa-secret");
@@ -157,7 +158,7 @@ export class TwoFAModal {
       if (response.ok) {
         this.showMessage("2FA enabled successfully! Redirecting...", "success");
         //stocker le token
-        AuthManager.setToken(data.token, 0 || false);
+        AuthManager.setToken(this.token, 0 || false);
         if (data.user) {
           AuthManager.setUser(data.user);
         }
@@ -177,16 +178,18 @@ export class TwoFAModal {
     } catch (error) {
       this.showMessage("Network error", "error");
       console.error("2FA verification error:", error);
+      AuthManager.logout();
     }
   }
 
   // Passer sans activer 2FA
   private skip(): void {
     this.hide();
-    const router = getRouter();
-    if (router) {
-      router.navigate("/login");
-    }
+    AuthManager.logout();
+    // const router = getRouter();
+    // if (router) {
+    //   router.navigate("/login");
+    // }
   }
 
   // Afficher un message dans le modal
