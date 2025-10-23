@@ -57,58 +57,58 @@ const API_ENDPOINTS = {
 
 /**
  * Sends match result to backend server.
- */
-export async function submitMatchResultToBackend(matchData: {
-  matchId: number;
-  player1Id: number;
-  player1Name: string;
-  player2Id: number;
-  player2Name: string;
-  winnerId: number;
-  winnerName: string;
-  score1: number;
-  score2: number;
-  tournamentId?: string;
-}): Promise<void> {
-  try {
-    const response = await fetch(API_ENDPOINTS.MATCH_RESULT, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        match_id: matchData.matchId,
-        player1: {
-          id: matchData.player1Id,
-          name: matchData.player1Name,
-        },
-        player2: {
-          id: matchData.player2Id,
-          name: matchData.player2Name,
-        },
-        winner: {
-          id: matchData.winnerId,
-          name: matchData.winnerName,
-        },
-        score: {
-          player1: matchData.score1,
-          player2: matchData.score2,
-        },
-        tournament_id: matchData.tournamentId,
-        timestamp: new Date().toISOString(),
-      }),
-    });
+//  */
+// export async function submitMatchResultToBackend(matchData: {
+//   matchId: number;
+//   player1Id: number;
+//   player1Name: string;
+//   player2Id: number;
+//   player2Name: string;
+//   winnerId: number;
+//   winnerName: string;
+//   score1: number;
+//   score2: number;
+//   tournamentId?: string;
+// }): Promise<void> {
+//   try {
+//     const response = await fetch(API_ENDPOINTS.MATCH_RESULT, {
+//       method: "POST",
+//       headers: {
+//         "Content-Type": "application/json",
+//       },
+//       body: JSON.stringify({
+//         match_id: matchData.matchId,
+//         player1: {
+//           id: matchData.player1Id,
+//           name: matchData.player1Name,
+//         },
+//         player2: {
+//           id: matchData.player2Id,
+//           name: matchData.player2Name,
+//         },
+//         winner: {
+//           id: matchData.winnerId,
+//           name: matchData.winnerName,
+//         },
+//         score: {
+//           player1: matchData.score1,
+//           player2: matchData.score2,
+//         },
+//         tournament_id: matchData.tournamentId,
+//         timestamp: new Date().toISOString(),
+//       }),
+//     });
 
-    if (!response.ok) {
-      console.warn(
-        "Failed to submit match result to backend:",
-        response.statusText,
-      );
-    }
-  } catch (error) {
-    console.error("Error submitting match result to backend:", error);
-  }
-}
+//     if (!response.ok) {
+//       console.warn(
+//         "Failed to submit match result to backend:",
+//         response.statusText,
+//       );
+//     }
+//   } catch (error) {
+//     console.error("Error submitting match result to backend:", error);
+//   }
+// }
 
 /**
  * Sends tournament winner to backend server.
@@ -509,7 +509,7 @@ function generateBracketHTML(tournament: TournamentData): string {
   let html = `
     <div class="bg-gray-900 border border-green-400/30 p-6">
       <div class="text-green-300 font-bold mb-4">[${tournament.playerCount}-PLAYER BRACKET]</div>
-      <div class="text-green-500 text-sm mb-4">Bracket size: ${bracketSize} | Rounds: ${totalRounds} | Byes: ${byeCount}</div>
+      <div class="text-green-500 text-sm mb-4">Players: ${tournament.playerCount} | Bracket size: ${bracketSize} | Rounds: ${totalRounds} | Byes: ${byeCount}</div>
       <div class="grid gap-4" style="grid-template-columns: repeat(${totalRounds}, 1fr);">
   `;
 
@@ -600,7 +600,7 @@ function generateMatchCardHTML(match: Match): string {
   return `
     <div class="border border-green-400/50 bg-black/50 ${isCompleted ? "border-green-300" : ""}">
       <div class="text-green-500 text-xs px-2 py-1 border-b border-green-400/30">
-        Match ${match.id} - ${getRoundName(match.round, 10)}
+        Match ${match.id + 1} - ${getRoundName(match.round, 10)}
       </div>
       <div class="p-2 space-y-1">
         <div class="${p1Class} text-sm flex justify-between items-center">
@@ -898,7 +898,7 @@ function showAliasInputOverlay(
           <!-- Match Info -->
           <div class="bg-black/50 border border-green-400/30 p-4 mb-6 text-center">
             <div class="text-green-500 text-xs mb-1">ROUND 1 - BYE MATCH</div>
-            <div class="text-green-400 text-sm">Match #${match.id}</div>
+            <div class="text-green-400 text-sm">Match #${match.id + 1}</div>
             <div class="text-green-600 text-xs mt-2">You automatically advance to the next round</div>
           </div>
 
@@ -940,7 +940,7 @@ function showAliasInputOverlay(
           <!-- Match Info -->
           <div class="bg-black/50 border border-green-400/30 p-4 mb-6 text-center">
             <div class="text-green-500 text-xs mb-1">ROUND 1</div>
-            <div class="text-green-400 text-sm">Match #${match.id}</div>
+            <div class="text-green-400 text-sm">Match #${match.id + 1}</div>
           </div>
 
           <!-- Alias Inputs -->

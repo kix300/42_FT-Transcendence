@@ -3,7 +3,7 @@ import { Engine } from "@babylonjs/core/Engines/engine";
 import { Game } from "../Game";
 import { AuthManager } from "../utils/auth";
 import { escapeHtml } from "../utils/sanitize";
-import { submitMatchResultToBackend } from "./TournamentPage";
+// import { submitMatchResultToBackend } from "./TournamentPage";
 //@ts-ignore
 import gamePageCompleteHtml from "./html/GamePage.html?raw";
 import { createHeader, HeaderConfigs, Header } from "../components/Header";
@@ -824,17 +824,17 @@ function showGameEndOverlay(
         sessionStorage.setItem("tournamentResults", JSON.stringify(results));
 
         // Submit match result to backend (fire and forget)
-        submitMatchResultToBackend({
-          matchId: parseInt(matchData.matchId),
-          player1Id: parseInt(matchData.player1.id),
-          player1Name: player1Name,
-          player2Id: parseInt(matchData.player2.id),
-          player2Name: player2Name,
-          winnerId: parseInt(winnerId),
-          winnerName: winnerName,
-          score1: score1,
-          score2: score2,
-        });
+        // submitMatchResultToBackend({
+        //   matchId: parseInt(matchData.matchId),
+        //   player1Id: parseInt(matchData.player1.id),
+        //   player1Name: player1Name,
+        //   player2Id: parseInt(matchData.player2.id),
+        //   player2Name: player2Name,
+        //   winnerId: parseInt(winnerId),
+        //   winnerName: winnerName,
+        //   score1: score1,
+        //   score2: score2,
+        // });
 
         // Enregistrer aussi dans l'historique des matchs
         sendTournamentMatchResult(matchData, winner, score1, score2);
