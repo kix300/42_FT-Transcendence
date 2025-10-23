@@ -7,7 +7,13 @@ import { GamePage, cleanupGamePage } from "./pages/GamePage";
 import { TournamentPage } from "./pages/TournamentPage";
 import { ProfilePage } from "./pages/ProfilePage";
 import { UsersPage } from "./pages/UsersPage";
-import { AuthManager } from "./utils/auth";
+import { AuthManager } from './utils/auth';
+import { connectWebSocket } from './utils/ws';
+
+const token = AuthManager.getToken();
+if (token) {
+  connectWebSocket(token);
+}
 
 // Initialiser l'application
 function initApp(): void {
@@ -23,8 +29,8 @@ function initApp(): void {
   // Enregistrer les routes
   router.addRoute({
     path: "/",
-    name: "home",
-    component: HomePage,
+    name: "login",
+    component: LoginPage,
     isPublic: true,
   });
 

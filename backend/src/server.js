@@ -8,6 +8,8 @@ import 'dotenv/config';
 import { fileURLToPath } from "url";
 import { dirname } from "path";
 import { requireHttps } from './https.js';
+import fastifyWebsocket from "@fastify/websocket";
+import db from './db.js';
 
 //port
 const porthttps = 3000;
@@ -18,6 +20,7 @@ import loginRoutes from './routes/login.js';
 import userRoutes from './routes/users.js';
 import matchesRoutes from './routes/matches.js';
 import friendsRoutes from './routes/friends.js';
+import webSocketRoutes from './routes/websocket.js';
 // import oauthRoutes from './routes/oauth.js';
 
 // https config
@@ -31,6 +34,29 @@ const fastify = Fastify({
 	logger: true,
 });
 
+// Mettre tous le monde hors ligne lors d'un redemarrage du serveur
+db.prepare("UPDATE users SET status = 0").run();
+console.log("Toutes les connexions réinitialisées (status = 0)");
+
+// Clé secrète JWT
+fastify.register(fastifyJwt, { secret: process.env.JWT_PWD });
+
+// Décorateur pour vérifier le token facilement dans les routes
+fastify.decorate("authenticate", async (request, reply) => {
+  try {
+	//console log a retirer en prod
+	console.log("🪪 Header Authorization reçu:", request.headers.authorization);
+    await request.jwtVerify();
+  } catch (err) {
+	 console.error("❌ Erreur JWT:", err.message);
+    reply.code(401).send({ error: "Unauthorized" });
+  }
+});
+
+// Websocket
+await fastify.register(fastifyWebsocket);
+await fastify.register(webSocketRoutes);
+
 // Enregistrer les routes
 fastify.register(registerRoutes);
 fastify.register(loginRoutes);
@@ -39,7 +65,7 @@ fastify.register(matchesRoutes);
 fastify.register(friendsRoutes);
 // fastify.register(oauthRoutes);
 
-// Servir les fichiers statiques du répertoire 'dist' (créé par npm run build)
+// Plugin pour fichiers statiques
 fastify.register(fastifyStatic, {
   root: path.join(__dirname, "public/dist"),
 });
@@ -49,22 +75,6 @@ fastify.register(fastifyStatic, {
   root: path.join(process.cwd(), 'uploads'),
   prefix: '/uploads/',
   decorateReply: false,
-});
-
-// Clé secrète JWT
-fastify.register(fastifyJwt, {
-  secret: process.env.JWT_PWD ,
-});
-
-// décorateur pour vérifier le token facilement dans les routes
-fastify.decorate("authenticate", async (request, reply) => {
-  try {
-	console.log("🪪 Header Authorization reçu:", request.headers.authorization);
-    await request.jwtVerify();
-  } catch (err) {
-	 console.error("❌ Erreur JWT:", err.message);
-    reply.code(401).send({ error: "Unauthorized" });
-  }
 });
 
 

@@ -9,3 +9,18 @@ export function requireHttps(req, reply, done) {
   done();
 }
 
+// Check WS connexion
+export function verifyWsAuth(fastify, connection, request) {
+  try {
+    const token = new URL(request.url, `https://${request.headers.host}`).searchParams.get("token");
+    if (!token) throw new Error("Missing token");
+    const user = fastify.jwt.verify(token);
+    if (!user || !user.id) throw new Error("Invalid token");
+    return user;
+  } catch (err) {
+    connection.socket.send(JSON.stringify({ error: err.message }));
+    connection.socket.close();
+    return null;
+  }
+}
+

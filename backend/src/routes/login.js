@@ -1,5 +1,6 @@
 import db from '../db.js';
 import bcrypt from 'bcrypt';
+import websocket from '@fastify/websocket'
 
 export default async function loginRoutes(fastify, options) {
   fastify.post('/api/login', async (request, reply) => {
@@ -23,8 +24,8 @@ export default async function loginRoutes(fastify, options) {
     	const token = fastify.jwt.sign({ id: user.id, email: user.email});
 		console.log("✅ Token généré :", token);
 
-      	// Pour plus tard: gérer la session ICI
-		
+		db.prepare("UPDATE users SET status = 1 WHERE id = ?").run(user.id);
+
 		return reply.send({ 
 			message: 'Connexion réussie',
 			token,

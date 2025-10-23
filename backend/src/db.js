@@ -43,25 +43,36 @@ try{
 }
 
 
-// ajoute la colonne role
-const columnExists = db
-  .prepare("PRAGMA table_info(users)").all()
-  .some(col => col.name === "role");
+/* AJOUT COLONNE ROLE */
+
+let columnExists = db.prepare("PRAGMA table_info(users)").all().some(col => col.name === "role");
 
 if (!columnExists) {
   db.prepare("ALTER TABLE users ADD COLUMN role TEXT CHECK(role IN ('admin', 'user')) DEFAULT 'user'").run();
   console.log("✅ Colonne 'role' ajoutée !");
 } else {
-  console.log("ℹ️ La colonne 'role' existe déjà, rien à faire.");
+  console.log("ℹ️ La colonne 'role' existe déjà");
 }
 
-// mise a jour du role pour les utilisateurs deja existants
+// mise a jour pour les utilisateurs deja existants
 const admins = ['kimnguye', 'kduroux', 'hgirard'];
 const placeholders = admins.map(() => '?').join(', ');
-
 db.prepare(`UPDATE users SET role = 'admin' WHERE username IN (${placeholders})`).run(...admins);
 db.prepare(`UPDATE users SET role = 'user' WHERE role IS NULL`).run();
 
+/* AJOUT COLONNE STATUS */
+
+columnExists = db.prepare("PRAGMA table_info(users)").all().some(col => col.name === "status");
+if (!columnExists) {
+	db.prepare(`ALTER TABLE users ADD COLUMN status INTEGER DEFAULT 0 CHECK(status IN (0,1,2))`).run();
+	console.log("✅ Colonne 'status' ajoutée !");
+} else {
+	console.log("ℹ️ La colonne 'status' existe déjà");
+}
+
+
+// mise a jour pour les utilisateurs deja existants
+db.prepare(`UPDATE users SET status = 0 WHERE status IS NULL`).run();
 
 // lit les données et les affiche sur la console
 const rows = db.prepare("SELECT * FROM users").all();
@@ -111,10 +122,10 @@ db.prepare(`CREATE TABLE IF NOT EXISTS friends (
 	id INTEGER PRIMARY KEY AUTOINCREMENT,
 	user_id INTEGER NOT NULL,
 	friend_id INTEGER NOT NULL,
-  status TEXT DEFAULT 'pending',
+ 	status TEXT DEFAULT 'pending',
 	FOREIGN KEY (user_id) REFERENCES users(id),
 	FOREIGN KEY (friend_id) REFERENCES users(id),
-  UNIQUE(user_id, friend_id) -- interdire les doublons
+  	UNIQUE(user_id, friend_id) -- interdire les doublons
 	)`).run();
 
 export default db;
