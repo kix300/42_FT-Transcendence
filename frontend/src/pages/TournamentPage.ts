@@ -830,6 +830,26 @@ function showTournamentWinnerOverlay(
 
   body.insertAdjacentHTML("beforeend", overlayHtml);
 
+  // Prevent Escape key from triggering navigation away from the tournament complete screen
+  // Users must use the action buttons to proceed
+  const handleEscape = (e: KeyboardEvent) => {
+    if (e.key === "Escape") {
+      e.stopPropagation(); // Prevent the event from reaching the global navigation handler
+      e.preventDefault(); // Prevent default browser behavior
+      // Do NOT close the overlay - user must click a button
+    }
+  };
+  // Use capture phase (true) to intercept the event before it bubbles
+  document.addEventListener("keydown", handleEscape, true);
+
+  // Cleanup function for removing overlay and escape handler
+  const removeOverlay = () => {
+    const overlay = document.getElementById("tournament-winner-overlay");
+    if (overlay) overlay.remove();
+    // Cleanup the escape handler when overlay is removed
+    document.removeEventListener("keydown", handleEscape, true);
+  };
+
   // Setup button handlers
   const newTournamentBtn = document.getElementById(
     "new-tournament-overlay-btn",
@@ -838,6 +858,7 @@ function showTournamentWinnerOverlay(
 
   if (newTournamentBtn) {
     newTournamentBtn.addEventListener("click", () => {
+      removeOverlay();
       clearTournamentStorage();
       window.location.reload();
     });
@@ -845,8 +866,7 @@ function showTournamentWinnerOverlay(
 
   if (returnHomeBtn) {
     returnHomeBtn.addEventListener("click", () => {
-      const overlay = document.getElementById("tournament-winner-overlay");
-      if (overlay) overlay.remove();
+      removeOverlay();
     });
   }
 }

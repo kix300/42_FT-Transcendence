@@ -774,12 +774,27 @@ function showGameEndOverlay(
   // Récupérer l'overlay depuis le DOM
   const overlay = document.getElementById("game-end-overlay");
 
+  // Prevent Escape key from propagating to other handlers (e.g., TournamentPage navigation)
+  // Users cannot dismiss the game over screen with ESC - they must use the action buttons
+  const handleEscape = (e: KeyboardEvent) => {
+    if (e.key === "Escape") {
+      e.stopPropagation(); // Prevent the event from reaching TournamentPage handler
+      e.preventDefault(); // Prevent default browser behavior
+      // Do NOT close the modal - user must click a button
+    }
+  };
+  // Use capture phase (true) to intercept the event before it bubbles
+  document.addEventListener("keydown", handleEscape, true);
+
   // Fermer la modal
   const closeModal = () => {
     if (overlay) {
       overlay.remove();
     }
+    // Cleanup the escape handler when modal is closed
+    document.removeEventListener("keydown", handleEscape, true);
   };
+
   // Fermer en cliquant à l'extérieur
   if (overlay) {
     overlay.addEventListener("click", (e: MouseEvent) => {
@@ -788,15 +803,6 @@ function showGameEndOverlay(
       }
     });
   }
-
-  // Fermer avec Escape
-  const handleEscape = (e: KeyboardEvent) => {
-    if (e.key === "Escape") {
-      closeModal();
-      document.removeEventListener("keydown", handleEscape);
-    }
-  };
-  document.addEventListener("keydown", handleEscape);
   // Setup button handlers
   const returnToTournamentBtn = document.getElementById(
     "return-to-tournament-btn",
