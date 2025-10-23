@@ -422,7 +422,9 @@ function rebuildTournamentFromStorage(savedData: any): TournamentData {
     if (match.round === 0 && !match.isCompleted) {
       const isByeMatch = match.player1?.isBye || match.player2?.isBye;
       if (isByeMatch) {
-        const activePlayer = match.player1?.isBye ? match.player2 : match.player1;
+        const activePlayer = match.player1?.isBye
+          ? match.player2
+          : match.player1;
         // If the active player has an alias, complete the BYE match
         if (activePlayer && aliases[activePlayer.id]) {
           const score1 = match.player1?.isBye ? 0 : 1;
@@ -1221,12 +1223,18 @@ function setupMatchStartButtons(tournament: TournamentData): void {
         let needsAliases = false;
         if (isByeMatch) {
           // For BYE matches, check if the active player has an alias
-          const activePlayer = match.player1?.isBye ? match.player2 : match.player1;
+          const activePlayer = match.player1?.isBye
+            ? match.player2
+            : match.player1;
           needsAliases = activePlayer ? !aliases[activePlayer.id] : false;
         } else {
           // For regular matches, check if both players have aliases
-          const player1HasAlias = match.player1 ? aliases[match.player1.id] : false;
-          const player2HasAlias = match.player2 ? aliases[match.player2.id] : false;
+          const player1HasAlias = match.player1
+            ? aliases[match.player1.id]
+            : false;
+          const player2HasAlias = match.player2
+            ? aliases[match.player2.id]
+            : false;
           needsAliases = !player1HasAlias || !player2HasAlias;
         }
 
@@ -1236,21 +1244,35 @@ function setupMatchStartButtons(tournament: TournamentData): void {
 
           if (aliasData) {
             // Save aliases to storage
-            if (match.player1 && !match.player1.isBye && aliasData.player1Alias) {
+            if (
+              match.player1 &&
+              !match.player1.isBye &&
+              aliasData.player1Alias
+            ) {
               saveAliasesToStorage(match.player1.id, aliasData.player1Alias);
             }
-            if (match.player2 && !match.player2.isBye && aliasData.player2Alias) {
+            if (
+              match.player2 &&
+              !match.player2.isBye &&
+              aliasData.player2Alias
+            ) {
               saveAliasesToStorage(match.player2.id, aliasData.player2Alias);
             }
 
             // If it's a BYE match, complete it now and propagate the winner
             if (isByeMatch) {
-              const activePlayer = match.player1?.isBye ? match.player2 : match.player1;
+              const activePlayer = match.player1?.isBye
+                ? match.player2
+                : match.player1;
               if (activePlayer) {
                 const score1 = match.player1?.isBye ? 0 : 1;
                 const score2 = match.player2?.isBye ? 0 : 1;
                 completeMatch(match, activePlayer, score1, score2);
-                propagateWinner(tournament.matches, match, tournament.totalRounds);
+                propagateWinner(
+                  tournament.matches,
+                  match,
+                  tournament.totalRounds,
+                );
               }
             }
 
@@ -1272,8 +1294,12 @@ function setupMatchStartButtons(tournament: TournamentData): void {
       if (!isByeMatch) {
         // Get player names using the match object and getPlayerAlias
         // This ensures we always get the latest aliases from storage
-        const player1Name = match.player1 ? getPlayerAlias(match.player1) : "Player 1";
-        const player2Name = match.player2 ? getPlayerAlias(match.player2) : "Player 2";
+        const player1Name = match.player1
+          ? getPlayerAlias(match.player1)
+          : "Player 1";
+        const player2Name = match.player2
+          ? getPlayerAlias(match.player2)
+          : "Player 2";
         const player1Id = match.player1?.id.toString() || "1";
         const player2Id = match.player2?.id.toString() || "2";
 
@@ -1310,13 +1336,13 @@ function setupNavigationListeners(): void {
   const router = getRouter();
   if (!router) return;
 
-  const handleEscape = (event: KeyboardEvent) => {
-    if (event.key === "Escape") router.navigate("/home");
-  };
+  // const handleEscape = (event: KeyboardEvent) => {
+  //   if (event.key === "Escape") router.navigate("/home");
+  // };
 
-  window.addEventListener("keydown", handleEscape);
-  (window as any).tournamentPageCleanup = () =>
-    window.removeEventListener("keydown", handleEscape);
+  // window.addEventListener("keydown", handleEscape);
+  // (window as any).tournamentPageCleanup = () =>
+  //   window.removeEventListener("keydown", handleEscape);
 }
 
 /**
@@ -1406,7 +1432,7 @@ export async function TournamentPage(): Promise<void> {
       </main>
       <footer class="border-t border-green-400/30 p-4">
         <div class="max-w-7xl mx-auto text-center text-green-500 text-sm">
-          <span class="text-green-400">[Tournament System]</span> Ready to compete | Press ESC to return
+          <span class="text-green-400">[Tournament System]</span> Ready to compete
         </div>
       </footer>
     </div>

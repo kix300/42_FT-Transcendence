@@ -144,7 +144,6 @@ export class AuthManager {
         body: JSON.stringify({
           username: credentials.username,
           password: credentials.password,
-          //si besoin envoyer twofa token
         }),
       });
 
