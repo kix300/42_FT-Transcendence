@@ -3,7 +3,7 @@ import { Engine } from "@babylonjs/core/Engines/engine";
 import { Game } from "../Game";
 import { AuthManager } from "../utils/auth";
 import { escapeHtml } from "../utils/sanitize";
-import { submitMatchResultToBackend } from "./TournamentPage";
+// import { submitMatchResultToBackend } from "./TournamentPage";
 //@ts-ignore
 import gamePageCompleteHtml from "./html/GamePage.html?raw";
 import { createHeader, HeaderConfigs, Header } from "../components/Header";
@@ -774,12 +774,27 @@ function showGameEndOverlay(
   // Récupérer l'overlay depuis le DOM
   const overlay = document.getElementById("game-end-overlay");
 
+  // Prevent Escape key from propagating to other handlers (e.g., TournamentPage navigation)
+  // Users cannot dismiss the game over screen with ESC - they must use the action buttons
+  const handleEscape = (e: KeyboardEvent) => {
+    if (e.key === "Escape") {
+      e.stopPropagation(); // Prevent the event from reaching TournamentPage handler
+      e.preventDefault(); // Prevent default browser behavior
+      // Do NOT close the modal - user must click a button
+    }
+  };
+  // Use capture phase (true) to intercept the event before it bubbles
+  document.addEventListener("keydown", handleEscape, true);
+
   // Fermer la modal
   const closeModal = () => {
     if (overlay) {
       overlay.remove();
     }
+    // Cleanup the escape handler when modal is closed
+    document.removeEventListener("keydown", handleEscape, true);
   };
+
   // Fermer en cliquant à l'extérieur
   if (overlay) {
     overlay.addEventListener("click", (e: MouseEvent) => {
@@ -788,15 +803,6 @@ function showGameEndOverlay(
       }
     });
   }
-
-  // Fermer avec Escape
-  const handleEscape = (e: KeyboardEvent) => {
-    if (e.key === "Escape") {
-      closeModal();
-      document.removeEventListener("keydown", handleEscape);
-    }
-  };
-  document.addEventListener("keydown", handleEscape);
   // Setup button handlers
   const returnToTournamentBtn = document.getElementById(
     "return-to-tournament-btn",
@@ -824,17 +830,17 @@ function showGameEndOverlay(
         sessionStorage.setItem("tournamentResults", JSON.stringify(results));
 
         // Submit match result to backend (fire and forget)
-        submitMatchResultToBackend({
-          matchId: parseInt(matchData.matchId),
-          player1Id: parseInt(matchData.player1.id),
-          player1Name: player1Name,
-          player2Id: parseInt(matchData.player2.id),
-          player2Name: player2Name,
-          winnerId: parseInt(winnerId),
-          winnerName: winnerName,
-          score1: score1,
-          score2: score2,
-        });
+        // submitMatchResultToBackend({
+        //   matchId: parseInt(matchData.matchId),
+        //   player1Id: parseInt(matchData.player1.id),
+        //   player1Name: player1Name,
+        //   player2Id: parseInt(matchData.player2.id),
+        //   player2Name: player2Name,
+        //   winnerId: parseInt(winnerId),
+        //   winnerName: winnerName,
+        //   score1: score1,
+        //   score2: score2,
+        // });
 
         // Enregistrer aussi dans l'historique des matchs
         sendTournamentMatchResult(matchData, winner, score1, score2);
