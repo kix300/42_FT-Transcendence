@@ -6,14 +6,14 @@ import loginPageHtml from "./html/LoginPage.html?raw";
 
 // Variable globale pour contrôler la vitesse d'écriture des animations
 const ANIMATION_SPEED = {
-  TYPEWRITER_FAST: 0, // Vitesse rapide pour les commandes
-  TYPEWRITER_NORMAL: 15, // Vitesse normale pour les textes
-  TYPEWRITER_SLOW: 20, // Vitesse lente pour les titres
-  DELAY_SHORT: 0, // Délai court entre les animations
-  DELAY_MEDIUM: 100, // Délai moyen
-  DELAY_LONG: 150, // Délai long
-  TRANSITION_FAST: 0, // Transition rapide
-  TRANSITION_NORMAL: 0.5, // Transition normale
+  TYPEWRITER_FAST: 0,
+  TYPEWRITER_NORMAL: 15,
+  TYPEWRITER_SLOW: 20,
+  DELAY_SHORT: 0,
+  DELAY_MEDIUM: 100,
+  DELAY_LONG: 150,
+  TRANSITION_FAST: 0,
+  TRANSITION_NORMAL: 0.5,
 };
 
 export async function LoginPage(): Promise<void> {

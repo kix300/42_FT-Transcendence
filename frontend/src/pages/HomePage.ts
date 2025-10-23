@@ -2,7 +2,7 @@ import { getRouter } from "../router";
 import { AuthManager } from "../utils/auth";
 import { FriendManager } from "../utils/Friends";
 import { Header } from "../components/Header";
-import { escapeHtml} from "../utils/sanitize";
+import { escapeHtml } from "../utils/sanitize";
 import { createHeader, HeaderConfigs } from "../components/Header";
 //@ts-ignore -- mon editeur me donnais une erreur alors que npm run build non
 import homePageHtml from "./html/HomePage.html?raw";
@@ -28,14 +28,14 @@ interface Match {
 
 // Variable globale pour contrôler la vitesse d'écriture des animations
 const ANIMATION_SPEED = {
-  TYPEWRITER_FAST: 0, // Vitesse rapide pour les commandes
-  TYPEWRITER_NORMAL: 15, // Vitesse normale pour les textes
-  TYPEWRITER_SLOW: 20, // Vitesse lente pour les titres
-  DELAY_SHORT: 0, // Délai court entre les animations
-  DELAY_MEDIUM: 100, // Délai moyen
-  DELAY_LONG: 150, // Délai long
-  TRANSITION_FAST: 0, // Transition rapide
-  TRANSITION_NORMAL: 0.5, // Transition normale
+  TYPEWRITER_FAST: 0,
+  TYPEWRITER_NORMAL: 15,
+  TYPEWRITER_SLOW: 20,
+  DELAY_SHORT: 0,
+  DELAY_MEDIUM: 100,
+  DELAY_LONG: 150,
+  TRANSITION_FAST: 0,
+  TRANSITION_NORMAL: 0.5,
 };
 
 export async function HomePage(): Promise<void> {
@@ -106,7 +106,7 @@ export async function HomePage(): Promise<void> {
     // Friends search functionality
     FriendManager.setupFriendsListeners();
     FriendManager.loadFriendsList();
-      // Charger l'historique des matchs
+    // Charger l'historique des matchs
     await fetchAndDisplayMatchHistory();
   }
 }
@@ -316,7 +316,6 @@ async function startTypewriterAnimations(): Promise<void> {
 // Fonction pour récupérer et afficher l'historique des matchs
 async function fetchAndDisplayMatchHistory(): Promise<void> {
   try {
-
     const response = await fetch("/api/matches", {
       method: "GET",
       headers: {
@@ -329,7 +328,11 @@ async function fetchAndDisplayMatchHistory(): Promise<void> {
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error("Failed to fetch match history:", response.status, errorText);
+      console.error(
+        "Failed to fetch match history:",
+        response.status,
+        errorText,
+      );
       displayMatchHistory([]);
       return;
     }
@@ -338,7 +341,6 @@ async function fetchAndDisplayMatchHistory(): Promise<void> {
     // Afficher les matchs dans le UI
     displayMatchHistory(data.matches);
     setupMatchHistoryFilters(data.matches);
-
   } catch (error) {
     console.error("❌ Error fetching match history:", error);
     displayMatchHistory([]);
@@ -353,9 +355,9 @@ function displayMatchHistory(matches: Match[], filter: string = "all"): void {
   // Filtrer les matchs
   let filteredMatches = matches;
   if (filter === "tournament") {
-    filteredMatches = matches.filter(m => m.is_tournament === 1);
+    filteredMatches = matches.filter((m) => m.is_tournament === 1);
   } else if (filter === "normal") {
-    filteredMatches = matches.filter(m => m.is_tournament === 0);
+    filteredMatches = matches.filter((m) => m.is_tournament === 0);
   }
 
   if (filteredMatches.length === 0) {
@@ -367,12 +369,14 @@ function displayMatchHistory(matches: Match[], filter: string = "all"): void {
     return;
   }
 
-  const html = filteredMatches.map(match => {
-    const winnerBadge = match.is_tournament === 1
-      ? '<span class="text-yellow-400 text-xs">🏆 TOURNAMENT</span>'
-      : '<span class="text-cyan-400 text-xs">🎮 MATCH</span>';
+  const html = filteredMatches
+    .map((match) => {
+      const winnerBadge =
+        match.is_tournament === 1
+          ? '<span class="text-yellow-400 text-xs">🏆 TOURNAMENT</span>'
+          : '<span class="text-cyan-400 text-xs">🎮 MATCH</span>';
 
-    return `
+      return `
       <div class="border border-green-400/30 bg-black/50 p-4 rounded hover:border-green-400/50 transition-colors">
         <div class="flex justify-between items-start mb-2">
           <div class="flex-1">
@@ -390,18 +394,19 @@ function displayMatchHistory(matches: Match[], filter: string = "all"): void {
           <div class="text-right">
             ${winnerBadge}
             <div class="text-xs text-green-400/50 mt-1">
-              ${new Date(match.date).toLocaleDateString('en-US', {
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    })}
+              ${new Date(match.date).toLocaleDateString("en-US", {
+                month: "short",
+                day: "numeric",
+                hour: "2-digit",
+                minute: "2-digit",
+              })}
             </div>
           </div>
         </div>
       </div>
     `;
-  }).join('');
+    })
+    .join("");
 
   historyList.innerHTML = html;
 }
@@ -413,14 +418,22 @@ function setupMatchHistoryFilters(matches: Match[]): void {
   const filterNormal = document.getElementById("filter-normal");
 
   const updateActiveFilter = (activeBtn: HTMLElement | null) => {
-    [filterAll, filterTournament, filterNormal].forEach(btn => {
+    [filterAll, filterTournament, filterNormal].forEach((btn) => {
       if (btn) {
         btn.classList.remove("bg-green-400/20", "border-green-400/50");
-        btn.classList.add("bg-gray-800", "border-green-400/30", "text-green-400/70");
+        btn.classList.add(
+          "bg-gray-800",
+          "border-green-400/30",
+          "text-green-400/70",
+        );
       }
     });
     if (activeBtn) {
-      activeBtn.classList.remove("bg-gray-800", "border-green-400/30", "text-green-400/70");
+      activeBtn.classList.remove(
+        "bg-gray-800",
+        "border-green-400/30",
+        "text-green-400/70",
+      );
       activeBtn.classList.add("bg-green-400/20", "border-green-400/50");
     }
   };
