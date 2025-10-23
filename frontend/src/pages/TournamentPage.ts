@@ -792,7 +792,10 @@ function showTournamentWinnerOverlay(
   if (newTournamentBtn) {
     newTournamentBtn.addEventListener("click", () => {
       clearTournamentStorage();
-      window.location.reload();
+      const router = getRouter();
+      if (router) {
+        router.navigate("/tournament");
+      }
     });
   }
 

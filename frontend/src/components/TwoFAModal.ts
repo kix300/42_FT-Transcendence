@@ -1,4 +1,5 @@
 import { getRouter } from "../router";
+import { AuthManager } from "../utils/auth";
 import { TWOFA_API } from "../utils/apiConfig";
 import { escapeHtml } from "../utils/sanitize";
 import twoFAModalHtml from "./../pages/html/TwoFAModal.html?raw";
@@ -27,8 +28,12 @@ export class TwoFAModal {
     this.modalElement = document.getElementById("qr-modal");
   }
 
-  // Afficher le modal avec le QR code
-  public show(qrCodeDataURL: string, secret: string, token: string): void {
+  // Afficher le modal avec le QR code register
+  public showregister(
+    qrCodeDataURL: string,
+    secret: string,
+    token: string,
+  ): void {
     this.token = token;
 
     const modal = document.getElementById("qr-modal");
@@ -52,6 +57,56 @@ export class TwoFAModal {
     // Afficher le QR code et le secret
     qrImg.src = qrCodeDataURL;
     secretDiv.textContent = secret;
+
+    // Afficher le modal
+    modal.classList.remove("hidden");
+
+    // Supprimer les anciens event listeners
+    const newVerifyBtn = verifyBtn?.cloneNode(true) as HTMLElement;
+    const newSkipBtn = skipBtn?.cloneNode(true) as HTMLElement;
+    verifyBtn?.parentNode?.replaceChild(newVerifyBtn, verifyBtn);
+    skipBtn?.parentNode?.replaceChild(newSkipBtn, skipBtn);
+
+    // Bouton de vérification
+    newVerifyBtn?.addEventListener("click", () => this.verify());
+
+    // Bouton skip
+    newSkipBtn?.addEventListener("click", () => this.skip());
+
+    // Permettre la validation avec Enter
+    codeInput?.addEventListener("keypress", (e) => {
+      if (e.key === "Enter") {
+        this.verify();
+      }
+    });
+  }
+  // Afficher le modal avec le QR code register
+  public showlogin(token: string): void {
+    this.token = token;
+
+    const modal = document.getElementById("qr-modal");
+    const qrImg = document.getElementById("qr-code-img") as HTMLImageElement;
+    const secretDiv = document.getElementById("2fa-secret");
+    const verifyBtn = document.getElementById("verify-2fa-btn");
+    const skipBtn = document.getElementById("skip-2fa-btn");
+    const codeInput = document.getElementById(
+      "2fa-verify-code",
+    ) as HTMLInputElement;
+
+    if (!modal || !qrImg || !secretDiv) {
+      console.error("Modal elements not found");
+      return;
+    }
+    qrImg.style.display = "none";
+    secretDiv.style.display = "none";
+
+    // Réinitialiser l'input et les messages
+    if (codeInput) codeInput.value = "";
+    this.clearMessage();
+
+    // Afficher le QR code et le secret
+    // qrImg.src = qrCodeDataURL;
+    // secretDiv.textContent = secret;
 
     // Afficher le modal
     modal.classList.remove("hidden");
@@ -107,6 +162,11 @@ export class TwoFAModal {
 
       if (response.ok) {
         this.showMessage("2FA enabled successfully! Redirecting...", "success");
+        //stocker le token
+        AuthManager.setToken(data.token, 0 || false);
+        if (data.user) {
+          AuthManager.setUser(data.user);
+        }
         setTimeout(() => {
           this.hide();
           const router = getRouter();

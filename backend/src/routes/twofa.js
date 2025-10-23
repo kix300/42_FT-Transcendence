@@ -145,4 +145,72 @@ export default async function twoFaRoutes(fastify, options) {
       }
     },
   );
+
+  // ============================================
+  // LE STATUT 2FA (PUBLIC - pour le login)
+  // ============================================
+  fastify.post("/api/2fa/check-status", async (request, reply) => {
+    const { username } = request.body;
+
+    if (!username) {
+      return reply.code(400).send({ error: "Username requis" });
+    }
+
+    try {
+      const user = db
+        .prepare(
+          "SELECT two_fa_enabled FROM users WHERE username = ? OR email = ?",
+        )
+        .get(username, username);
+
+      if (!user) {
+        // Pour la sécurité, on retourne false même si l'user n'existe pas
+        return reply.send({
+          twoFactorEnabled: false,
+          userExists: false,
+        });
+      }
+
+      return reply.send({
+        twoFactorEnabled: Boolean(user.two_fa_enabled),
+        userExists: true,
+      });
+    } catch (err) {
+      console.error(err);
+      return reply.code(500).send({ error: "Erreur lors de la vérification" });
+    }
+  });
+
+  // ============================================
+  // VÉRIFIER LE STATUT 2FA (PRIVÉ - pour les users connectés)
+  // ============================================
+  fastify.get(
+    "/api/2fa/status",
+    { preHandler: [fastify.authenticate] },
+    async (request, reply) => {
+      const userId = request.user.id;
+
+      try {
+        const user = db
+          .prepare(
+            "SELECT two_fa_enabled, backup_codes FROM users WHERE id = ?",
+          )
+          .get(userId);
+
+        if (!user) {
+          return reply.code(404).send({ error: "Utilisateur non trouvé" });
+        }
+
+        return reply.send({
+          twoFactorEnabled: Boolean(user.two_fa_enabled),
+          hasBackupCodes: user.backup_codes !== null,
+        });
+      } catch (err) {
+        console.error(err);
+        return reply
+          .code(500)
+          .send({ error: "Erreur lors de la vérification" });
+      }
+    },
+  );
 }

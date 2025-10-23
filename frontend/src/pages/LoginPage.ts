@@ -1,6 +1,8 @@
 import { getRouter } from "../router";
 import { AuthManager } from "../utils/auth";
 import { escapeHtml } from "../utils/sanitize";
+import { AUTH_API, TWOFA_API } from "../utils/apiConfig";
+import { TwoFAModal } from "../components/TwoFAModal";
 //@ts-ignore -- mon editeur me donnais une erreur alors que npm run build non
 import loginPageHtml from "./html/LoginPage.html?raw";
 
@@ -264,13 +266,56 @@ async function handleLogin(): Promise<void> {
 
   showMessage("Authenticating...", "info");
 
-  const success = await AuthManager.login({ username, password, remember });
+  //si twofa enable alors on affiche le modal met le et recupere le twofa
+  const statusResponse = await fetch(`${TWOFA_API.CHECK}`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ username }),
+  });
 
-  if (success) {
-    // Rediriger vers la page d'accueil après login réussi
-    setTimeout(() => router.navigate("/home"), 1500);
+  const status = await statusResponse.json();
+
+  if (!status.userExists) {
+    throw new Error("Identifiants incorrects");
+  }
+  // si fetch saute il faaut gerer
+  if (status.userExists) {
+    setup2FA(username, password);
   } else {
-    alert("Login failed");
+    const success = await AuthManager.login({ username, password, remember });
+
+    if (success) {
+      // Rediriger vers la page d'accueil après login réussi
+      setTimeout(() => router.navigate("/home"), 1500);
+    } else {
+      alert("Login failed");
+    }
+  }
+}
+// Nouvelle fonction pour setup 2FA
+async function setup2FA(username: string, password: string): Promise<void> {
+  try {
+    // 1. Login pour obtenir le token
+    const loginResponse = await fetch(AUTH_API.LOGIN, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ username, password }),
+    });
+
+    if (!loginResponse.ok) {
+      showMessage("Error: Could not login to setup 2FA", "error");
+      return;
+    }
+
+    const loginData = await loginResponse.json();
+    const token = loginData.token;
+
+    // 3. Afficher le modal avec le QR code
+    const modal = new TwoFAModal();
+    modal.showlogin(token);
+  } catch (error) {
+    showMessage("Error setting up 2FA", "error");
+    console.error("2FA setup error:", error);
   }
 }
 

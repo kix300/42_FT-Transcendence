@@ -146,4 +146,16 @@ export const TWOFA_API = {
    * @description disaable 2fa
    */
   DISABLE: `${API_BASE_URL}/2fa/disable`,
+
+  /**
+   * @method POST
+   * @description Check Status
+   */
+  CHECK: `${API_BASE_URL}/2fa/check-status`,
+
+  /**
+   * @method GET
+   * @description get if user use 2fa
+   */
+  STATUS: `${API_BASE_URL}/2fa/status`,
 };

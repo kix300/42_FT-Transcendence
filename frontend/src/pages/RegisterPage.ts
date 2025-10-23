@@ -527,7 +527,7 @@ async function setup2FA(username: string, password: string): Promise<void> {
 
     // 3. Afficher le modal avec le QR code
     const modal = new TwoFAModal();
-    modal.show(twoFaData.qrCode, twoFaData.secret, token);
+    modal.showregister(twoFaData.qrCode, twoFaData.secret, token);
   } catch (error) {
     showMessage("Error setting up 2FA", "error");
     console.error("2FA setup error:", error);
