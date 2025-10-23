@@ -74,11 +74,9 @@ export default async function twoFaRoutes(fastify, options) {
         const user = db.prepare("SELECT * FROM users WHERE id = ?").get(userId);
 
         if (!user || !user.two_fa_secret) {
-          return reply
-            .code(400)
-            .send({
-              error: "Aucun secret 2FA trouvé. Activez d'abord la 2FA.",
-            });
+          return reply.code(400).send({
+            error: "Aucun secret 2FA trouvé. Activez d'abord la 2FA.",
+          });
         }
 
         // Vérifie que le code est correct

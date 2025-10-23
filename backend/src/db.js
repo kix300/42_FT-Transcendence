@@ -82,18 +82,18 @@ const twoFaEnabledExists = db
 
 if (!twoFaSecretExists) {
   db.prepare("ALTER TABLE users ADD COLUMN two_fa_secret TEXT").run();
-  console.log("✅ Colonne 'two_fa_secret' ajoutée !");
+  console.log("Colonne 'two_fa_secret' ajoutée !");
 } else {
-  console.log("ℹ️ La colonne 'two_fa_secret' existe déjà.");
+  console.log(" La colonne 'two_fa_secret' existe déjà.");
 }
 
 if (!twoFaEnabledExists) {
   db.prepare(
     "ALTER TABLE users ADD COLUMN two_fa_enabled BOOLEAN DEFAULT 0",
   ).run();
-  console.log("✅ Colonne 'two_fa_enabled' ajoutée !");
+  console.log("Colonne 'two_fa_enabled' ajoutée !");
 } else {
-  console.log("ℹ️ La colonne 'two_fa_enabled' existe déjà.");
+  console.log("La colonne 'two_fa_enabled' existe déjà.");
 }
 
 /* AJOUT COLONNE STATUS */

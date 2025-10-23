@@ -1,4 +1,3 @@
-
 // ====================================================================================
 // Fichier de Configuration des Points d'Accès de l'API
 // ====================================================================================
@@ -6,7 +5,7 @@
 // Modifiez les valeurs ici pour qu'elles correspondent à votre configuration backend.
 // ====================================================================================
 
-const API_BASE_URL = '/api';
+const API_BASE_URL = "/api";
 
 // ------------------------------------------------------------------------------------
 // AUTHENTIFICATION
@@ -37,7 +36,6 @@ export const AUTH_API = {
   VALIDATE_TOKEN: `${API_BASE_URL}/validate-token`,
 };
 
-
 // ------------------------------------------------------------------------------------
 // GESTION DU PROFIL UTILISATEUR (Connecté)
 // ------------------------------------------------------------------------------------
@@ -65,7 +63,6 @@ export const PROFILE_API = {
    */
   UPDATE_AVATAR: `${API_BASE_URL}/me/avatar`,
 };
-
 
 // ------------------------------------------------------------------------------------
 // GESTION DES UTILISATEURS (Admin & Recherche)
@@ -101,7 +98,6 @@ export const USERS_API = {
   DELETE: (id: number) => `${API_BASE_URL}/users/${id}`,
 };
 
-
 // ------------------------------------------------------------------------------------
 // GESTION DES AMIS
 // ------------------------------------------------------------------------------------
@@ -127,4 +123,27 @@ export const FRIENDS_API = {
    * @param id - L'ID de l'ami à supprimer.
    */
   DELETE: `${API_BASE_URL}/friends/delete`,
+};
+
+// ------------------------------------------------------------------------------------
+// GESTION TWOFA
+// ------------------------------------------------------------------------------------
+export const TWOFA_API = {
+  /**
+   * @method POST
+   * @description verify le 2fa
+   */
+  VERIFY: `${API_BASE_URL}/2fa/verify`,
+
+  /**
+   * @method POST
+   * @description enable 2fa
+   */
+  ENABLE: `${API_BASE_URL}/2fa/enable`,
+
+  /**
+   * @method POST
+   * @description disaable 2fa
+   */
+  DISABLE: `${API_BASE_URL}/2fa/disable`,
 };

@@ -1,6 +1,7 @@
 import { getRouter } from "../router";
-import { AUTH_API } from "../utils/apiConfig";
+import { AUTH_API, TWOFA_API } from "../utils/apiConfig";
 import { escapeHtml, sanitizeUrl } from "../utils/sanitize";
+import { TwoFAModal } from "../components/TwoFAModal";
 //@ts-ignore -- mon editeur me donnais une erreur alors que npm run build non
 import registerPageHtml from "./html/RegisterPage.html?raw";
 
@@ -389,11 +390,15 @@ async function handleRegister(): Promise<void> {
   const photoInput = document.getElementById(
     "profile-photo",
   ) as HTMLInputElement;
+  const enable2faCheckbox = document.getElementById(
+    "enable-2fa",
+  ) as HTMLInputElement;
 
   const username = usernameInput?.value.trim();
   const email = emailInput?.value.trim();
   const password = passwordInput?.value;
   const confirmPassword = confirmPasswordInput?.value;
+  const enable2fa = enable2faCheckbox?.checked || false;
 
   const profilePhoto = photoInput?.files?.[0];
 
@@ -456,21 +461,26 @@ async function handleRegister(): Promise<void> {
 
     if (response.ok) {
       showMessage("Account created successfully!", "success");
-      if (data.token) {
-        // Si le backend renvoie directement un token
-        // Import AuthManager dynamically to avoid circular dependencies
-        const { AuthManager } = await import("../utils/auth");
-        AuthManager.setToken(data.token);
-
+      // if (data.token) {
+      // Si le backend renvoie directement un token
+      // Import AuthManager dynamically to avoid circular dependencies
+      // const { AuthManager } = await import("../utils/auth");
+      // AuthManager.setToken(data.token);
+      // Si l'utilisateur a coché 2FA
+      if (enable2fa) {
+        showMessage("Setting up 2FA...", "info");
+        await setup2FA(username, password);
+      } else {
         setTimeout(() => {
           showMessage("Welcome! Redirecting to home page...", "success");
-          setTimeout(() => router.navigate("/home"), 1000);
+          setTimeout(() => router.navigate("/login"), 1000);
         }, 1000);
-      } else {
-        // Si pas de token direct, faire un login automatique
-        showMessage("Did not recive tag", "error");
-        // await performAutoLogin(username, password);
       }
+      // else {
+      //   // Si pas de token direct, faire un login automatique
+      //   showMessage("Did not recive tag", "error");
+      //   // await performAutoLogin(username, password);
+      // }
     } else {
       showMessage(
         `Registration failed: ${escapeHtml(data.error || "Unknown error")}`,
@@ -480,6 +490,47 @@ async function handleRegister(): Promise<void> {
   } catch (error) {
     showMessage("Network error: Unable to connect to server", "error");
     console.error("Registration error:", error);
+  }
+}
+// Nouvelle fonction pour setup 2FA
+async function setup2FA(username: string, password: string): Promise<void> {
+  try {
+    // 1. Login pour obtenir le token
+    const loginResponse = await fetch(AUTH_API.LOGIN, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ username, password }),
+    });
+
+    if (!loginResponse.ok) {
+      showMessage("Error: Could not login to setup 2FA", "error");
+      return;
+    }
+
+    const loginData = await loginResponse.json();
+    const token = loginData.token;
+
+    // 2. Activer la 2FA pour obtenir le QR code
+    const enable2faResponse = await fetch(`${TWOFA_API.ENABLE}`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    if (!enable2faResponse.ok) {
+      showMessage("Error: Could not enable 2FA", "error");
+      return;
+    }
+
+    const twoFaData = await enable2faResponse.json();
+
+    // 3. Afficher le modal avec le QR code
+    const modal = new TwoFAModal();
+    modal.show(twoFaData.qrCode, twoFaData.secret, token);
+  } catch (error) {
+    showMessage("Error setting up 2FA", "error");
+    console.error("2FA setup error:", error);
   }
 }
 
