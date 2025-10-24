@@ -82,6 +82,7 @@ export class TwoFAModal {
       }
     });
   }
+
   // Afficher le modal avec le QR code register
   public showlogin(token: string): void {
     this.token = token;
@@ -190,6 +191,103 @@ export class TwoFAModal {
       this.showMessage("Network error", "error");
       console.error("2FA verification error:", error);
       AuthManager.logout();
+    }
+  }
+
+  // Afficher le modal pour désactiver la 2FA (demande de code)
+  public showdisable(token: string): void {
+    this.token = token;
+
+    const modal = document.getElementById("qr-modal");
+    const qrImg = document.getElementById("qr-code-img");
+    const secretDiv = document.getElementById("2fa-secret");
+    const verifyBtn = document.getElementById("verify-2fa-btn");
+    const step1 = document.getElementById("step1");
+    const step2 = document.getElementById("step2");
+    const manual = document.getElementById("manual");
+    const codeInput = document.getElementById(
+      "2fa-verify-code",
+    ) as HTMLInputElement;
+
+    if (!modal) {
+      console.error("Modal elements not found");
+      return;
+    }
+
+    // Afficher uniquement la partie de verification (pas de QR ni de secret)
+    if (manual) manual.style.display = "none";
+    if (step2) step2.style.display = "none";
+    if (step1) step1.style.display = "none";
+    if (qrImg) qrImg.style.display = "none";
+    if (secretDiv) secretDiv.style.display = "none";
+
+    if (codeInput) codeInput.value = "";
+    this.clearMessage();
+
+    modal.classList.remove("hidden");
+
+    // Supprimer les anciens event listeners
+    const newVerifyBtn = verifyBtn?.cloneNode(true) as HTMLElement;
+    verifyBtn?.parentNode?.replaceChild(newVerifyBtn, verifyBtn);
+
+    // Bouton de vérification -> appelle disable()
+    newVerifyBtn?.addEventListener("click", () => this.disable());
+
+    // Permettre la validation avec Enter
+    codeInput?.addEventListener("keypress", (e) => {
+      if (e.key === "Enter") {
+        this.disable();
+      }
+    });
+  }
+
+  // Désactiver la 2FA en backend après vérification du code
+  private async disable(): Promise<void> {
+    const codeInput = document.getElementById(
+      "2fa-verify-code",
+    ) as HTMLInputElement;
+    const code = codeInput?.value.trim();
+
+    if (!code || code.length !== 6) {
+      this.showMessage("Error: Please enter a 6-digit code", "error");
+      return;
+    }
+
+    if (!/^[0-9]{6}$/.test(code)) {
+      this.showMessage("Error: Code must contain only numbers", "error");
+      return;
+    }
+
+    try {
+      const response = await fetch(`${TWOFA_API.DISABLE}`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${this.token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ token: code }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        this.showMessage("2FA disabled successfully", "success");
+        // Notifier l'application que 2FA a été désactivée
+        try {
+          document.dispatchEvent(new CustomEvent("twofa-disabled"));
+        } catch (e) {
+          console.warn("Could not dispatch twofa-disabled event", e);
+        }
+        setTimeout(() => this.hide(), 1200);
+      } else {
+        this.showMessage(
+          `Error: ${escapeHtml(data.error || "Invalid code")}`,
+          "error",
+        );
+      }
+    } catch (error) {
+      this.showMessage("Network error", "error");
+      console.error("2FA disable error:", error);
     }
   }
 

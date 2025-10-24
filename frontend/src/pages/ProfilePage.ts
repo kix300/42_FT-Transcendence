@@ -3,7 +3,8 @@ import { FriendManager } from "../utils/Friends";
 import { AuthManager } from "../utils/auth";
 import { Header } from "../components/Header";
 import { createHeader, HeaderConfigs } from "../components/Header";
-import { PROFILE_API } from "../utils/apiConfig";
+import { PROFILE_API, TWOFA_API } from "../utils/apiConfig";
+import { TwoFAModal } from "../components/TwoFAModal";
 import { escapeHtml, sanitizeUrl } from "../utils/sanitize";
 //@ts-ignore -- mon editeur me donnais une erreur alors que npm run build non
 import profilePageHtml from "./html/ProfilePage.html?raw";
@@ -51,6 +52,7 @@ interface EditProfileData {
   email?: string;
   password?: string;
   currentPassword: string;
+  //2FA
 }
 
 // Variable globale pour contrôler la vitesse d'écriture des animations
@@ -78,11 +80,12 @@ function buildProfileHtml(
 
   const winRate = userProfile?.stats.totalMatches
     ? Math.round(
-      ((userProfile.stats.wins || 0) / userProfile.stats.totalMatches) * 100,
-    )
+        ((userProfile.stats.wins || 0) / userProfile.stats.totalMatches) * 100,
+      )
     : 0;
 
-  html = html.replace("{{header}}", headerHtml)
+  html = html
+    .replace("{{header}}", headerHtml)
     .replace("{{matchHistory}}", profilePageMatchHistory)
     .replace("{{avatar}}", avatar)
     .replace(
@@ -90,10 +93,7 @@ function buildProfileHtml(
       escapeHtml(userProfile?.username || "Unknown User"),
     )
     .replace("{{userId}}", userProfile?.id?.toString() || "N/A")
-    .replace(
-      "{{email}}",
-      escapeHtml(userProfile?.email || "Not provided"),
-    )
+    .replace("{{email}}", escapeHtml(userProfile?.email || "Not provided"))
     .replace("{{level}}", userProfile?.level?.toString() || "1")
     .replace(
       "{{memberSince}}",
@@ -107,10 +107,7 @@ function buildProfileHtml(
     )
     .replace("{{wins}}", userProfile?.stats.wins?.toString() || "0")
     .replace("{{winRate}}", winRate.toString())
-    .replace(
-      "{{currentLevel}}",
-      userProfile?.level?.toString() || "1",
-    )
+    .replace("{{currentLevel}}", userProfile?.level?.toString() || "1")
     .replace(
       "{{lastLogin}}",
       userProfile?.last_login
@@ -301,12 +298,28 @@ function setupProfileListeners(): void {
       // TODO: Implémenter l'activation 2FA
     }
   });
+
+  // Écouteurs globaux pour synchroniser l'état du checkbox 2FA
+  document.addEventListener("twofa-disabled", () => {
+    const checkbox = document.getElementById("enable-2fa") as HTMLInputElement;
+    if (checkbox) {
+      checkbox.checked = false;
+    }
+    showMessage("2FA disabled", "success");
+  });
+
+  document.addEventListener("twofa-enabled", () => {
+    const checkbox = document.getElementById("enable-2fa") as HTMLInputElement;
+    if (checkbox) {
+      checkbox.checked = true;
+    }
+    showMessage("2FA enabled", "success");
+  });
 }
 
 // Fonction pour récupérer et afficher l'historique des matchs
 async function fetchAndDisplayMatchHistory(): Promise<void> {
   try {
-
     const response = await fetch("/api/matches", {
       method: "GET",
       headers: {
@@ -319,7 +332,11 @@ async function fetchAndDisplayMatchHistory(): Promise<void> {
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error("Failed to fetch match history:", response.status, errorText);
+      console.error(
+        "Failed to fetch match history:",
+        response.status,
+        errorText,
+      );
       displayMatchHistory([]);
       return;
     }
@@ -329,7 +346,6 @@ async function fetchAndDisplayMatchHistory(): Promise<void> {
     // Afficher les matchs dans le UI
     displayMatchHistory(data.matches);
     setupMatchHistoryFilters(data.matches);
-
   } catch (error) {
     console.error("❌ Error fetching match history:", error);
     displayMatchHistory([]);
@@ -344,9 +360,9 @@ function displayMatchHistory(matches: Match[], filter: string = "all"): void {
   // Filtrer les matchs
   let filteredMatches = matches;
   if (filter === "tournament") {
-    filteredMatches = matches.filter(m => m.is_tournament === 1);
+    filteredMatches = matches.filter((m) => m.is_tournament === 1);
   } else if (filter === "normal") {
-    filteredMatches = matches.filter(m => m.is_tournament === 0);
+    filteredMatches = matches.filter((m) => m.is_tournament === 0);
   }
 
   if (filteredMatches.length === 0) {
@@ -358,12 +374,14 @@ function displayMatchHistory(matches: Match[], filter: string = "all"): void {
     return;
   }
 
-  const html = filteredMatches.map(match => {
-    const winnerBadge = match.is_tournament === 1
-      ? '<span class="text-yellow-400 text-xs">🏆 TOURNAMENT</span>'
-      : '<span class="text-cyan-400 text-xs">🎮 MATCH</span>';
+  const html = filteredMatches
+    .map((match) => {
+      const winnerBadge =
+        match.is_tournament === 1
+          ? '<span class="text-yellow-400 text-xs">🏆 TOURNAMENT</span>'
+          : '<span class="text-cyan-400 text-xs">🎮 MATCH</span>';
 
-    return `
+      return `
       <div class="border border-green-400/30 bg-black/50 p-4 rounded hover:border-green-400/50 transition-colors">
         <div class="flex justify-between items-start mb-2">
           <div class="flex-1">
@@ -381,18 +399,19 @@ function displayMatchHistory(matches: Match[], filter: string = "all"): void {
           <div class="text-right">
             ${winnerBadge}
             <div class="text-xs text-green-400/50 mt-1">
-              ${new Date(match.date).toLocaleDateString('en-US', {
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    })}
+              ${new Date(match.date).toLocaleDateString("en-US", {
+                month: "short",
+                day: "numeric",
+                hour: "2-digit",
+                minute: "2-digit",
+              })}
             </div>
           </div>
         </div>
       </div>
     `;
-  }).join('');
+    })
+    .join("");
 
   historyList.innerHTML = html;
 }
@@ -404,14 +423,22 @@ function setupMatchHistoryFilters(matches: Match[]): void {
   const filterNormal = document.getElementById("filter-normal");
 
   const updateActiveFilter = (activeBtn: HTMLElement | null) => {
-    [filterAll, filterTournament, filterNormal].forEach(btn => {
+    [filterAll, filterTournament, filterNormal].forEach((btn) => {
       if (btn) {
         btn.classList.remove("bg-green-400/20", "border-green-400/50");
-        btn.classList.add("bg-gray-800", "border-green-400/30", "text-green-400/70");
+        btn.classList.add(
+          "bg-gray-800",
+          "border-green-400/30",
+          "text-green-400/70",
+        );
       }
     });
     if (activeBtn) {
-      activeBtn.classList.remove("bg-gray-800", "border-green-400/30", "text-green-400/70");
+      activeBtn.classList.remove(
+        "bg-gray-800",
+        "border-green-400/30",
+        "text-green-400/70",
+      );
       activeBtn.classList.add("bg-green-400/20", "border-green-400/50");
     }
   };
@@ -431,7 +458,77 @@ function setupMatchHistoryFilters(matches: Match[]): void {
     updateActiveFilter(filterNormal);
   });
 }
+// Fonction pour vérifier le statut 2FA
+async function check2FAStatus() {
+  const token = AuthManager.getToken();
 
+  if (!token) {
+    console.error("Aucun token d'authentification trouvé");
+    return;
+  }
+
+  try {
+    const response = await fetch(`${TWOFA_API.STATUS}`, {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error("Erreur réseau: " + response.status);
+    }
+
+    const data = await response.json();
+
+    const checkbox = document.getElementById("enable-2fa") as HTMLInputElement;
+
+    if (data.twoFactorEnabled) {
+      checkbox.checked = true;
+    } else {
+      checkbox.checked = false;
+    }
+  } catch (error) {
+    console.error("Erreur:", error);
+  }
+}
+// Ouvre le flux d'activation 2FA pour l'utilisateur connecté
+async function show2FARegisterModal(): Promise<void> {
+  const token = AuthManager.getToken();
+
+  if (!token) {
+    showMessage("Error: no auth token found. Please login again.", "error");
+    return;
+  }
+
+  try {
+    const response = await fetch(`${TWOFA_API.ENABLE}`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    if (!response.ok) {
+      const err = await response.json().catch(() => ({}));
+      showMessage(
+        `Error initiating 2FA: ${err?.error || response.statusText}`,
+        "error",
+      );
+      return;
+    }
+
+    const data = await response.json();
+
+    const modal = new TwoFAModal();
+    // Les clés attendues par le backend sont "qrCode" et "secret" (conforme à RegisterPage)
+    modal.showregister(data.qrCode, data.secret, token);
+  } catch (error) {
+    console.error("Error enabling 2FA:", error);
+    showMessage("Network error while enabling 2FA", "error");
+  }
+}
 // Modal pour éditer le profil complet
 function showEditProfileModal(): void {
   // Ajouter la modal au DOM
@@ -442,12 +539,30 @@ function showEditProfileModal(): void {
   const form = document.getElementById("edit-profile-form") as HTMLFormElement;
   const cancelBtn = document.getElementById("cancel-edit-profile");
   const errorDiv = document.getElementById("profile-error");
+  const checkbox = document.getElementById("enable-2fa") as HTMLInputElement;
   const newPasswordInput = document.getElementById(
     "new-password",
   ) as HTMLInputElement;
   const confirmPasswordSection = document.getElementById(
     "confirm-password-section",
   );
+  // on recupere le token
+  check2FAStatus();
+  if (checkbox) {
+    const token = AuthManager.getToken();
+    checkbox.addEventListener("change", function () {
+      const isCurrentlyEnabled = checkbox.checked;
+
+      if (isCurrentlyEnabled) {
+        show2FARegisterModal();
+      } else {
+        const modal = new TwoFAModal();
+        modal.showdisable(token || "");
+      }
+
+      checkbox.checked = !isCurrentlyEnabled;
+    });
+  }
 
   // Afficher/masquer la confirmation du mot de passe
   newPasswordInput?.addEventListener("input", () => {
@@ -660,12 +775,13 @@ function showMessage(
   }
 
   const messageDiv = document.createElement("div");
-  messageDiv.className = `p-3 border-l-4 max-w-sm bg-gray-900 border border-green-400/30 ${type === "success"
+  messageDiv.className = `p-3 border-l-4 max-w-sm bg-gray-900 border border-green-400/30 ${
+    type === "success"
       ? "border-l-green-400 text-green-300"
       : type === "error"
         ? "border-l-red-400 text-red-300"
         : "border-l-blue-400 text-blue-300"
-    }`;
+  }`;
 
   const prefix =
     type === "success" ? "[SUCCESS]" : type === "error" ? "[ERROR]" : "[INFO]";

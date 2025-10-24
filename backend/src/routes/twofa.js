@@ -192,9 +192,7 @@ export default async function twoFaRoutes(fastify, options) {
 
       try {
         const user = db
-          .prepare(
-            "SELECT two_fa_enabled, backup_codes FROM users WHERE id = ?",
-          )
+          .prepare("SELECT two_fa_enabled FROM users WHERE id = ?")
           .get(userId);
 
         if (!user) {
