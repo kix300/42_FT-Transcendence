@@ -186,7 +186,7 @@ export class TwoFAModal {
           setTimeout(() => {
             this.hide();
             if (router) {
-              router.navigate("/profil");
+              router.navigate("/profile");
             }
           }, 1500);
         }
