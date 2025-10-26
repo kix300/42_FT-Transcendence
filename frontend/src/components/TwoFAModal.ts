@@ -174,13 +174,22 @@ export class TwoFAModal {
         if (data.user) {
           AuthManager.setUser(data.user);
         }
-        setTimeout(() => {
-          this.hide();
-          const router = getRouter();
-          if (router) {
-            router.navigate("/home");
-          }
-        }, 1500);
+        const router = getRouter();
+        if (router?.getCurrentRoute() === "/register") {
+          setTimeout(() => {
+            this.hide();
+            if (router) {
+              router.navigate("/home");
+            }
+          }, 1500);
+        } else {
+          setTimeout(() => {
+            this.hide();
+            if (router) {
+              router.navigate("/profil");
+            }
+          }, 1500);
+        }
       } else {
         this.showMessage(
           `Error: ${escapeHtml(data.error || "Invalid code")}`,
