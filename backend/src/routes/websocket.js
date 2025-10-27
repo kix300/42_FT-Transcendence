@@ -9,9 +9,12 @@ export default async function webSocketRoutes (fastify) {
 
 	fastify.get("/ws", { websocket: true }, (connection, request) => {
 		try {
+			console.log("💬  Check token...");
+
 			//Check token
 			const user = verifyWsAuth(fastify, connection, request);
 			if (!user) return ;
+			console.log("💬  Check token... OK");
 
 			//status online
 			const userId = user.id;
