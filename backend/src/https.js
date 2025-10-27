@@ -9,7 +9,7 @@ export function requireHttps(req, reply, done) {
   done();
 }
 
-// Check WS connexion
+// Only valid JWT can use WS connexion
 export function verifyWsAuth(fastify, connection, request) {
   try {
     const token = new URL(request.url, `https://${request.headers.host}`).searchParams.get("token");
@@ -18,6 +18,7 @@ export function verifyWsAuth(fastify, connection, request) {
     if (!user || !user.id) throw new Error("Invalid token");
     return user;
   } catch (err) {
+	console.error("❌ WebSocket auth failed:", err.message);
     connection.socket.send(JSON.stringify({ error: err.message }));
     connection.socket.close();
     return null;
