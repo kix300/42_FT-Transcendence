@@ -42,7 +42,7 @@ export function connectWebSocket(token: string) {
 }
 
 function handleWsMessage(data: any) {
-  console.log("WS received message:", data);
+  console.log("📡 WS received message:", data);
 
   // Exemple de gestion des événements
   if (data.type === "friend_online") {
@@ -79,6 +79,7 @@ export function isWebSocketConnected(): boolean {
 // Fonction pour fermer proprement la connexion
 export function disconnectWebSocket() {
   if (ws) {
+	console.log("🔌 Fermeture de la connexion WebSocket...");
     ws.close();
     ws = null;
   }

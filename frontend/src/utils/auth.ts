@@ -1,6 +1,6 @@
 import { getRouter } from "../router";
 import { AUTH_API } from "./apiConfig";
-import { connectWebSocket } from './ws';
+import { connectWebSocket, disconnectWebSocket } from './ws';
 
 export class AuthManager {
   private static readonly TOKEN_KEY = "auth_token";
@@ -60,6 +60,7 @@ export class AuthManager {
 
   // Déconnecter l'utilisateur
   static logout(): void {
+	disconnectWebSocket();
     localStorage.removeItem(this.TOKEN_KEY);
     localStorage.removeItem(this.USER_KEY);
     localStorage.removeItem(this.REMEMBER_KEY);
