@@ -3,9 +3,7 @@ import { FriendManager } from "./Friends";
 let ws: WebSocket | null = null;
 
 export function connectWebSocket(token: string) {
-  // CORRECTION : Choisir le bon protocole WebSocket
-  const protocol = window.location.protocol === "https:" ? "wss" : "ws";
-  const url = `${protocol}://${window.location.host}/ws?token=${token}`;
+  const url = `wss://${window.location.host}/ws?token=${token}`;
 
   console.log(`🔄 Connexion WebSocket: ${url}`);
 
@@ -29,7 +27,6 @@ export function connectWebSocket(token: string) {
 
     ws.onclose = (event) => {
       console.log(`🔴 WebSocket fermé (code: ${event.code}), reconnexion dans 5s...`);
-	  FriendManager.loadFriendsList(); // Refresh friends list
       setTimeout(() => connectWebSocket(token), 5000);
     };
 
