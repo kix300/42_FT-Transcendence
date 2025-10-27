@@ -169,6 +169,39 @@ export class FriendManager {
     }
   }
 
+  //Update friends list
+  static updateFriendsStatus(userId: number, status: number){
+	const friendElement = document.querySelector(`[data-user-id="${userId}"]`);
+	if (!friendElement) return;
+
+	const statusDot = friendElement.querySelector(".status-dot");
+	const statusTextEl = friendElement.querySelector(".status-text");
+
+	let statusColor = "";
+	let statusText = "";
+
+	switch (status) {
+	case 0:
+		statusColor = "bg-gray-500";
+		statusText = "offline";
+		break;
+	case 1:
+		statusColor = "bg-green-500";
+		statusText = "online";
+		break;
+	case 2:
+		statusColor = "bg-blue-500";
+		statusText = "in game";
+		break;
+	default:
+		statusColor = "bg-yellow-500";
+		statusText = "not working";
+	}
+
+	if (statusDot) statusDot.className = `status-dot w-2 h-2 rounded-full ${statusColor}`;
+	if (statusTextEl) statusTextEl.textContent = statusText;
+  }
+
   // Load friends list
   static async loadFriendsList(): Promise<void> {
     const friendsList = document.getElementById("friends-list");
@@ -227,8 +260,8 @@ export class FriendManager {
             <div>
 				<div class="text-green-400 font-bold">${friend.username}</div>
 				<div class="flex items-center space-x-1 text-xs">
-				<span class="w-2 h-2 rounded-full ${statusColor}"></span>
-				<span class="text-green-500 text-xs">${statusText}</span>
+				<span class="status-dot w-2 h-2 rounded-full ${statusColor}"></span>
+				<span class="status-text text-green-500 text-xs">${statusText}</span>
 				</div>
             </div>
             </div>
@@ -373,29 +406,3 @@ export class FriendManager {
     }, 5000);
   }
 }
-
-
-// === Helper global pour mettre à jour le statut d’un ami ===
-window.updateFriendStatus = (userId: number, status: number) => {
-  const friendEl = document.querySelector(`[data-user-id="${userId}"]`);
-  if (friendEl) {
-    const statusDot = friendEl.querySelector(".w-2.h-2") as HTMLElement | null;
-    const statusText = friendEl.querySelector(".text-green-500.text-xs") as HTMLElement | null;
-
-    if (statusDot && statusText) {
-      switch (status) {
-        case 1: // online
-          statusDot.className = "w-2 h-2 rounded-full bg-green-500";
-          statusText.textContent = "online";
-          break;
-        case 2: // in game
-          statusDot.className = "w-2 h-2 rounded-full bg-blue-500";
-          statusText.textContent = "in game";
-          break;
-        default: // offline
-          statusDot.className = "w-2 h-2 rounded-full bg-gray-500";
-          statusText.textContent = "offline";
-      }
-    }
-  }
-};
