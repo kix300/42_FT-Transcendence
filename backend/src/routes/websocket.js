@@ -2,11 +2,10 @@ import db from '../db.js';
 import { verifyWsAuth } from '../https.js'
 
 const PING_INTERVAL = 30000;	// 30 secondes
+const onlineUsers = new Map();	// Map(userId -> connection)
 
 //WebSocketRoutes handler
 export default async function webSocketRoutes (fastify) {
-
-	const onlineUsers = new Map();	// Map(userId -> connection)
 
 	fastify.get("/ws", { websocket: true }, (connection, request) => {
 		try {
@@ -77,13 +76,16 @@ export default async function webSocketRoutes (fastify) {
 	// Envoie un message à tous les amis connectés
 	function broadcastToFriends(userId, message) {
 		try {
-		const friends = getFriends(userId);
-		for (const friendId of friends) {
-			const friendConnection = onlineUsers.get(friendId);
-			if (friendConnection) {
-			friendConnection.socket.send(JSON.stringify(message));
+			console.log(`📢 broadcastToFriends() pour ${userId}`, message);
+			const friends = getFriends(userId);
+			console.log(`👥 Amis trouvés :`, friends);
+			for (const friendId of friends) {
+				const friendConnection = onlineUsers.get(friendId);
+				if (friendConnection) {
+				console.log(`📨 Envoi WS à l’ami #${friendId}`);
+				friendConnection.socket.send(JSON.stringify(message));
+				}
 			}
-		}
 		} catch (err) {
 		console.error("Erreur lors de la notification des amis :", err.message);
 		}
