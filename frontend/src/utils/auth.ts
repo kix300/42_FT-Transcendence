@@ -1,5 +1,6 @@
 import { getRouter } from "../router";
 import { AUTH_API } from "./apiConfig";
+import { connectWebSocket } from './ws';
 
 export class AuthManager {
   private static readonly TOKEN_KEY = "auth_token";
@@ -158,6 +159,9 @@ export class AuthManager {
       if (data.user) {
         this.setUser(data.user);
       }
+
+	  //connexion websocket
+	  connectWebSocket(data.token);
 
       //desactive le mode guest
       this.disableGuestMode();
