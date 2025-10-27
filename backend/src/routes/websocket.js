@@ -1,10 +1,12 @@
 import db from '../db.js';
 import { verifyWsAuth } from '../https.js'
 
-const onlineUsers = new Map();	// Map(userId -> connection)
 const PING_INTERVAL = 30000;	// 30 secondes
 
+//WebSocketRoutes handler
 export default async function webSocketRoutes (fastify) {
+
+	const onlineUsers = new Map();	// Map(userId -> connection)
 
 	fastify.get("/ws", { websocket: true }, (connection, request) => {
 		try {
@@ -12,11 +14,23 @@ export default async function webSocketRoutes (fastify) {
 			const user = verifyWsAuth(fastify, connection, request);
 			if (!user) return ;
 
+			//status online
 			const userId = user.id;
-			console.log("🟢 Connexion WebSocket Secure de l’utilisateur #", userId);
-			db.prepare("UPDATE users SET status = 1 WHERE id = ?").run(user.id);
 			onlineUsers.set(userId, connection);
+			db.prepare("UPDATE users SET status = 1 WHERE id = ?").run(user.id);
+			console.log("🟢 Connexion WebSocket Secure de l’utilisateur #", userId);
+			//Notifier mes amis que je suis connecte
 			broadcastToFriends(userId, { type: "friend_online", userId });
+
+			//Mettre ma liste d'amis a jour lorsque je me connecte
+			const friends = getFriends(userId);
+			const onlineFriends = friends.filter(fid => onlineUsers.has(fid));
+			connection.socket.send(
+				JSON.stringify({
+					type: "friends_online",
+					friends: onlineFriends
+				})
+			);
 
 			// === Gestion du ping ===
     		connection.isAlive = true;
@@ -34,9 +48,9 @@ export default async function webSocketRoutes (fastify) {
 
 			// Déconnexion
 			connection.socket.on("close", () => {
-				console.log("🔴 Connexion WebSocket Secure fermée pour l'utilisateur #", userId);
-				db.prepare("UPDATE users SET status = 0 WHERE id = ?").run(userId);
 				onlineUsers.delete(userId);
+				db.prepare("UPDATE users SET status = 0 WHERE id = ?").run(userId);
+				console.log("🔴 Connexion WebSocket Secure fermée pour l'utilisateur #", userId);
 				broadcastToFriends(userId, { type: "friend_offline", userId });
 			});
 
@@ -80,4 +94,17 @@ export default async function webSocketRoutes (fastify) {
 		const rows = db.prepare(`SELECT friend_id FROM friends WHERE user_id = ?`).all(userId);
 		return rows.map(r => r.friend_id);
 	}
+};
+
+
+function handleDisconnect(userId) {
+  const conn = onlineUsers.get(userId);
+  if (conn) {
+    conn.socket.terminate(); // ferme brutalement la socket
+    onlineUsers.delete(userId);
+  }
+
+  db.prepare("UPDATE users SET status = 0 WHERE id = ?").run(userId);
+  console.log(`⚰️ Déconnexion forcée de l’utilisateur #${userId} (timeout ping)`);
+  broadcastToFriends(userId, { type: "friend_offline", userId });
 }
