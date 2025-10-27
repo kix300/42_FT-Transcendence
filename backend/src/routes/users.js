@@ -31,11 +31,9 @@ export default async function usersRoutes(fastify, options) {
 
 	fastify.register(multipart);
 
-    //liste des utilisateurs (seulement pour admin)
-    fastify.get("/api/users", { preHandler: [fastify.authenticate] }, async () => {
-		const users = db.prepare("SELECT * FROM users").all()
-		reply.send(users);
-	});
+    //liste des utilisateurs (pour utilisateur connecte)
+    fastify.get("/api/users", { preHandler: [fastify.authenticate] }, async () => db.prepare("SELECT * FROM users").all());
+
     //ajouter un user (seulement pour admin)
     fastify.post("/api/users", { preHandler: [fastify.authenticate] }, async (req, reply) => {
     const { username } = req.body;
