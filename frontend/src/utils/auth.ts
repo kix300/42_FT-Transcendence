@@ -60,7 +60,7 @@ export class AuthManager {
 
   // Déconnecter l'utilisateur
   static logout(): void {
-	disconnectWebSocket();
+	  disconnectWebSocket();
     localStorage.removeItem(this.TOKEN_KEY);
     localStorage.removeItem(this.USER_KEY);
     localStorage.removeItem(this.REMEMBER_KEY);

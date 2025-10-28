@@ -155,7 +155,7 @@ export class FriendManager {
       });
 
       if (response.ok) {
-        FriendManager.showMessage(` Friend added ${username}`, "success");
+        FriendManager.showMessage(` Friend added ${escapeHtml(username)}`, "success");
         FriendManager.loadFriendsList(); // Refresh friends list
       } else {
         const errorData = await response.json();
@@ -253,13 +253,13 @@ export class FriendManager {
             <div class="w-10 h-10 rounded-full bg-green-400/20 border border-green-400/50 flex items-center justify-center overflow-hidden">
             ${
               friend.photo
-                ? `<img src="${friend.photo}" alt="${friend.username}" class="w-full h-full object-cover" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" />
-            <span class="text-green-400 font-bold hidden">${friend.username.charAt(0).toUpperCase()}</span>`
-                : `<span class="text-green-400 font-bold">${friend.username.charAt(0).toUpperCase()}</span>`
+                ? `<img src="${sanitizeUrl(friend.photo)}" alt="${escapeHtml(friend.username)}" class="w-full h-full object-cover" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" />
+            <span class="text-green-400 font-bold hidden">${escapeHtml(friend.username.charAt(0).toUpperCase())}</span>`
+                : `<span class="text-green-400 font-bold">${escapeHtml(friend.username.charAt(0).toUpperCase())}</span>`
             }
             </div>
             <div>
-				<div class="text-green-400 font-bold">${friend.username}</div>
+				<div class="text-green-400 font-bold">${escapeHtml(friend.username)}</div>
 				<div class="flex items-center space-x-1 text-xs">
 				<span class="status-dot w-2 h-2 rounded-full ${statusColor}"></span>
 				<span class="status-text text-green-500 text-xs">${statusText}</span>
@@ -278,7 +278,7 @@ export class FriendManager {
             <button
             class="remove-friend-btn bg-red-400/20 border border-red-400/50 text-red-400 px-3 py-1 rounded hover:bg-red-400/30 transition-colors text-sm"
             data-user-id="${friend.id}"
-            data-username="${friend.username}"
+            data-username="${escapeHtml(friend.username)}"
             >
             [REMOVE]
             </button>
@@ -330,7 +330,7 @@ export class FriendManager {
   // Remove friend
   static async removeFriend(username: string): Promise<void> {
     if (
-      !confirm(`Are you sure you want to remove ${username} from your friends?`)
+      !confirm(`Are you sure you want to remove ${escapeHtml(username)} from your friends?`)
     ) {
       return;
     }
