@@ -44,6 +44,7 @@ export default async function webSocketRoutes (fastify) {
     		connection.isAlive = true;
 			connection.socket.on("pong", () => {
 			connection.isAlive = true;
+			console.log(`🏓 Pong recu de #${userId}`);
 			});
 
 			// Gérer les messages reçus
@@ -71,11 +72,13 @@ export default async function webSocketRoutes (fastify) {
 	setInterval(() => {
 		for (const [userId, conn] of onlineUsers.entries()) {
 		if (!conn.isAlive) {
-			// Connexion morte : fermer et mettre à jour la BDD
 			handleDisconnect(userId);
 		} else {
 			conn.isAlive = false;
-			conn.socket.ping();
+			if (conn && conn.socket)
+				conn.socket.ping();
+			else
+				onlineUsers.delete(userId);
 		}
 		}
 	}, PING_INTERVAL);
