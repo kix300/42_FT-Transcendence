@@ -1,48 +1,10 @@
-// KIM
-// let ws: WebSocket | null = null;
+import { FriendManager } from "./Friends";
 
-// export function connectWebSocket(token: string) {
-//   const protocol = location.protocol === "wss";
-//   ws = new WebSocket(`${protocol}://${location.host}/ws?token=${token}`);
-
-//   ws.onopen = () => {
-//     console.log("🟢 WebSocket connecté");
-//   };
-
-//   ws.onmessage = (event) => {
-//     const data = JSON.parse(event.data);
-//     handleWsMessage(data);
-//   };
-
-//   ws.onclose = () => {
-//     console.log("🔴 WebSocket fermé, tentative de reconnexion dans 5s...");
-//     setTimeout(() => connectWebSocket(token), 5000);
-//   };
-
-//   ws.onerror = (err) => {
-//     console.error("❌ WebSocket erreur:", err);
-//   };
-// }
-
-// function handleWsMessage(data: any) {
-//   // traiter friend_online / friend_offline
-//   console.log("WS message:", data);
-// }
-
-// export function sendWsMessage(msg: any) {
-//   if (ws && ws.readyState === WebSocket.OPEN) {
-//     ws.send(JSON.stringify(msg));
-//   }
-// }
-
-// CORRECTION DEEPSEEK -> flemme de fix a la main c'est juste pour que ca ne bloque pas mon test
 let ws: WebSocket | null = null;
 
 export function connectWebSocket(token: string) {
-  // CORRECTION : Choisir le bon protocole WebSocket
   const protocol = window.location.protocol === "https:" ? "wss" : "ws";
   const url = `${protocol}://${window.location.host}/ws?token=${token}`;
-
   console.log(`🔄 Connexion WebSocket: ${url}`);
 
   try {
@@ -50,11 +12,13 @@ export function connectWebSocket(token: string) {
 
     ws.onopen = () => {
       console.log("🟢 WebSocket connecté");
+  	  FriendManager.loadFriendsList(); // Refresh friends list
     };
 
     ws.onmessage = (event) => {
       try {
         const data = JSON.parse(event.data);
+  	    FriendManager.loadFriendsList(); // Refresh friends list
         handleWsMessage(data);
       } catch (error) {
         console.error("❌ Erreur parsing message WebSocket:", error);
@@ -62,9 +26,7 @@ export function connectWebSocket(token: string) {
     };
 
     ws.onclose = (event) => {
-      console.log(
-        `🔴 WebSocket fermé (code: ${event.code}), reconnexion dans 5s...`,
-      );
+      console.log(`🔴 WebSocket fermé (code: ${event.code}), reconnexion dans 5s...`);
       setTimeout(() => connectWebSocket(token), 5000);
     };
 
@@ -77,16 +39,24 @@ export function connectWebSocket(token: string) {
 }
 
 function handleWsMessage(data: any) {
-  // Traiter friend_online / friend_offline
-  console.log("WS message:", data);
+  console.log("📡 WS received message:", data);
 
   // Exemple de gestion des événements
   if (data.type === "friend_online") {
     console.log(`👋 ${data.username} est en ligne`);
     // Mettre à jour l'interface utilisateur
+	FriendManager.updateFriendsStatus(data.userId, 1);
   } else if (data.type === "friend_offline") {
     console.log(`👋 ${data.username} est hors ligne`);
     // Mettre à jour l'interface utilisateur
+	FriendManager.updateFriendsStatus(data.userId, 0);
+  } else if (data.type === "friends_online") {
+  	console.log(`👋 ${data.username}: liste des amis connectes recue`);
+	if (Array.isArray(data.friends)) {
+        data.friends.forEach((friend: {id: number; status: number}) => {
+		  FriendManager.updateFriendsStatus(friend.id, friend.status);
+        });
+    }
   }
 }
 
@@ -106,7 +76,10 @@ export function isWebSocketConnected(): boolean {
 // Fonction pour fermer proprement la connexion
 export function disconnectWebSocket() {
   if (ws) {
+	console.log("🔌 Fermeture de la connexion WebSocket...");
     ws.close();
     ws = null;
   }
 }
+
+

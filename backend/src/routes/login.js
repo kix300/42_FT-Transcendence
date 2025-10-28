@@ -1,7 +1,5 @@
 import db from "../db.js";
 import bcrypt from "bcrypt";
-import websocket from "@fastify/websocket";
-import { authenticator } from "otplib";
 
 export default async function loginRoutes(fastify, options) {
   fastify.post("/api/login", async (request, reply) => {

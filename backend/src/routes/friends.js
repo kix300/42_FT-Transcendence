@@ -8,7 +8,7 @@ export default async function friendsRoutes(fastify, options) {
 
         try {
             const friends = db.prepare(`
-            SELECT u.id, u.username, u.photo
+            SELECT u.id, u.username, u.photo, u.status
             FROM friends f
             JOIN users u ON f.friend_id = u.id
             WHERE f.user_id = ?

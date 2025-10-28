@@ -170,6 +170,39 @@ export class FriendManager {
     }
   }
 
+  //Update friends list
+  static updateFriendsStatus(userId: number, status: number){
+	const friendElement = document.querySelector(`[data-user-id="${userId}"]`);
+	if (!friendElement) return;
+
+	const statusDot = friendElement.querySelector(".status-dot");
+	const statusTextEl = friendElement.querySelector(".status-text");
+
+	let statusColor = "";
+	let statusText = "";
+
+	switch (status) {
+	case 0:
+		statusColor = "bg-gray-500";
+		statusText = "offline";
+		break;
+	case 1:
+		statusColor = "bg-green-500";
+		statusText = "online";
+		break;
+	case 2:
+		statusColor = "bg-blue-500";
+		statusText = "in game";
+		break;
+	default:
+		statusColor = "bg-yellow-500";
+		statusText = "not working";
+	}
+
+	if (statusDot) statusDot.className = `status-dot w-2 h-2 rounded-full ${statusColor}`;
+	if (statusTextEl) statusTextEl.textContent = statusText;
+  }
+
   // Load friends list
   static async loadFriendsList(): Promise<void> {
     const friendsList = document.getElementById("friends-list");
@@ -228,8 +261,8 @@ export class FriendManager {
             <div>
 				<div class="text-green-400 font-bold">${friend.username}</div>
 				<div class="flex items-center space-x-1 text-xs">
-				<span class="w-2 h-2 rounded-full ${statusColor}"></span>
-				<span class="text-green-500 text-xs">${statusText}</span>
+				<span class="status-dot w-2 h-2 rounded-full ${statusColor}"></span>
+				<span class="status-text text-green-500 text-xs">${statusText}</span>
 				</div>
             </div>
             </div>
