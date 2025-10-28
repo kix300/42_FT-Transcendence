@@ -44,8 +44,7 @@ fastify.register(fastifyJwt, { secret: process.env.JWT_PWD });
 // Décorateur pour vérifier le token facilement dans les routes
 fastify.decorate("authenticate", async (request, reply) => {
   try {
-    //console log a retirer en prod
-    console.log("🪪 Header Authorization reçu:", request.headers.authorization);
+    //console.log("🪪 Header Authorization reçu:", request.headers.authorization);
     await request.jwtVerify();
   } catch (err) {
     console.error("❌ Erreur JWT:", err.message);

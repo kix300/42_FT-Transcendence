@@ -6,11 +6,8 @@ const onlineUsers = new Map();	// Map(userId -> connection)
 
 //WebSocketRoutes handler
 export default async function webSocketRoutes (fastify) {
-
 	fastify.get("/ws", { websocket: true }, (connection, request) => {
 		try {
-			console.log("💬  Check token...");
-
 			//Check token
 			const user = verifyWsAuth(fastify, connection, request);
 			if (!user) return ;
@@ -79,7 +76,7 @@ export default async function webSocketRoutes (fastify) {
 	// Envoie un message à tous les amis connectés
 	function broadcastToFriends(userId, message) {
 		try {
-			console.log(`📢 broadcastToFriends() pour ${userId}`, message);
+			console.log(`📢 broadcastToFriends envoye par #${userId}`, message);
 			const friends = getFriends(userId);
 			console.log(`👥 Amis trouvés :`, friends);
 			for (const friendId of friends) {

@@ -3,8 +3,8 @@ import { FriendManager } from "./Friends";
 let ws: WebSocket | null = null;
 
 export function connectWebSocket(token: string) {
-  const url = `wss://${window.location.host}/ws?token=${token}`;
-
+  const protocol = window.location.protocol === "https:" ? "wss" : "ws";
+  const url = `${protocol}://${window.location.host}/ws?token=${token}`;
   console.log(`🔄 Connexion WebSocket: ${url}`);
 
   try {
