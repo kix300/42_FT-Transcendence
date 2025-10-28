@@ -310,6 +310,7 @@ export class FriendManager {
             if (userId) {
               // TODO: Navigate to user's profile
               //show modal 
+              // recuperer les stats pour chaque amis cliquer dessus
               const friendObj = friends.find(f => f.id === parseInt(userId));
               showViewProfileModal(friendObj || null);
             }
