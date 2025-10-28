@@ -11,7 +11,6 @@ export default async function webSocketRoutes (fastify) {
 			//Check token
 			const user = verifyWsAuth(fastify, connection, request);
 			if (!user) return ;
-			console.log("💬  Check token... OK");
 
 			//status online
 			const userId = user.id;
@@ -27,8 +26,8 @@ export default async function webSocketRoutes (fastify) {
 				id: fid,
 				status: onlineUsers.has(fid)?1 : 0
 			}));
-			if (connection && connection.socket){
-				connection.socket.send(
+			if (connection){
+				connection.send(
 					JSON.stringify({
 						type: "friends_online",
 						friends: onlineFriends
@@ -42,19 +41,19 @@ export default async function webSocketRoutes (fastify) {
 
 			// Gestion du ping (recevoir pong == connexion ok)
     		connection.isAlive = true;
-			connection.socket.on("pong", () => {
+			connection.on("pong", () => {
 			connection.isAlive = true;
 			console.log(`🏓 Pong recu de #${userId}`);
 			});
 
 			// Gérer les messages reçus
-			connection.socket.on("message", (msg) => {
+			connection.on("message", (msg) => {
 				console.log(`💬 Message reçu de ${userId}:`, msg.toString());
-				connection.socket.send(JSON.stringify({ reply: "Message reçu !" }));
+				connection.send(JSON.stringify({ reply: "Message reçu !" }));
 			});
 
 			// Déconnexion
-			connection.socket.on("close", () => {
+			connection.on("close", () => {
 				onlineUsers.delete(userId);
 				db.prepare("UPDATE users SET status = 0 WHERE id = ?").run(userId);
 				console.log("🔴 Connexion WebSocket Secure fermée pour l'utilisateur #", userId);
@@ -63,8 +62,8 @@ export default async function webSocketRoutes (fastify) {
 
 		} catch (err) {
 			console.error("❌ Erreur WebSocket:", err.message);
-			connection.socket.send(JSON.stringify({ error: "Invalid token" }));
-			connection.socket.close();
+			connection.send(JSON.stringify({ error: "Invalid token" }));
+			connection.close();
 		}
 	});
 
@@ -91,9 +90,9 @@ export default async function webSocketRoutes (fastify) {
 			console.log(`👥 Amis trouvés :`, friends);
 			for (const friendId of friends) {
 				const fconn = onlineUsers.get(friendId);
-				if (fconn && fconn.socket) {
+				if (fconn) {
 				console.log(`📨 Envoi WS à l’ami #${friendId}`);
-				fconn.socket.send(JSON.stringify(message));
+				fconn.send(JSON.stringify(message));
 				}
 			}
 		} catch (err) {
