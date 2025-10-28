@@ -81,7 +81,7 @@ export default async function webSocketRoutes (fastify) {
 			console.log(`👥 Amis trouvés :`, friends);
 			for (const friendId of friends) {
 				const friendConnection = onlineUsers.get(friendId);
-				if (friendConnection) {
+				if (friendConnection && friendConnection.socket) {
 				console.log(`📨 Envoi WS à l’ami #${friendId}`);
 				friendConnection.socket.send(JSON.stringify(message));
 				}
@@ -96,17 +96,17 @@ export default async function webSocketRoutes (fastify) {
 		const rows = db.prepare(`SELECT friend_id FROM friends WHERE user_id = ?`).all(userId);
 		return rows.map(r => r.friend_id);
 	}
+
+	function handleDisconnect(userId) {
+	const conn = onlineUsers.get(userId);
+	//fermer socket et retirer de la liste onlineUsers
+	if (conn && conn.socket) {
+		conn.socket.terminate();
+		onlineUsers.delete(userId);
+	}
+
+	db.prepare("UPDATE users SET status = 0 WHERE id = ?").run(userId);
+	console.log(`⚰️ Déconnexion forcée de l’utilisateur #${userId} (timeout ping)`);
+	broadcastToFriends(userId, { type: "friend_offline", userId });
+	}
 };
-
-
-function handleDisconnect(userId) {
-  const conn = onlineUsers.get(userId);
-  if (conn) {
-    conn.socket.terminate(); // ferme brutalement la socket
-    onlineUsers.delete(userId);
-  }
-
-  db.prepare("UPDATE users SET status = 0 WHERE id = ?").run(userId);
-  console.log(`⚰️ Déconnexion forcée de l’utilisateur #${userId} (timeout ping)`);
-  broadcastToFriends(userId, { type: "friend_offline", userId });
-}
