@@ -27,7 +27,6 @@ import twoFaRoutes from "./routes/twofa.js";
 // https config
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const fastify = Fastify({
-  http2: true,
   https: {
     key: fs.readFileSync(path.join(__dirname, "./https/server.key")),
     cert: fs.readFileSync(path.join(__dirname, "./https/server.crt")),
@@ -55,8 +54,9 @@ fastify.decorate("authenticate", async (request, reply) => {
 });
 
 // Websocket
-await fastify.register(fastifyWebsocket);
+await fastify.register(fastifyWebsocket, {server: fastify.server});
 await fastify.register(webSocketRoutes);
+console.log("✅ WebSocket routes registered");
 
 // Enregistrer les routes
 fastify.register(registerRoutes);
