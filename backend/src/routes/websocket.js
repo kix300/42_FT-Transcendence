@@ -101,8 +101,9 @@ export default async function webSocketRoutes (fastify) {
 
 function handleDisconnect(userId) {
   const conn = onlineUsers.get(userId);
-  if (conn) {
-    conn.socket.terminate(); // ferme brutalement la socket
+  //fermer socket et retirer de la liste onlineUsers
+  if (conn && conn.socket) {
+    conn.socket.terminate();
     onlineUsers.delete(userId);
   }
 
