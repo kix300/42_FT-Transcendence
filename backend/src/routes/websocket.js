@@ -23,18 +23,25 @@ export default async function webSocketRoutes (fastify) {
 
 			//Mettre ma liste d'amis a jour lorsque je me connecte
 			const friends = getFriends(userId);
-			const onlineFriends = friends.filter(fid => onlineUsers.has(fid));
-			connection.socket.send(
-				JSON.stringify({
-					type: "friends_online",
-					friends: onlineFriends
-				})
-			);
+			const onlineFriends = friends.map(fid => ({
+				id: fid,
+				status: onlineUsers.has(fid)?1 : 0
+			}));
+			if (connection && connection.socket){
+				connection.socket.send(
+					JSON.stringify({
+						type: "friends_online",
+						friends: onlineFriends
+					})
+				);
+				console.log("💬  Mettre a jour la liste d'amis... OK");
+			}
+			else{
+				console.log("💬  Connexion non etablie");
+			}
 
-			// === Gestion du ping ===
+			// Gestion du ping (recevoir pong == connexion ok)
     		connection.isAlive = true;
-
-			// Quand on reçoit un pong, on sait que la connexion est vivante
 			connection.socket.on("pong", () => {
 			connection.isAlive = true;
 			});
@@ -80,10 +87,10 @@ export default async function webSocketRoutes (fastify) {
 			const friends = getFriends(userId);
 			console.log(`👥 Amis trouvés :`, friends);
 			for (const friendId of friends) {
-				const friendConnection = onlineUsers.get(friendId);
-				if (friendConnection && friendConnection.socket) {
+				const fconn = onlineUsers.get(friendId);
+				if (fconn && fconn.socket) {
 				console.log(`📨 Envoi WS à l’ami #${friendId}`);
-				friendConnection.socket.send(JSON.stringify(message));
+				fconn.socket.send(JSON.stringify(message));
 				}
 			}
 		} catch (err) {
