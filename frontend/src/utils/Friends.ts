@@ -410,6 +410,28 @@ export class FriendManager {
 
 function showViewProfileModal(userProfile: Friend | null): void {
   let html = profileModal;
+  let statusColor = "";
+  let statusText = "";
+  if (userProfile) {
+
+    switch (userProfile.status) {
+      case 0:
+        statusColor = "bg-gray-500";
+        statusText = "offline";
+        break;
+      case 1:
+        statusColor = "bg-green-500";
+        statusText = "online";
+        break;
+      case 2:
+        statusColor = "bg-blue-500";
+        statusText = "in game";
+        break;
+      default:
+        statusColor = "bg-yellow-500";
+        statusText = "not working";
+    }
+  }
 
   const avatar = userProfile?.photo
     ? `<img src="${sanitizeUrl(userProfile.photo)}" alt="${escapeHtml(userProfile.username)}" class="w-full h-full object-cover rounded-full" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" />
@@ -417,6 +439,8 @@ function showViewProfileModal(userProfile: Friend | null): void {
     : `<span class="text-green-400 text-3xl font-bold">${escapeHtml((userProfile?.username || "U").charAt(0).toUpperCase())}</span>`;
 
   html = html
+    .replace("{{statusColor}}", statusColor)
+    .replace("{{statusText}}", statusText)
     .replace("{{matchHistory}}", profilePageMatchHistory)
     .replace("{{avatar}}", avatar)
     .replace("{{username}}", escapeHtml(userProfile?.username || "Unknown User"))
