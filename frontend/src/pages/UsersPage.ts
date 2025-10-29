@@ -16,7 +16,7 @@ interface User {
   created_at?: string;
   last_login?: string;
   role?: string;
-  status?: "online" | "offline" | "in_game";
+  status?: 0 | 1 | 2; // 0 = offline, 1 = online, 2 = in_game
 }
 
 // Interface pour créer/modifier un utilisateur
@@ -150,8 +150,8 @@ function displayUsers(): void {
       <div class="text-green-400 text-sm font-mono">${escapeHtml(user.email)}</div>
 
       <div>
-        <span class="px-2 py-1 text-xs rounded ${getStatusColor(user.status)}">
-          ${getStatusText(user.status)}
+        <span class="px-2 py-1 text-xs rounded ${user.status !== undefined ? getStatusColor(user.status): 'unknown'}">
+          ${user.status !== undefined ? getStatusText(user.status) : 'unknown'}
         </span>
       </div>
 
@@ -187,9 +187,9 @@ function updateStats(): void {
 
   const stats = {
     total: allUsers.length,
-    online: allUsers.filter((u) => u.status === "online").length,
-    offline: allUsers.filter((u) => u.status === "offline").length,
-    ingame: allUsers.filter((u) => u.status === "in_game").length,
+    online: allUsers.filter((u) => u.status === 1).length,
+    offline: allUsers.filter((u) => u.status === 0).length,
+    ingame: allUsers.filter((u) => u.status === 2).length,
   };
 
   if (totalUsers) totalUsers.textContent = stats.total.toString();
@@ -247,8 +247,23 @@ function filterUsers(): void {
       document.getElementById("search-input") as HTMLInputElement
     )?.value.toLowerCase() || "";
 
+  const statusMapping: { [key in "online" | "offline" | "in_game"]: number } = {
+    "online": 1,
+    "offline": 0,
+    "in_game": 2
+  };
+
+  console.log("Filtrage des utilisateurs:");
+  console.log("Status Filter:", statusFilter);
+
   filteredUsers = allUsers.filter((user) => {
-    const matchesStatus = !statusFilter || user.status === statusFilter;
+    const userStatus = Number(user.status);
+    const statusValue = statusFilter ? statusMapping[statusFilter as "online" | "offline" | "in_game"] : null;
+    
+    console.log(`User ID: ${user.id} Status: ${user.status} (Converted: ${userStatus})`);
+    console.log(`Filtering by status value: ${statusValue}`);
+
+    const matchesStatus = !statusFilter || userStatus === statusValue;
     const matchesSearch =
       !searchInput ||
       user.username.toLowerCase().includes(searchInput) ||
