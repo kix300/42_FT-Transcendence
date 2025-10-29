@@ -41,8 +41,12 @@ export default async function webSocketRoutes (fastify) {
 			// Gestion du ping (recevoir pong == connexion ok)
     		connection.isAlive = true;
 			connection.on("pong", () => {
-			connection.isAlive = true;
-			console.log(`🏓 Pong recu de #${userId}`);
+			const user = verifyWsAuth(fastify, connection, request);
+			if (!user)
+				handleDisconnect(userId);
+			else
+				connection.isAlive = true;
+				console.log(`🏓 Pong recu de #${userId}`);
 			});
 
 			// Gérer les messages reçus
