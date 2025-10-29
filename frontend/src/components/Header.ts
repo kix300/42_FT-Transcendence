@@ -150,7 +150,6 @@ export class Header {
     const logoutBtn = document.getElementById("logout-btn");
     if (logoutBtn) {
       logoutBtn.addEventListener("click", () => {
-        console.log("Déconnexion en cours...");
         AuthManager.logout();
       });
     }

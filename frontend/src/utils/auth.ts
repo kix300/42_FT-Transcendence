@@ -60,12 +60,12 @@ export class AuthManager {
 
   // Déconnecter l'utilisateur
   static logout(): void {
-	disconnectWebSocket();
     localStorage.removeItem(this.TOKEN_KEY);
     localStorage.removeItem(this.USER_KEY);
     localStorage.removeItem(this.REMEMBER_KEY);
     localStorage.removeItem(this.GUEST_MODE_KEY);
     sessionStorage.removeItem(this.TOKEN_KEY);
+	  disconnectWebSocket();
     const router = getRouter();
     if (router) {
       router.navigate("/login");
