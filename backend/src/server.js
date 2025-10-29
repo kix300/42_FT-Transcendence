@@ -29,7 +29,6 @@ import blockchainRoutes from "./routes/blockchain.js";
 // https config
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const fastify = Fastify({
-  http2: true,
   https: {
     key: fs.readFileSync(path.join(__dirname, "./https/server.key")),
     cert: fs.readFileSync(path.join(__dirname, "./https/server.crt")),
@@ -47,8 +46,7 @@ fastify.register(fastifyJwt, { secret: process.env.JWT_PWD });
 // Décorateur pour vérifier le token facilement dans les routes
 fastify.decorate("authenticate", async (request, reply) => {
   try {
-    //console log a retirer en prod
-    console.log("🪪 Header Authorization reçu:", request.headers.authorization);
+    //console.log("🪪 Header Authorization reçu:", request.headers.authorization);
     await request.jwtVerify();
   } catch (err) {
     console.error("❌ Erreur JWT:", err.message);
@@ -57,8 +55,9 @@ fastify.decorate("authenticate", async (request, reply) => {
 });
 
 // Websocket
-await fastify.register(fastifyWebsocket);
+await fastify.register(fastifyWebsocket, {server: fastify.server});
 await fastify.register(webSocketRoutes);
+console.log("✅ WebSocket routes registered");
 
 // Enregistrer les routes
 fastify.register(registerRoutes);

@@ -8,12 +8,6 @@ import { TournamentPage } from "./pages/TournamentPage";
 import { ProfilePage } from "./pages/ProfilePage";
 import { UsersPage } from "./pages/UsersPage";
 import { AuthManager } from './utils/auth';
-import { connectWebSocket } from './utils/ws';
-
-const token = AuthManager.getToken();
-if (token) {
-  connectWebSocket(token);
-}
 
 // Initialiser l'application
 function initApp(): void {

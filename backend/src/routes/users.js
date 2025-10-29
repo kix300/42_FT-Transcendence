@@ -5,6 +5,28 @@ import path from 'path';
 import { pipeline } from "stream/promises";
 import fs from "fs";
 
+
+/*
+interface User {
+  id: number;
+  username: string;
+  email: string;
+  photo?: string;
+  created_at?: string;
+  last_login?: string;
+  role?: string;
+  status?: "online" | "offline" | "in_game";
+}
+
+// Interface pour créer/modifier un utilisateur
+interface UserFormData {
+  username: string;
+  email: string;
+  password?: string;
+  role?: string;
+}
+
+*/
 export default async function usersRoutes(fastify, options) {
 
 	fastify.register(multipart);
