@@ -150,8 +150,8 @@ function displayUsers(): void {
       <div class="text-green-400 text-sm font-mono">${escapeHtml(user.email)}</div>
 
       <div>
-        <span class="px-2 py-1 text-xs rounded ${getStatusColor(user.status || "offline")}">
-          ${getStatusText(user.status || "offline")}
+        <span class="px-2 py-1 text-xs rounded ${getStatusColor(user.status)}">
+          ${getStatusText(user.status)}
         </span>
       </div>
 
@@ -198,27 +198,32 @@ function updateStats(): void {
   if (ingameUsers) ingameUsers.textContent = stats.ingame.toString();
 }
 
-function getStatusColor(status: string): string {
+function getStatusColor(status: number): string {
+  if (typeof status !== 'number') {
+    throw new Error('Le statut doit être un nombre');
+  }
   switch (status) {
-    case "online":
+    case 1:
       return "bg-green-900/30 border border-green-400/50 text-green-300";
-    case "in_game":
-      return "bg-yellow-900/30 border border-yellow-400/50 text-yellow-300";
-    case "offline":
-    default:
+    case 2:
+      return "bg-blue-900/30 border border-yellow-400/50 text-yellow-300";
+    case 0:
       return "bg-gray-700/30 border border-gray-500/50 text-gray-300";
+    default:
+      return "bg-yellow-900/30 border border-yellow-400/50 text-yellow-300";
   }
 }
 
-function getStatusText(status: string): string {
+function getStatusText(status: number): string {
   switch (status) {
-    case "online":
+    case 1:
       return "En ligne";
-    case "in_game":
+    case 2:
       return "En jeu";
-    case "offline":
-    default:
+    case 0:
       return "Hors ligne";
+    default:
+      return "Erreur";
   }
 }
 
