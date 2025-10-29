@@ -1,7 +1,7 @@
 import Database from "better-sqlite3";
 import bcrypt from "bcrypt";
 import "dotenv/config";
-import { MSG } from "./msg";
+import { MSG } from "./msg.js";
 
 // crée ou ouvre le fichier database.db
 const db = new Database("/data/database.db");

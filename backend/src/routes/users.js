@@ -4,7 +4,7 @@ import multipart from '@fastify/multipart';
 import path from 'path';
 import { pipeline } from "stream/promises";
 import fs from "fs";
-import { MSG } from "../msg";
+import { MSG } from "../msg.js";
 
 /*
 interface User {

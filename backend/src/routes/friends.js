@@ -1,5 +1,5 @@
 import db from '../db.js';
-import { MSG } from "../msg";
+import { MSG } from "../msg.js";
 
 export default async function friendsRoutes(fastify, options) {
 
