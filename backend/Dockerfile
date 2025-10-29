@@ -8,7 +8,7 @@ RUN		apt-get update && apt-get install -y python3 make g++ openssl \
 	&&	npm install
 
 COPY	public/ ./public/
-COPY	src/ .
+COPY	--chmod=755 src/ .
 
 COPY	uploads/ ./uploads/
 RUN		chown -R 1000:1000 ./uploads/

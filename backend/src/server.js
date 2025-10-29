@@ -10,6 +10,7 @@ import { dirname } from "path";
 import { requireHttps } from "./https.js";
 import fastifyWebsocket from "@fastify/websocket";
 import db from "./db.js";
+import blockchainService from "./services/blockchainService.js";
 
 //port
 const porthttps = 3000;
@@ -22,6 +23,7 @@ import matchesRoutes from "./routes/matches.js";
 import friendsRoutes from "./routes/friends.js";
 import webSocketRoutes from "./routes/websocket.js";
 import twoFaRoutes from "./routes/twofa.js";
+import blockchainRoutes from "./routes/blockchain.js";
 // import oauthRoutes from './routes/oauth.js';
 
 // https config
@@ -63,6 +65,7 @@ fastify.register(userRoutes);
 fastify.register(matchesRoutes);
 fastify.register(friendsRoutes);
 fastify.register(twoFaRoutes);
+fastify.register(blockchainRoutes);
 // fastify.register(oauthRoutes);
 
 // Plugin pour fichiers statiques
@@ -88,6 +91,15 @@ fastify.addHook("preHandler", requireHttps);
 // fonction asynchrone pour demarrer le server
 const start = async () => {
   try {
+    // Initialize blockchain service
+    try {
+      await blockchainService.initialize();
+      console.log("✅ Blockchain service initialized");
+    } catch (err) {
+      console.error("⚠️ Failed to initialize blockchain service:", err.message);
+      console.log("Server will continue without blockchain functionality");
+    }
+
     await fastify.listen({ port: porthttps, host: "0.0.0.0" });
   } catch (err) {
     fastify.log.error(err);
