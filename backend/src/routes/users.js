@@ -10,6 +10,13 @@ export default async function usersRoutes(fastify, options) {
 
 	fastify.register(multipart);
 
+
+	/************************************/
+	/*                                  */
+	/*           USERS PAGE             */
+	/*                                  */
+	/************************************/
+
     //liste des utilisateurs (pour utilisateur connecte)
     fastify.get("/api/users", { preHandler: [fastify.authenticate] }, async () => {
 		try{
@@ -23,9 +30,12 @@ export default async function usersRoutes(fastify, options) {
 		}
 	});
 
-    //ajouter un user (seulement pour admin)
+    //ajouter un user (pour admin)
     fastify.post("/api/users", { preHandler: [fastify.authenticate] }, async (req, reply) => {
     const { username } = req.body;
+	if (req.user.role !== 'admin'){
+		return reply.status(403).send({ error: MSG.FORBIDEN_ACCES });
+	} 
     try {
         db.prepare("INSERT INTO users (username) VALUES (?)").run(username);
         return { success: true };
@@ -33,6 +43,31 @@ export default async function usersRoutes(fastify, options) {
         return reply.status(400).send({ error: "Utilisateur déjà existant" });
     }
     });
+
+	//supprimer un user pour admin)
+	fastify.delete("/api/users/:id", { preHandler: [fastify.authenticate] }, async (req, reply) => {
+		const { id } = req.params;
+
+		if (req.user.role !== 'admin') {
+			return reply.status(403).send({ error: MSG.FORBIDEN_ACCES  });
+		}
+		try {
+			const result = db.prepare("DELETE FROM users WHERE id = ?").run(id);
+			if (result.changes === 0) {
+				return reply.status(404).send({ error: MSG.USER_NOT_FOUND });
+			}
+			return { success: true };
+		} catch (error) {
+			return reply.status(400).send({ error: 'Erreur lors de la suppression de l\'utilisateur' });
+		}
+	});
+
+
+	/************************************/
+	/*                                  */
+	/*           VIEW PROFILE           */
+	/*                                  */
+	/************************************/
 
 	/* View others profile, accessible only for logged-in users */
 	fastify.get("/api/user/:id", { preHandler: [fastify.authenticate] }, async (request, reply) => {
@@ -66,6 +101,14 @@ export default async function usersRoutes(fastify, options) {
 			matches
 		});
 	});
+
+
+
+	/************************************/
+	/*                                  */
+	/*           MY PROFILE	            */
+	/*                                  */
+	/************************************/
 
 
     //récupérer les infos de l'utilisateur connecte
@@ -183,7 +226,6 @@ export default async function usersRoutes(fastify, options) {
 		await pipeline(avatarFile.file, fs.createWriteStream(filePath));
 		console.log('Fichier uploadé:',  path.join(uploadsDir, avatarFile.filename));
 		
-		// SQLite
 		db.prepare("UPDATE users SET photo = ? WHERE id = ?").run(`./uploads/${newFilename}`, userId);
 
 		return reply.send({ message: "Avatar updated successfully", photo: `./uploads/${newFilename}` });
