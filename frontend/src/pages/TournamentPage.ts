@@ -122,10 +122,12 @@ export async function submitTournamentWinnerToBackend(winnerData: {
   tournamentId?: string;
 }): Promise<void> {
   try {
+    const token = AuthManager.getToken();
     const response = await fetch(API_ENDPOINTS.TOURNAMENT_WINNER, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
       },
       body: JSON.stringify({
         winner: {
