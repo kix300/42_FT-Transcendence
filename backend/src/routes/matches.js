@@ -23,6 +23,12 @@ export default async function matchesRoutes(fastify) {
         return reply.code(400).send({ error: "Le gagnant doit être l'un des deux joueurs" });
       }
 
+      if (player1_id === -1)
+          player1_id = 0;
+      if (player2_id === -1)
+        player2_id = 0;
+      if (winner_id === -1)
+        winner_id = 0;
       // 🗄️ Inserer dans la base de donnees
       const result = db.prepare(`
         INSERT INTO matches (player1_id, player2_id, winner_id, player1_score, player2_score, is_tournament)
