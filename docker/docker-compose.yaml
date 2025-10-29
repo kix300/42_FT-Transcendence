@@ -1,4 +1,18 @@
 services:
+  blockchain:
+    build: ../blockchain/
+    container_name: blockchain
+    ports:
+      - "8545:8545"
+    volumes:
+      - blockchain_state:/blockchain/state
+      - blockchain_deployment:/blockchain/deployment
+    healthcheck:
+      test: ["CMD", "cast", "client", "--rpc-url", "http://localhost:8545"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
   app:
     build: ../backend/
     container_name: backend
@@ -8,10 +22,16 @@ services:
       - ../database:/data
       - shared_frontend:/app/public/dist
       - ../backend/uploads:/app/uploads
+      - blockchain_deployment:/blockchain/deployment:ro
     env_file:
       - ".env"
+    environment:
+      - BLOCKCHAIN_RPC_URL=http://blockchain:8545
     depends_on:
-      - frontend
+      blockchain:
+        condition: service_healthy
+      frontend:
+        condition: service_started
 
   frontend:
     build: ../frontend/
@@ -28,3 +48,5 @@ services:
       - WATCHPACK_POLLING=true
 volumes:
   shared_frontend:
+  blockchain_state:
+  blockchain_deployment:
