@@ -69,6 +69,11 @@ export default async function webSocketRoutes (fastify) {
 	// === Vérifie régulièrement que les connexions sont vivantes ===
 	setInterval(() => {
 		for (const [userId, conn] of onlineUsers.entries()) {
+			if (!conn){
+				console.warn(`Suppression de connexion invalide pour #${userId}`);
+				onlineUsers.delete(userId);
+				continue ;
+			}
 			if (!conn.isAlive) {
 				handleDisconnect(userId);
 			} else {
@@ -96,10 +101,11 @@ export default async function webSocketRoutes (fastify) {
 		}
 	}
 
-	// Renvoie les IDs d’amis de l’utilisateur
+	// Renvoie les IDs des amis de l’utilisateur
+	// Les users qui ont ajoute userId comme ami plus exactement
 	function getFriends(userId) {
-		const rows = db.prepare(`SELECT friend_id FROM friends WHERE user_id = ?`).all(userId);
-		return rows.map(r => r.friend_id);
+		const rows = db.prepare(`SELECT user_id FROM friends WHERE friend_id = ?`).all(userId);
+		return rows.map(r => r.user_id);
 	}
 
 	function handleDisconnect(userId) {
