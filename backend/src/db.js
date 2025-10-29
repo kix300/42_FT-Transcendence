@@ -1,6 +1,7 @@
 import Database from "better-sqlite3";
 import bcrypt from "bcrypt";
 import "dotenv/config";
+import { MSG } from "./msg";
 
 // crée ou ouvre le fichier database.db
 const db = new Database("/data/database.db");
@@ -42,7 +43,7 @@ try {
   if (err.code == "SQLITE_CONSTRAINT_UNIQUE") {
     console.log("Username or email already exists");
   } else {
-    console.log("Internal server error");
+    console.log(MSG.INTERNAL_SERVER_ERROR);
   }
 }
 

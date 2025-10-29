@@ -1,5 +1,6 @@
 import db from "../db.js";
 import bcrypt from "bcrypt";
+import { MSG } from "../msg";
 
 export default async function loginRoutes(fastify, options) {
   fastify.post("/api/login", async (request, reply) => {
@@ -12,13 +13,13 @@ export default async function loginRoutes(fastify, options) {
         .get(username);
 
       if (!user) {
-        return reply.code(401).send({ error: "Utilisateur non trouvé" });
+        return reply.code(401).send({ error: MSG.USER_NOT_FOUND });
       }
 
       // Vérifie le mot de passe
       const passwordMatches = await bcrypt.compare(password, user.password);
       if (!passwordMatches) {
-        return reply.code(401).send({ error: "Mot de passe incorrect" });
+        return reply.code(401).send({ error: MSG.AUTHENTICATION_ERROR });
       }
 
       // Génère un token JWT
@@ -34,7 +35,7 @@ export default async function loginRoutes(fastify, options) {
       });
     } catch (err) {
       console.error(err);
-      return reply.code(500).send({ error: "Erreur interne" });
+      return reply.code(500).send({ error: MSG.INTERNAL_SERVER_ERROR });
     }
   });
 }

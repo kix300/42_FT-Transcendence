@@ -4,7 +4,7 @@ import multipart from '@fastify/multipart';
 import path from 'path';
 import { pipeline } from "stream/promises";
 import fs from "fs";
-
+import { MSG } from "../msg";
 
 /*
 interface User {
@@ -32,7 +32,17 @@ export default async function usersRoutes(fastify, options) {
 	fastify.register(multipart);
 
     //liste des utilisateurs (pour utilisateur connecte)
-    fastify.get("/api/users", { preHandler: [fastify.authenticate] }, async () => db.prepare("SELECT * FROM users").all());
+    fastify.get("/api/users", { preHandler: [fastify.authenticate] }, async () => {
+		try{
+			const users = db.prepare("SELECT * FROM users").all();
+			if (users.length === 0)
+				return reply.status(404).send({ message: "Aucun utilisateur trouvé." });
+			return users;
+		} catch(err) {
+			console.error("Erreur lors de la récupération des utilisateurs:", err);
+    		reply.status(500).send({ message: MSG.INTERNAL_SERVER_ERROR });
+		}
+	});
 
     //ajouter un user (seulement pour admin)
     fastify.post("/api/users", { preHandler: [fastify.authenticate] }, async (req, reply) => {
@@ -55,7 +65,7 @@ export default async function usersRoutes(fastify, options) {
             .prepare("SELECT * FROM users WHERE id = ?")
             .get(userId);
         if (!user) {
-            return reply.code(404).send({ error: "Utilisateur introuvable" });
+            return reply.code(404).send({ error: MSG.USER_NOT_FOUND });
         }
 
 		//table matches
@@ -89,7 +99,7 @@ export default async function usersRoutes(fastify, options) {
             .prepare("SELECT * FROM users WHERE id = ?")
             .get(userId);
         if (!user) {
-            return reply.code(404).send({ error: "Utilisateur introuvable" });
+            return reply.code(404).send({ error: MSG.USER_NOT_FOUND });
         }
 
 		//table matches
@@ -120,7 +130,7 @@ export default async function usersRoutes(fastify, options) {
 		//check user existence in database
 		const user = db.prepare("SELECT * FROM users WHERE id = ?").get(userId);
 		if (!user) {
-		return reply.code(404).send({ error: "Utilisateur introuvable" });
+		return reply.code(404).send({ error: MSG.USER_NOT_FOUND });
 		}
 
 		//check password
@@ -181,7 +191,7 @@ export default async function usersRoutes(fastify, options) {
 
 		// Récupérer l'utilisateur actuel
 		const user = db.prepare("SELECT * FROM users WHERE id = ?").get(userId);
-		if (!user) return reply.code(404).send({ error: "User not found" });
+		if (!user) return reply.code(404).send({ error: MSG.USER_NOT_FOUND });
 
 		// Supprimer l'ancienne photo si ce n'est pas l'avatar par défaut
 		if (user.photo && user.photo !== "./uploads/avatar.png" && fs.existsSync(user.photo)) {

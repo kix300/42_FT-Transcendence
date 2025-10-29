@@ -1,4 +1,5 @@
 import db from '../db.js';
+import { MSG } from "../msg";
 
 export default async function friendsRoutes(fastify, options) {
 
@@ -16,7 +17,7 @@ export default async function friendsRoutes(fastify, options) {
             reply.send(friends);
         } catch (err) {
             console.error("Erreur lors de la récupération des amis :", err);
-            reply.status(500).send({ success: false, message: "Erreur serveur" });
+            reply.status(500).send({ success: false, message: MSG.INTERNAL_SERVER_ERROR });
         }
 
 		/* Code si amitie bilaterale */
@@ -43,7 +44,7 @@ export default async function friendsRoutes(fastify, options) {
 
         const friend = db.prepare("SELECT * FROM users WHERE id = ?").get(friendId);
         if (!friend) {
-            return { success: false, message: "/api/friends/add: Utilisateur introuvable" };
+            return { success: false, message: MSG.USER_NOT_FOUND };
         }
         try {
             db.prepare("INSERT INTO friends (user_id, friend_id) VALUES (?, ?)").run(userId, friendId);
@@ -54,7 +55,7 @@ export default async function friendsRoutes(fastify, options) {
             return reply.status(400).send({ success: false, message: "Demande déjà existante" });
             }
             console.error("Erreur /api/friends/add:", err);
-            return reply.status(500).send({ success: false, message: "Erreur serveur" });
+            return reply.status(500).send({ success: false, message: MSG.INTERNAL_SERVER_ERROR });
         }
     });
 
@@ -64,7 +65,7 @@ export default async function friendsRoutes(fastify, options) {
         const userId = request.user.id;
         const friend = db.prepare("SELECT id FROM users WHERE username = ?").get(username);
         if (!friend) {
-            return { success: false, message: "/api/friends/accept: Utilisateur introuvable" };
+            return { success: false, message: MSG.USER_NOT_FOUND };
         }
         const friendId = friend.id;
         db.prepare("UPDATE friends SET status = 'accepted' WHERE user_id = ? AND friend_id = ?").run(friendId, userId);
@@ -97,7 +98,7 @@ export default async function friendsRoutes(fastify, options) {
         return reply.send({ success: true, message: "Ami supprimé avec succès" });
         } catch (err) {
         console.error(err);
-        return reply.code(500).send({ error: "Erreur interne" });
+        return reply.code(500).send({ error: MSG.INTERNAL_SERVER_ERROR });
         }
     });
 
