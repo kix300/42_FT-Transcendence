@@ -8,6 +8,10 @@ export function connectWebSocket(token: string) {
   console.log(`🔄 Connexion WebSocket: ${url}`);
 
   try {
+
+    if (ws)
+      ws.close();
+
     ws = new WebSocket(url);
 
     ws.onopen = () => {
@@ -26,8 +30,12 @@ export function connectWebSocket(token: string) {
     };
 
     ws.onclose = (event) => {
-      console.log(`🔴 WebSocket fermé (code: ${event.code}), reconnexion dans 5s...`);
-      setTimeout(() => connectWebSocket(token), 5000);
+      if (event.code != 1005) {
+        console.log(`🔴 WebSocket fermé (code: ${event.code}), reconnexion dans 5s...`);
+        setTimeout(() => connectWebSocket(token), 5000);
+      } else {
+        console.log(`🔴 WebSocket fermé (user logged out, code: ${event.code})`);
+      }
     };
 
     ws.onerror = (err) => {
@@ -76,9 +84,14 @@ export function isWebSocketConnected(): boolean {
 // Fonction pour fermer proprement la connexion
 export function disconnectWebSocket() {
   if (ws) {
-	console.log("🔌 Fermeture de la connexion WebSocket...");
-    ws.close();
-    ws = null;
+    try{
+      console.log("🔌 Fermeture de la connexion WebSocket...");
+      ws.close();
+      ws = null;
+      console.log("🔌 Fermeture de la connexion WebSocket... ok");
+    } catch(err) {
+      console.error("Erreur logout:", err);
+    }
   }
 }
 
