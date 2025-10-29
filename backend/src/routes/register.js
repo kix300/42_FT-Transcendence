@@ -4,7 +4,7 @@ import multipart from "@fastify/multipart";
 import fs from "fs";
 import path from "path";
 import { pipeline } from "stream/promises";
-import { MSG } from "../msg";
+import { MSG } from "../msg.js";
 
 export default async function registerRoutes(fastify){
 	fastify.register(multipart);

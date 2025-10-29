@@ -1,6 +1,6 @@
 import db from "../db.js";
 import bcrypt from "bcrypt";
-import { MSG } from "../msg";
+import { MSG } from "../msg.js";
 
 export default async function loginRoutes(fastify, options) {
   fastify.post("/api/login", async (request, reply) => {

@@ -198,9 +198,11 @@ export const HeaderConfigs = {
     activeRoute: "/profile",
   },
   users: {
-    title: "Utilisateurs",
+    title: "Joueurs",
     command: "./users_management.sh",
     activeRoute: "/users",
+    showProfile: true,
+    showNavigation: true,
   },
   login: {
     title: "Connexion",
