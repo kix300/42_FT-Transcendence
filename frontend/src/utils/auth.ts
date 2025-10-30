@@ -50,11 +50,11 @@ export class AuthManager {
     return localStorage.getItem(this.REMEMBER_KEY) === "true";
   }
 
-  // Vérifier si l'utilisateur est connecté
+  // Vérifier si l'utilisateur est connecté et connecter la socket
   static isAuthenticated(): boolean {
     const token = this.getToken();
     if (!token) return false;
-
+	connectWebSocket(token);
     return true;
   }
 
