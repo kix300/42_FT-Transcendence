@@ -9,7 +9,7 @@ export default async function loginRoutes(fastify, options) {
     try {
       // Recherche l'utilisateur en base via l'email
       const user = db
-        .prepare("SELECT * FROM users_public WHERE username = ?")
+        .prepare("SELECT * FROM users WHERE username = ?")
         .get(username);
 
       if (!user) {

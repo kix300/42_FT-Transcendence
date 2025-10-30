@@ -42,7 +42,7 @@ export default async function friendsRoutes(fastify, options) {
         const userId = request.user.id;
 
 
-        const friend = db.prepare("SELECT * FROM users_public WHERE id = ?").get(friendId);
+        const friend = db.prepare("SELECT username FROM users_public WHERE id = ?").get(friendId);
         if (!friend) {
             return { success: false, message: MSG.USER_NOT_FOUND };
         }
@@ -84,7 +84,7 @@ export default async function friendsRoutes(fastify, options) {
         console.log(`userId: ${userId}, friendId: ${friendId}`);
         // Vérifie si l'ami existe dans la table friends
         const friendship = db
-            .prepare("SELECT * FROM friends WHERE (user_id = ? AND friend_id = ?)")
+            .prepare("SELECT user_id, friend_id FROM friends WHERE (user_id = ? AND friend_id = ?)")
             .get(userId, friendId);
 
         if (!friendship) {

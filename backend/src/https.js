@@ -24,4 +24,3 @@ export function verifyWsAuth(fastify, connection, request) {
     return null;
   }
 }
-

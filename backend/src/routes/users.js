@@ -74,9 +74,9 @@ export default async function usersRoutes(fastify, options) {
         //on recupere id de l'utilisateur qu'on veut voir (a modifier avec ce que Killian dira)
         const userId = request.params.id;
 
-		//table users
+		//existence
         const user = db
-            .prepare("SELECT * FROM users_public WHERE id = ?")
+            .prepare("SELECT username FROM users_public WHERE id = ?")
             .get(userId);
         if (!user) {
             return reply.code(404).send({ error: MSG.USER_NOT_FOUND });
@@ -150,7 +150,7 @@ export default async function usersRoutes(fastify, options) {
         const {currentPassword, username, email, password} = request.body;
 
 		//check user existence in database
-		const user = db.prepare("SELECT * FROM users_public WHERE id = ?").get(userId);
+		const user = db.prepare("SELECT username FROM users_public WHERE id = ?").get(userId);
 		if (!user) {
 		return reply.code(404).send({ error: MSG.USER_NOT_FOUND });
 		}
@@ -212,7 +212,7 @@ export default async function usersRoutes(fastify, options) {
 		if (!avatarFile) return reply.code(400).send({ error: "No file uploaded" });
 
 		// Récupérer l'utilisateur actuel
-		const user = db.prepare("SELECT * FROM users_public WHERE id = ?").get(userId);
+		const user = db.prepare("SELECT username FROM users_public WHERE id = ?").get(userId);
 		if (!user) return reply.code(404).send({ error: MSG.USER_NOT_FOUND });
 
 		// Supprimer l'ancienne photo si ce n'est pas l'avatar par défaut
