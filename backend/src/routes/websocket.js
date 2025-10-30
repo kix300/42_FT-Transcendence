@@ -65,6 +65,7 @@ export default async function webSocketRoutes (fastify) {
 			connection.on("close", () => {
 				onlineUsers.delete(userId);
 				db.prepare("UPDATE users SET status = 0 WHERE id = ?").run(userId);
+      			db.prepare("UPDATE users SET last_login = datetime('now', 'localtime') WHERE id = ?").run(user.id);
 				console.log("🔴 Connexion WebSocket Secure fermée pour l'utilisateur #", userId);
 				broadcastToFriends(userId, { type: "friend_offline", id: userId, username: senderUsername });
 			});
@@ -126,6 +127,7 @@ export default async function webSocketRoutes (fastify) {
 		onlineUsers.delete(userId);
 	}
 	db.prepare("UPDATE users SET status = 0 WHERE id = ?").run(userId);
+    db.prepare("UPDATE users SET last_login = datetime('now', 'localtime') WHERE id = ?").run(user.id);
 	console.log(`💀 Déconnexion forcée de user #${userId} (timeout ping)`);
 	broadcastToFriends(userId, { type: "friend_offline", id: userId, username: senderUsername });
 	}

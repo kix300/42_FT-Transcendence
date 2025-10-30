@@ -9,11 +9,28 @@ export default async function friendsRoutes(fastify, options) {
 
         try {
             const friends = db.prepare(`
-            SELECT u.id, u.username, u.photo, u.status
+            SELECT u.id, u.username, u.photo, u.status, u.last_login, u.created_at
             FROM friends f
             JOIN users u ON f.friend_id = u.id
             WHERE f.user_id = ?
             `).all(userId);
+
+			const matches = db.prepare(`
+				SELECT *
+				FROM matches
+				WHERE player1_id = ? OR player2_id = ?
+				ORDER BY date DESC
+			`);
+
+			for (const friend of friends) {
+				const friendMatches = matches.all(friend.id, friend.id);
+
+				friend.stats = {
+					totalMatches: friendMatches.length,
+					wins: friendMatches.filter(m => m.winner_id === friend.id).length,
+					losses: friendMatches.filter(m => m.winner_id !== friend.id).length,
+				};
+			}
             reply.send(friends);
         } catch (err) {
             console.error("Erreur lors de la récupération des amis :", err);

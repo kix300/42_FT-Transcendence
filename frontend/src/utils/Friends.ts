@@ -16,8 +16,15 @@ interface Friend {
   id: number;
   username: string;
   photo: string;
-  status?: number;
+  status: number;
+  last_login?: string | null;
+  stats: {
+    totalMatches: number;
+    wins: number;
+    losses: number;
+  }
 }
+
 export class FriendManager {
 
   // Setup friends search listeners
@@ -308,9 +315,10 @@ export class FriendManager {
             const target = e.target as HTMLElement;
             const userId = target.getAttribute("data-user-id");
             if (userId) {
-              // TODO: Navigate to user's profile
-              //show modal 
-              // recuperer les stats pour chaque amis cliquer dessus
+				// TODO: Navigate to user's profile
+				//const response = await AuthManager.fetchWithAuth(`api/user/${userId}`);
+              	//show modal 
+              	// recuperer les stats pour chaque amis cliquer dessus
               const friendObj = friends.find(f => f.id === parseInt(userId));
               showViewProfileModal(friendObj || null);
             }
@@ -438,10 +446,19 @@ function showViewProfileModal(userProfile: Friend | null): void {
        <span class="text-green-400 text-3xl font-bold hidden">${escapeHtml((userProfile?.username || "U").charAt(0).toUpperCase())}</span>`
     : `<span class="text-green-400 text-3xl font-bold">${escapeHtml((userProfile?.username || "U").charAt(0).toUpperCase())}</span>`;
 
+  const winRate = userProfile?.stats.totalMatches
+    ? Math.round(
+        ((userProfile.stats.wins || 0) / userProfile.stats.totalMatches) * 100,
+      ) : 0;
+
   html = html
     .replace("{{statusColor}}", statusColor)
     .replace("{{statusText}}", statusText)
     .replace("{{matchHistory}}", profilePageMatchHistory)
+    .replace("{{last_login}}", userProfile?.last_login ?? "No info")
+    .replace("{{totalMatches}}", String(userProfile?.stats.totalMatches ?? -1))
+    .replace("{{wins}}", String(userProfile?.stats.wins ?? -1))
+    .replace("{{winRate}}", String(winRate))
     .replace("{{avatar}}", avatar)
     .replace("{{username}}", escapeHtml(userProfile?.username || "Unknown User"))
     .replace("{{userId}}", userProfile?.id?.toString() || "N/A");

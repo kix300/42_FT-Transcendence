@@ -38,7 +38,7 @@ const fastify = Fastify({
 
 // Mettre tous le monde hors ligne lors d'un redemarrage du serveur
 db.prepare("UPDATE users SET status = 0").run();
-console.log("Toutes les connexions réinitialisées (status = 0)");
+console.log("Toutes les connexions sont réinitialisées (status = 0)");
 
 // Clé secrète JWT
 fastify.register(fastifyJwt, { secret: process.env.JWT_PWD });

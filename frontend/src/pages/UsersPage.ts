@@ -166,7 +166,7 @@ function displayUsers(): void {
       </div>
 
       <div class="text-green-500 text-sm">
-        ${user.last_login ? formatDate(user.last_login) : "Jamais"}
+        ${user.last_login ? formatDate(user.last_login) : "Inconnu"}
       </div>
 
       <div class="flex space-x-2 justify-center">

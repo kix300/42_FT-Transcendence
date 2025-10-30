@@ -65,7 +65,7 @@ export class AuthManager {
     localStorage.removeItem(this.REMEMBER_KEY);
     localStorage.removeItem(this.GUEST_MODE_KEY);
     sessionStorage.removeItem(this.TOKEN_KEY);
-	  disconnectWebSocket();
+	disconnectWebSocket();
     const router = getRouter();
     if (router) {
       router.navigate("/login");

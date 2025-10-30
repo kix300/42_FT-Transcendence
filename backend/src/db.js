@@ -21,8 +21,8 @@ db.prepare(
     email TEXT UNIQUE,
     password TEXT,
     photo TEXT DEFAULT './uploads/avatar.png',
-    wins INTEGER DEFAULT 0,
-    losses INTEGER DEFAULT 0)`,
+    created_at DATETIME DEFAULT (datetime('now', 'localtime')),
+    last_login DATETIME DEFAULT (datetime('now', 'localtime')))`,
 ).run();
 
 
@@ -46,7 +46,7 @@ try {
     `).run();
 } catch (err) {
   if (err.code == "SQLITE_CONSTRAINT_UNIQUE") {
-    console.log("Username or email already exists");
+    console.log("ℹ️ Username or email already exists");
   } else {
     console.log(MSG.INTERNAL_SERVER_ERROR);
   }
@@ -90,7 +90,7 @@ if (!twoFaSecretExists) {
   db.prepare("ALTER TABLE users ADD COLUMN two_fa_secret TEXT").run();
   console.log("Colonne 'two_fa_secret' ajoutée !");
 } else {
-  console.log(" La colonne 'two_fa_secret' existe déjà.");
+  console.log("ℹ️ La colonne 'two_fa_secret' existe déjà.");
 }
 
 if (!twoFaEnabledExists) {
@@ -99,7 +99,7 @@ if (!twoFaEnabledExists) {
   ).run();
   console.log("Colonne 'two_fa_enabled' ajoutée !");
 } else {
-  console.log("La colonne 'two_fa_enabled' existe déjà.");
+  console.log("ℹ️ La colonne 'two_fa_enabled' existe déjà.");
 }
 
 /* AJOUT COLONNE STATUS */
@@ -124,16 +124,52 @@ db.prepare(`UPDATE users SET status = 0 WHERE status IS NULL`).run();
 // const rows = db.prepare("SELECT * FROM users").all();
 // console.log(rows);
 
+
+/* AJOUT COLONNE created_at */
+
+columnExists = db
+  .prepare("PRAGMA table_info(users)")
+  .all()
+  .some((col) => col.name === "created_at");
+if (!columnExists) {
+  db.prepare(
+    `ALTER TABLE users ADD COLUMN created_at DATETIME`,
+  ).run();
+  console.log("✅ Colonne 'created_at' ajoutée !");
+} else {
+  console.log("ℹ️ La colonne 'created_at' existe déjà");
+}
+
+// mise a jour pour les utilisateurs deja existants
+db.prepare(`UPDATE users SET created_at = (datetime('now', 'localtime')) WHERE created_at IS NULL`).run();
+
+/* AJOUT COLONNE last_login */
+
+columnExists = db
+  .prepare("PRAGMA table_info(users)")
+  .all()
+  .some((col) => col.name === "last_login");
+if (!columnExists) {
+  db.prepare(
+    `ALTER TABLE users ADD COLUMN last_login DATETIME`,
+  ).run();
+  console.log("✅ Colonne 'last_login' ajoutée !");
+} else {
+  console.log("ℹ️ La colonne 'last_login' existe déjà");
+}
+
+// mise a jour pour les utilisateurs deja existants
+db.prepare(`UPDATE users SET last_login = 0 WHERE created_at IS NULL`).run();
+
 /*****************************************************************/
 /*                                                               */
 /*                 TABLE USERS_PUBLIC                            */
 /*                                                               */
 /*****************************************************************/
 
-
 db.prepare(`
     CREATE VIEW IF NOT EXISTS users_public AS
-    SELECT id, username, email, photo, status, role, wins, losses
+    SELECT id, username, email, photo, status, role, last_login, created_at
     FROM users
 `).run();
 

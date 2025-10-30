@@ -27,6 +27,7 @@ export default async function loginRoutes(fastify, options) {
       console.log("✅ Token généré :", token);
 
       db.prepare("UPDATE users SET status = 1 WHERE id = ?").run(user.id);
+      db.prepare("UPDATE users SET last_login = datetime('now', 'localtime') WHERE id = ?").run(user.id);
 
       return reply.send({
         message: "Connexion réussie",
