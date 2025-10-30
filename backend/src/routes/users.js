@@ -76,7 +76,7 @@ export default async function usersRoutes(fastify, options) {
 
 		//table users
         const user = db
-            .prepare("SELECT * FROM users WHERE id = ?")
+            .prepare("SELECT * FROM users_public WHERE id = ?")
             .get(userId);
         if (!user) {
             return reply.code(404).send({ error: MSG.USER_NOT_FOUND });
@@ -118,7 +118,7 @@ export default async function usersRoutes(fastify, options) {
 
 		//table users
         const user = db
-            .prepare("SELECT * FROM users WHERE id = ?")
+            .prepare("SELECT * FROM users_public WHERE id = ?")
             .get(userId);
         if (!user) {
             return reply.code(404).send({ error: MSG.USER_NOT_FOUND });

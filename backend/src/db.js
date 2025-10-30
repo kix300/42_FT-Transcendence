@@ -124,6 +124,25 @@ db.prepare(`UPDATE users SET status = 0 WHERE status IS NULL`).run();
 const rows = db.prepare("SELECT * FROM users").all();
 console.log(rows);
 
+
+/*****************************************************************/
+/*                                                               */
+/*                 TABLE USERS_PUBLIC                            */
+/*                                                               */
+/*****************************************************************/
+
+
+db.prepare(`
+    CREATE VIEW IF NOT EXISTS users_public AS
+    SELECT id, username, email, photo, status, role, wins, losses
+    FROM users
+`).run();
+
+console.log("✅ Vue 'users_public' créée !");
+
+
+
+
 /*****************************************************************/
 /*                                                               */
 /*                 TABLE MATCHES                                 */

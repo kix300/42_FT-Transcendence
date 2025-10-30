@@ -42,7 +42,7 @@ export default async function friendsRoutes(fastify, options) {
         const userId = request.user.id;
 
 
-        const friend = db.prepare("SELECT * FROM users WHERE id = ?").get(friendId);
+        const friend = db.prepare("SELECT * FROM users_public WHERE id = ?").get(friendId);
         if (!friend) {
             return { success: false, message: MSG.USER_NOT_FOUND };
         }
