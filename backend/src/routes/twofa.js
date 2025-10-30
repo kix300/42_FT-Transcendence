@@ -1,6 +1,7 @@
 import db from "../db.js";
 import { authenticator } from "otplib";
 import QRCode from "qrcode";
+import { MSG } from "../msg.js"
 
 export default async function twoFaRoutes(fastify, options) {
   // ============================================
@@ -17,7 +18,7 @@ export default async function twoFaRoutes(fastify, options) {
         const user = db.prepare("SELECT * FROM users_public WHERE id = ?").get(userId);
 
         if (!user) {
-          return reply.code(404).send({ error: "Utilisateur non trouvé" });
+          return reply.code(404).send({ error: MSG.USER_NOT_FOUND });
         }
 
         // Vérifie si 2FA est déjà activé

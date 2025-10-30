@@ -22,7 +22,7 @@ export default async function usersRoutes(fastify, options) {
 		try{
 			const users = db.prepare("SELECT * FROM users_public WHERE id != 0").all();
 			if (users.length === 0)
-				return reply.status(404).send({ message: "Aucun utilisateur trouvé." });
+				return reply.status(404).send({ message: MSG.USER_NOT_FOUND });
 			return users;
 		} catch(err) {
 			console.error("Erreur lors de la récupération des utilisateurs:", err);
