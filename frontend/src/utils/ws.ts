@@ -16,13 +16,13 @@ export function connectWebSocket(token: string) {
 
     ws.onopen = () => {
       console.log("🟢 WebSocket connecté");
-  	  FriendManager.loadFriendsList(); // Refresh friends list
+  	  FriendManager.loadFriendsList();
     };
 
     ws.onmessage = (event) => {
       try {
         const data = JSON.parse(event.data);
-  	    FriendManager.loadFriendsList(); // Refresh friends list
+  	    FriendManager.loadFriendsList();
         handleWsMessage(data);
       } catch (error) {
         console.error("❌ Erreur parsing message WebSocket:", error);
@@ -47,38 +47,20 @@ export function connectWebSocket(token: string) {
 }
 
 function handleWsMessage(data: any) {
-  console.log("📡 WS received message:", data);
-
-  // Exemple de gestion des événements
   if (data.type === "friend_online") {
     console.log(`👋 ${data.username} est en ligne`);
-    // Mettre à jour l'interface utilisateur
 	FriendManager.updateFriendsStatus(data.userId, 1);
   } else if (data.type === "friend_offline") {
     console.log(`👋 ${data.username} est hors ligne`);
-    // Mettre à jour l'interface utilisateur
 	FriendManager.updateFriendsStatus(data.userId, 0);
   } else if (data.type === "friends_online") {
-  	console.log(`👋 ${data.username}: liste des amis connectes recue`);
+  	console.log("📡 WS received message:", data);
 	if (Array.isArray(data.friends)) {
         data.friends.forEach((friend: {id: number; status: number}) => {
 		  FriendManager.updateFriendsStatus(friend.id, friend.status);
         });
     }
   }
-}
-
-export function sendWsMessage(msg: any) {
-  if (ws && ws.readyState === WebSocket.OPEN) {
-    ws.send(JSON.stringify(msg));
-  } else {
-    console.warn("⚠️ WebSocket non connecté, impossible d'envoyer le message");
-  }
-}
-
-// Fonction utilitaire pour vérifier l'état
-export function isWebSocketConnected(): boolean {
-  return ws !== null && ws.readyState === WebSocket.OPEN;
 }
 
 // Fonction pour fermer proprement la connexion
@@ -92,6 +74,15 @@ export function disconnectWebSocket() {
     } catch(err) {
       console.error("Erreur logout:", err);
     }
+  }
+}
+
+// Non utilise encore
+export function sendWsMessage(msg: any) {
+  if (ws && ws.readyState === WebSocket.OPEN) {
+    ws.send(JSON.stringify(msg));
+  } else {
+    console.warn("⚠️ WebSocket non connecté, impossible d'envoyer le message");
   }
 }
 

@@ -6,29 +6,35 @@ const onlineUsers = new Map();	// Map(userId -> connection)
 
 //WebSocketRoutes handler
 export default async function webSocketRoutes (fastify) {
+	
+	const getPublicUser = db.prepare("SELECT id, username FROM users_public WHERE id = ?");
+	
 	fastify.get("/ws", { websocket: true }, (connection, request) => {
 		try {
 			//check token
 			const user = verifyWsAuth(fastify, connection, request);
 			if (!user) return ;
 			const userId = user.id;
+			const senderUsername = getPublicUser.get(userId).username;
 
 			//status online
 			onlineUsers.set(userId, connection);
 			db.prepare("UPDATE users SET status = 1 WHERE id = ?").run(user.id);
 			console.log("🟢 Connexion WebSocket Secure de l’utilisateur #", userId);
-			broadcastToFriends(userId, { type: "friend_online", userId });
+			broadcastToFriends(userId, { type: "friend_online", id: userId, username: senderUsername });
 
 			//Mettre ma liste d'amis a jour
 			const friends = getFriends(userId);
 			const onlineFriends = friends.map(fid => ({
 				id: fid,
+				username: getPublicUser.get(fid).username,
 				status: onlineUsers.has(fid) ? 1 : 0,
 			}));
 			if (connection){
 				connection.send(
 					JSON.stringify({
 						type: "friends_online",
+						username: senderUsername,
 						friends: onlineFriends
 					})
 				);
@@ -60,7 +66,7 @@ export default async function webSocketRoutes (fastify) {
 				onlineUsers.delete(userId);
 				db.prepare("UPDATE users SET status = 0 WHERE id = ?").run(userId);
 				console.log("🔴 Connexion WebSocket Secure fermée pour l'utilisateur #", userId);
-				broadcastToFriends(userId, { type: "friend_offline", userId });
+				broadcastToFriends(userId, { type: "friend_offline", id: userId, username: senderUsername });
 			});
 
 		} catch (err) {
@@ -121,6 +127,6 @@ export default async function webSocketRoutes (fastify) {
 	}
 	db.prepare("UPDATE users SET status = 0 WHERE id = ?").run(userId);
 	console.log(`💀 Déconnexion forcée de user #${userId} (timeout ping)`);
-	broadcastToFriends(userId, { type: "friend_offline", userId });
+	broadcastToFriends(userId, { type: "friend_offline", id: userId, username: senderUsername });
 	}
 };
