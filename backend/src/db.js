@@ -121,9 +121,8 @@ if (!columnExists) {
 db.prepare(`UPDATE users SET status = 0 WHERE status IS NULL`).run();
 
 // lit les données et les affiche sur la console
-const rows = db.prepare("SELECT * FROM users").all();
-console.log(rows);
-
+// const rows = db.prepare("SELECT * FROM users").all();
+// console.log(rows);
 
 /*****************************************************************/
 /*                                                               */
@@ -137,11 +136,6 @@ db.prepare(`
     SELECT id, username, email, photo, status, role, wins, losses
     FROM users
 `).run();
-
-console.log("✅ Vue 'users_public' créée !");
-
-
-
 
 /*****************************************************************/
 /*                                                               */

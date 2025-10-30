@@ -14,7 +14,7 @@ export default async function twoFaRoutes(fastify, options) {
 
       try {
         // Récupère l'utilisateur
-        const user = db.prepare("SELECT * FROM users WHERE id = ?").get(userId);
+        const user = db.prepare("SELECT * FROM users_public WHERE id = ?").get(userId);
 
         if (!user) {
           return reply.code(404).send({ error: "Utilisateur non trouvé" });
@@ -71,7 +71,7 @@ export default async function twoFaRoutes(fastify, options) {
       const { token } = request.body; // Le code à 6 chiffres entré par l'utilisateur
 
       try {
-        const user = db.prepare("SELECT * FROM users WHERE id = ?").get(userId);
+        const user = db.prepare("SELECT * FROM users_public WHERE id = ?").get(userId);
 
         if (!user || !user.two_fa_secret) {
           return reply.code(400).send({
@@ -115,7 +115,7 @@ export default async function twoFaRoutes(fastify, options) {
       const { token } = request.body;
 
       try {
-        const user = db.prepare("SELECT * FROM users WHERE id = ?").get(userId);
+        const user = db.prepare("SELECT * FROM users_public WHERE id = ?").get(userId);
 
         if (!user || !user.two_fa_enabled) {
           return reply.code(400).send({ error: "2FA non activée" });
