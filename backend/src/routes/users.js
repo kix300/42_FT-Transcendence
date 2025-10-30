@@ -20,7 +20,7 @@ export default async function usersRoutes(fastify, options) {
     //liste des utilisateurs (pour utilisateur connecte)
     fastify.get("/api/users", { preHandler: [fastify.authenticate] }, async () => {
 		try{
-			const users = db.prepare("SELECT * FROM users").all();
+			const users = db.prepare("SELECT * FROM users WHERE id != 0").all();
 			if (users.length === 0)
 				return reply.status(404).send({ message: "Aucun utilisateur trouvé." });
 			return users;

@@ -658,9 +658,9 @@ function generateActionButton(match: Match): string {
           class="start-match-btn w-full mt-2 bg-green-400/20 border border-green-400 px-3 py-1 hover:bg-green-400/30 transition-colors text-xs"
           data-match-id="${match.id}"
           data-match-round="${match.round}"
-          data-player1-id="${player1?.id || -1}"
+          data-player1-id="${player1?.id || 0}"
           data-player1-name="${escapeHtml(player1?.name || "")}"
-          data-player2-id="${player2?.id || -1}"
+          data-player2-id="${player2?.id || 0}"
           data-player2-name="${escapeHtml(player2?.name || "")}"
         >
           <span class="text-green-300">> ENTER ALIAS</span>

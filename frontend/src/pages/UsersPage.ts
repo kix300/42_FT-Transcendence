@@ -54,6 +54,16 @@ export async function UsersPage(): Promise<void> {
   // Injecter le HTML dans le conteneur
   appDiv.innerHTML = usersPageHtml.replace("{{header}}", headerHtml);
 
+  // Mettre opacity a 1
+  const userProfile = document.getElementById("user-profile");
+  const navMenu = document.getElementById("nav-menu");
+  if (userProfile) {
+    userProfile.style.opacity = "1";
+  }
+  if (navMenu) {
+    navMenu.style.opacity = "1";
+  }
+
   // Initialiser la page
   await initializeUsersPage();
 

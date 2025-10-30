@@ -920,11 +920,11 @@ async function sendNormalMatchResult(
       return;
     }
 
-    const winnerId = winner === 1 ? player1?.id || -1 : player2?.id || -1;
+    const winnerId = winner === 1 ? player1?.id || 0 : player2?.id || 0;
 
     const matchData = {
-      player1_id: player1.id || -1, // null si guest
-      player2_id: player2.id || -1, // null si guest
+      player1_id: player1.id || 0, // null si guest
+      player2_id: player2.id || 0, // null si guest
       player1_score: score1,
       player2_score: score2,
       winner_id: winnerId,
@@ -980,11 +980,11 @@ async function sendTournamentMatchResult(
     }
 
     // Déterminer le winner ID (utiliser l'ID utilisateur si connecté, sinon null)
-    const winnerId = winner === 1 ? player1?.id || -1 : player2?.id || -1;
+    const winnerId = winner === 1 ? player1?.id || 0 : player2?.id || 0;
 
     const tournamentMatchData = {
-      player1_id: player1?.id || -1, // null si guest
-      player2_id: player2?.id || -1, // null si guest
+      player1_id: player1?.id || 0, // null si guest
+      player2_id: player2?.id || 0, // null si guest
       player1_score: score1,
       player2_score: score2,
       winner_id: winnerId,
