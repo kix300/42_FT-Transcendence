@@ -1,4 +1,6 @@
 import { AuthManager } from "../utils/auth";
+import profilePageMatchHistory from "./../pages/html/ProfilePageMatchHistory.html?raw";
+import profileModal from "./../pages/html/ProfileModal.html?raw";
 import { USERS_API, FRIENDS_API } from "../utils/apiConfig";
 import { escapeHtml, sanitizeUrl } from "../utils/sanitize"; // ← AJOUTER CETTE
 // Interface pour les utilisateurs recherchés
@@ -16,7 +18,6 @@ interface Friend {
   photo: string;
   status?: number;
 }
-
 export class FriendManager {
 
   // Setup friends search listeners
@@ -154,7 +155,7 @@ export class FriendManager {
       });
 
       if (response.ok) {
-        FriendManager.showMessage(` Friend added ${username}`, "success");
+        FriendManager.showMessage(` Friend added ${escapeHtml(username)}`, "success");
         FriendManager.loadFriendsList(); // Refresh friends list
       } else {
         const errorData = await response.json();
@@ -252,13 +253,13 @@ export class FriendManager {
             <div class="w-10 h-10 rounded-full bg-green-400/20 border border-green-400/50 flex items-center justify-center overflow-hidden">
             ${
               friend.photo
-                ? `<img src="${friend.photo}" alt="${friend.username}" class="w-full h-full object-cover" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" />
-            <span class="text-green-400 font-bold hidden">${friend.username.charAt(0).toUpperCase()}</span>`
-                : `<span class="text-green-400 font-bold">${friend.username.charAt(0).toUpperCase()}</span>`
+                ? `<img src="${sanitizeUrl(friend.photo)}" alt="${escapeHtml(friend.username)}" class="w-full h-full object-cover" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" />
+            <span class="text-green-400 font-bold hidden">${escapeHtml(friend.username.charAt(0).toUpperCase())}</span>`
+                : `<span class="text-green-400 font-bold">${escapeHtml(friend.username.charAt(0).toUpperCase())}</span>`
             }
             </div>
             <div>
-				<div class="text-green-400 font-bold">${friend.username}</div>
+				<div class="text-green-400 font-bold">${escapeHtml(friend.username)}</div>
 				<div class="flex items-center space-x-1 text-xs">
 				<span class="status-dot w-2 h-2 rounded-full ${statusColor}"></span>
 				<span class="status-text text-green-500 text-xs">${statusText}</span>
@@ -277,7 +278,7 @@ export class FriendManager {
             <button
             class="remove-friend-btn bg-red-400/20 border border-red-400/50 text-red-400 px-3 py-1 rounded hover:bg-red-400/30 transition-colors text-sm"
             data-user-id="${friend.id}"
-            data-username="${friend.username}"
+            data-username="${escapeHtml(friend.username)}"
             >
             [REMOVE]
             </button>
@@ -308,10 +309,10 @@ export class FriendManager {
             const userId = target.getAttribute("data-user-id");
             if (userId) {
               // TODO: Navigate to user's profile
-              FriendManager.showMessage(
-                `Viewing profile #${userId} - Feature coming soon!`,
-                "info",
-              );
+              //show modal 
+              // recuperer les stats pour chaque amis cliquer dessus
+              const friendObj = friends.find(f => f.id === parseInt(userId));
+              showViewProfileModal(friendObj || null);
             }
           });
         });
@@ -329,7 +330,7 @@ export class FriendManager {
   // Remove friend
   static async removeFriend(username: string): Promise<void> {
     if (
-      !confirm(`Are you sure you want to remove ${username} from your friends?`)
+      !confirm(`Are you sure you want to remove ${escapeHtml(username)} from your friends?`)
     ) {
       return;
     }
@@ -376,13 +377,12 @@ export class FriendManager {
     }
 
     const messageDiv = document.createElement("div");
-    messageDiv.className = `p-3 border-l-4 max-w-sm bg-gray-900 border border-green-400/30 ${
-      type === "success"
+    messageDiv.className = `p-3 border-l-4 max-w-sm bg-gray-900 border border-green-400/30 ${type === "success"
         ? "border-l-green-400 text-green-300"
         : type === "error"
           ? "border-l-red-400 text-red-300"
           : "border-l-blue-400 text-blue-300"
-    }`;
+      }`;
 
     const prefix =
       type === "success"
@@ -405,4 +405,67 @@ export class FriendManager {
       }
     }, 5000);
   }
+}
+
+
+function showViewProfileModal(userProfile: Friend | null): void {
+  let html = profileModal;
+  let statusColor = "";
+  let statusText = "";
+  if (userProfile) {
+
+    switch (userProfile.status) {
+      case 0:
+        statusColor = "bg-gray-500";
+        statusText = "offline";
+        break;
+      case 1:
+        statusColor = "bg-green-500";
+        statusText = "online";
+        break;
+      case 2:
+        statusColor = "bg-blue-500";
+        statusText = "in game";
+        break;
+      default:
+        statusColor = "bg-yellow-500";
+        statusText = "not working";
+    }
+  }
+
+  const avatar = userProfile?.photo
+    ? `<img src="${sanitizeUrl(userProfile.photo)}" alt="${escapeHtml(userProfile.username)}" class="w-full h-full object-cover rounded-full" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" />
+       <span class="text-green-400 text-3xl font-bold hidden">${escapeHtml((userProfile?.username || "U").charAt(0).toUpperCase())}</span>`
+    : `<span class="text-green-400 text-3xl font-bold">${escapeHtml((userProfile?.username || "U").charAt(0).toUpperCase())}</span>`;
+
+  html = html
+    .replace("{{statusColor}}", statusColor)
+    .replace("{{statusText}}", statusText)
+    .replace("{{matchHistory}}", profilePageMatchHistory)
+    .replace("{{avatar}}", avatar)
+    .replace("{{username}}", escapeHtml(userProfile?.username || "Unknown User"))
+    .replace("{{userId}}", userProfile?.id?.toString() || "N/A");
+
+  document.body.insertAdjacentHTML("beforeend", html);
+  const modal = document.getElementById("view-modal");
+  // Fermer la modal
+  const closeModal = () => {
+    modal?.remove();
+  };
+
+  // Fermer en cliquant à l'extérieur
+  modal?.addEventListener("click", (e) => {
+    if (e.target === modal) {
+      closeModal();
+    }
+  });
+
+  // Fermer avec Escape
+  const handleEscape = (e: KeyboardEvent) => {
+    if (e.key === "Escape") {
+      closeModal();
+      document.removeEventListener("keydown", handleEscape);
+    }
+  };
+  document.addEventListener("keydown", handleEscape);
 }

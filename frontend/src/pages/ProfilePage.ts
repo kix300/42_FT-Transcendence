@@ -235,7 +235,8 @@ async function startProfileAnimations(): Promise<void> {
     "recent-activity",
     "match-history-section",
     "friend-section",
-    "settings",
+    "view-modal",
+
   ];
 
   for (const sectionId of sections) {
@@ -253,7 +254,7 @@ async function startProfileAnimations(): Promise<void> {
   if (friendsSection) {
     friendsSection.style.opacity = "1";
     friendsSection.style.transition = `opacity ${ANIMATION_SPEED.TRANSITION_FAST}s`;
-  }
+  } 
 
   await new Promise((resolve) =>
     setTimeout(resolve, ANIMATION_SPEED.DELAY_SHORT),
