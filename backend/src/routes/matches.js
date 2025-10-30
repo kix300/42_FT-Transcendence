@@ -1,4 +1,5 @@
 import db from '../db.js';
+import {MSG} from '../msg.js';
 
 export default async function matchesRoutes(fastify) {
 
@@ -14,11 +15,10 @@ export default async function matchesRoutes(fastify) {
         is_tournament
       } = request.body;
 
-      // ✅ Petits controles
-      if (!player1_id || !player2_id || !winner_id) {
+      // Check valeur manquante ou incoherente
+      if (player1_id == null || player2_id == null || winner_id == null) {
         return reply.code(400).send({ error: "Champs obligatoires manquants" });
       }
-
       if (winner_id !== player1_id && winner_id !== player2_id) {
         return reply.code(400).send({ error: "Le gagnant doit être l'un des deux joueurs" });
       }
@@ -40,25 +40,9 @@ export default async function matchesRoutes(fastify) {
 
     } catch (error) {
       console.error("Erreur lors de la création du match :", error);
-      reply.code(500).send({ error: "Erreur serveur" });
+      reply.code(500).send({ error: MSG.INTERNAL_SERVER_ERROR });
     }
   });
-
-  /*recuperer lhistorique dun joueur (nimporte qui peut voir)*/
-  // fastify.get("/api/matches", async (request, reply) => {
-  //   const matches = db.prepare(`
-  //     SELECT m.*, 
-  //           u1.username AS player1_name,
-  //           u2.username AS player2_name,
-  //           uw.username AS winner_name
-  //     FROM matches m
-  //     JOIN users u1 ON m.player1_id = u1.id
-  //     JOIN users u2 ON m.player2_id = u2.id
-  //     JOIN users uw ON m.winner_id = uw.id
-  //     WHERE m.player1_id = ? OR m.player2_id = ?
-  //     ORDER BY m.played_at DESC
-  //   `).all(userId, userId);
-  // });
 
   /*recuperer lhistorique dun joueur (nimporte qui peut voir)*/
   fastify.get("/api/matches", { preHandler: [fastify.authenticate] }, async (request, reply) => {

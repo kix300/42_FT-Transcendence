@@ -4,6 +4,7 @@ import multipart from "@fastify/multipart";
 import fs from "fs";
 import path from "path";
 import { pipeline } from "stream/promises";
+import { MSG } from "../msg.js";
 
 export default async function registerRoutes(fastify){
 	fastify.register(multipart);
@@ -42,7 +43,7 @@ export default async function registerRoutes(fastify){
             }
             else {
                 console.error(err);
-                reply.code(500).send({error: "Internal server error"});
+                reply.code(500).send({error: MSG.INTERNAL_SERVER_ERROR});
             }
         }
     });

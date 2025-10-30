@@ -4,39 +4,38 @@ import multipart from '@fastify/multipart';
 import path from 'path';
 import { pipeline } from "stream/promises";
 import fs from "fs";
+import { MSG } from "../msg.js";
 
-
-/*
-interface User {
-  id: number;
-  username: string;
-  email: string;
-  photo?: string;
-  created_at?: string;
-  last_login?: string;
-  role?: string;
-  status?: "online" | "offline" | "in_game";
-}
-
-// Interface pour créer/modifier un utilisateur
-interface UserFormData {
-  username: string;
-  email: string;
-  password?: string;
-  role?: string;
-}
-
-*/
 export default async function usersRoutes(fastify, options) {
 
 	fastify.register(multipart);
 
-    //liste des utilisateurs (pour utilisateur connecte)
-    fastify.get("/api/users", { preHandler: [fastify.authenticate] }, async () => db.prepare("SELECT * FROM users").all());
 
-    //ajouter un user (seulement pour admin)
+	/************************************/
+	/*                                  */
+	/*           USERS PAGE             */
+	/*                                  */
+	/************************************/
+
+    //liste des utilisateurs (pour utilisateur connecte)
+    fastify.get("/api/users", { preHandler: [fastify.authenticate] }, async () => {
+		try{
+			const users = db.prepare("SELECT * FROM users WHERE id != 0").all();
+			if (users.length === 0)
+				return reply.status(404).send({ message: "Aucun utilisateur trouvé." });
+			return users;
+		} catch(err) {
+			console.error("Erreur lors de la récupération des utilisateurs:", err);
+    		reply.status(500).send({ message: MSG.INTERNAL_SERVER_ERROR });
+		}
+	});
+
+    //ajouter un user (pour admin)
     fastify.post("/api/users", { preHandler: [fastify.authenticate] }, async (req, reply) => {
     const { username } = req.body;
+	if (req.user.role !== 'admin'){
+		return reply.status(403).send({ error: MSG.FORBIDEN_ACCES });
+	} 
     try {
         db.prepare("INSERT INTO users (username) VALUES (?)").run(username);
         return { success: true };
@@ -44,6 +43,73 @@ export default async function usersRoutes(fastify, options) {
         return reply.status(400).send({ error: "Utilisateur déjà existant" });
     }
     });
+
+	//supprimer un user pour admin)
+	fastify.delete("/api/users/:id", { preHandler: [fastify.authenticate] }, async (req, reply) => {
+		const { id } = req.params;
+
+		if (req.user.role !== 'admin') {
+			return reply.status(403).send({ error: MSG.FORBIDEN_ACCES  });
+		}
+		try {
+			const result = db.prepare("DELETE FROM users WHERE id = ?").run(id);
+			if (result.changes === 0) {
+				return reply.status(404).send({ error: MSG.USER_NOT_FOUND });
+			}
+			return { success: true };
+		} catch (error) {
+			return reply.status(400).send({ error: 'Erreur lors de la suppression de l\'utilisateur' });
+		}
+	});
+
+
+	/************************************/
+	/*                                  */
+	/*           VIEW PROFILE           */
+	/*                                  */
+	/************************************/
+
+	/* View others profile, accessible only for logged-in users */
+	fastify.get("/api/user/:id", { preHandler: [fastify.authenticate] }, async (request, reply) => {
+        //on recupere id de l'utilisateur qu'on veut voir (a modifier avec ce que Killian dira)
+        const userId = request.params.id;
+
+		//table users
+        const user = db
+            .prepare("SELECT * FROM users WHERE id = ?")
+            .get(userId);
+        if (!user) {
+            return reply.code(404).send({ error: MSG.USER_NOT_FOUND });
+        }
+
+		//table matches
+    	const matches = db
+        .prepare(`SELECT * FROM matches 
+                  WHERE player1_id = ? OR player2_id = ? 
+                  ORDER BY date DESC`)
+        .all(userId, userId);
+
+		//stats
+		const stats = {
+			totalMatches: matches.length,
+			wins: matches.filter(m => m.winner_id === userId).length,
+			losses: matches.filter(m => m.winner_id !== userId).length
+		};
+		reply.send({
+			user,
+			stats,
+			matches
+		});
+	});
+
+
+
+	/************************************/
+	/*                                  */
+	/*           MY PROFILE	            */
+	/*                                  */
+	/************************************/
+
 
     //récupérer les infos de l'utilisateur connecte
     fastify.get("/api/me", { preHandler: [fastify.authenticate] }, async (request, reply) => {
@@ -55,7 +121,7 @@ export default async function usersRoutes(fastify, options) {
             .prepare("SELECT * FROM users WHERE id = ?")
             .get(userId);
         if (!user) {
-            return reply.code(404).send({ error: "Utilisateur introuvable" });
+            return reply.code(404).send({ error: MSG.USER_NOT_FOUND });
         }
 
 		//table matches
@@ -86,7 +152,7 @@ export default async function usersRoutes(fastify, options) {
 		//check user existence in database
 		const user = db.prepare("SELECT * FROM users WHERE id = ?").get(userId);
 		if (!user) {
-		return reply.code(404).send({ error: "Utilisateur introuvable" });
+		return reply.code(404).send({ error: MSG.USER_NOT_FOUND });
 		}
 
 		//check password
@@ -147,7 +213,7 @@ export default async function usersRoutes(fastify, options) {
 
 		// Récupérer l'utilisateur actuel
 		const user = db.prepare("SELECT * FROM users WHERE id = ?").get(userId);
-		if (!user) return reply.code(404).send({ error: "User not found" });
+		if (!user) return reply.code(404).send({ error: MSG.USER_NOT_FOUND });
 
 		// Supprimer l'ancienne photo si ce n'est pas l'avatar par défaut
 		if (user.photo && user.photo !== "./uploads/avatar.png" && fs.existsSync(user.photo)) {
@@ -160,7 +226,6 @@ export default async function usersRoutes(fastify, options) {
 		await pipeline(avatarFile.file, fs.createWriteStream(filePath));
 		console.log('Fichier uploadé:',  path.join(uploadsDir, avatarFile.filename));
 		
-		// SQLite
 		db.prepare("UPDATE users SET photo = ? WHERE id = ?").run(`./uploads/${newFilename}`, userId);
 
 		return reply.send({ message: "Avatar updated successfully", photo: `./uploads/${newFilename}` });

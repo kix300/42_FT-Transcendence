@@ -46,7 +46,6 @@ fastify.register(fastifyJwt, { secret: process.env.JWT_PWD });
 // Décorateur pour vérifier le token facilement dans les routes
 fastify.decorate("authenticate", async (request, reply) => {
   try {
-    //console.log("🪪 Header Authorization reçu:", request.headers.authorization);
     await request.jwtVerify();
   } catch (err) {
     console.error("❌ Erreur JWT:", err.message);
@@ -108,7 +107,7 @@ const start = async () => {
   }
 };
 
-// ⚙️ Catch-all route pour servir public/dist/index.html
+// Catch-all route pour servir public/dist/index.html
 fastify.setNotFoundHandler((request, reply) => {
   reply.sendFile("index.html");
 });

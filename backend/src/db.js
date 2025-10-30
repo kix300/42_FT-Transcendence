@@ -1,6 +1,7 @@
 import Database from "better-sqlite3";
 import bcrypt from "bcrypt";
 import "dotenv/config";
+import { MSG } from "./msg.js";
 
 // crée ou ouvre le fichier database.db
 const db = new Database("/data/database.db");
@@ -24,8 +25,9 @@ db.prepare(
     losses INTEGER DEFAULT 0)`,
 ).run();
 
-// insère les 3 admins
+
 try {
+  // insère les 3 admins
   const hashed1 = await bcrypt.hash(process.env.MDP1, 10);
   const hashed2 = await bcrypt.hash(process.env.MDP2, 10);
   const hashed3 = await bcrypt.hash(process.env.MDP3, 10);
@@ -38,11 +40,15 @@ try {
   db.prepare(
     "INSERT INTO users (username, email, password) VALUES (?, ?, ?)",
   ).run("hgirard", "hgirard@42.fr", hashed3);
+  // insère guest
+  db.prepare(`
+    INSERT INTO users (id, username) VALUES (0, 'Guest');
+    `).run();
 } catch (err) {
   if (err.code == "SQLITE_CONSTRAINT_UNIQUE") {
     console.log("Username or email already exists");
   } else {
-    console.log("Internal server error");
+    console.log(MSG.INTERNAL_SERVER_ERROR);
   }
 }
 
@@ -128,9 +134,9 @@ console.log(rows);
 db.prepare(
   `CREATE TABLE IF NOT EXISTS matches (
 	id INTEGER PRIMARY KEY,
-	player1_id INTEGER NOT NULL,
-	player2_id INTEGER NOT NULL,
-	winner_id INTEGER NOT NULL,
+	player1_id INTEGER NOT NULL DEFAULT 0,
+	player2_id INTEGER NOT NULL DEFAULT 0,
+	winner_id INTEGER NOT NULL DEFAULT 0,
 	player1_score INTEGER,
 	player2_score INTEGER,
   tournament_winner_id INTEGER,

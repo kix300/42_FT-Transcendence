@@ -150,7 +150,6 @@ export class Header {
     const logoutBtn = document.getElementById("logout-btn");
     if (logoutBtn) {
       logoutBtn.addEventListener("click", () => {
-        console.log("Déconnexion en cours...");
         AuthManager.logout();
       });
     }
@@ -199,9 +198,11 @@ export const HeaderConfigs = {
     activeRoute: "/profile",
   },
   users: {
-    title: "Utilisateurs",
+    title: "Joueurs",
     command: "./users_management.sh",
     activeRoute: "/users",
+    showProfile: true,
+    showNavigation: true,
   },
   login: {
     title: "Connexion",

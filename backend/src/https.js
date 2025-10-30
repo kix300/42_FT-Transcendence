@@ -19,8 +19,8 @@ export function verifyWsAuth(fastify, connection, request) {
     return user;
   } catch (err) {
 	console.error("❌ WebSocket auth failed:", err.message);
-    connection.socket.send(JSON.stringify({ error: err.message }));
-    connection.socket.close();
+    connection.send(JSON.stringify({ error: err.message }));
+    connection.close();
     return null;
   }
 }
